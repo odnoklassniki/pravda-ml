@@ -24,6 +24,17 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="SBT: org.scala-lang:scala-library:2.11.11:jar" level="project" />
+    <orderEntry type="library" name="SBT: org.ow2.asm:asm:5.0.4:jar" level="project" />
+    <orderEntry type="library" name="SBT: org.objenesis:objenesis:2.5.1:jar" level="project" />
+    <orderEntry type="library" name="SBT: com.esotericsoftware:reflectasm:1.11.3:jar" level="project" />
+    <orderEntry type="library" name="SBT: com.esotericsoftware:minlog:1.3.0:jar" level="project" />
+    <orderEntry type="library" name="SBT: com.esotericsoftware:kryo:4.0.1:jar" level="project" />
+    <orderEntry type="library" name="SBT: org.apache.lucene:lucene-core:5.4.1:jar" level="project" />
+    <orderEntry type="library" name="SBT: org.apache.lucene:lucene-analyzers-common:5.4.1:jar" level="project" />
+    <orderEntry type="library" name="SBT: net.arnx:jsonic:1.2.11:jar" level="project" />
+    <orderEntry type="library" name="SBT: com.optimaize.languagedetector:language-detector:0.6:jar" level="project" />
+    <orderEntry type="library" name="SBT: com.intellij:annotations:12.0:jar" level="project" />
+    <orderEntry type="library" name="SBT: com.google.guava:guava:18.0:jar" level="project" />
     <orderEntry type="library" name="SBT: xmlenc:xmlenc:0.52:jar" level="project" />
     <orderEntry type="library" name="SBT: stax:stax-api:1.0.1:jar" level="project" />
     <orderEntry type="library" name="SBT: oro:oro:2.0.8:jar" level="project" />
@@ -50,7 +61,6 @@
     <orderEntry type="library" name="SBT: org.scala-lang:scala-reflect:2.11.11:jar" level="project" />
     <orderEntry type="library" name="SBT: org.scala-lang:scala-compiler:2.11.11:jar" level="project" />
     <orderEntry type="library" name="SBT: org.roaringbitmap:RoaringBitmap:0.5.11:jar" level="project" />
-    <orderEntry type="library" name="SBT: org.objenesis:objenesis:1.2:jar" level="project" />
     <orderEntry type="library" name="SBT: org.mortbay.jetty:jetty-util:6.1.26:jar" level="project" />
     <orderEntry type="library" name="SBT: org.json4s:json4s-jackson_2.11:3.2.10:jar" level="project" />
     <orderEntry type="library" name="SBT: org.json4s:json4s-core_2.11:3.2.10:jar" level="project" />
@@ -159,7 +169,6 @@
     <orderEntry type="library" name="SBT: com.ning:compress-lzf:1.0.3:jar" level="project" />
     <orderEntry type="library" name="SBT: com.google.protobuf:protobuf-java:2.5.0:jar" level="project" />
     <orderEntry type="library" name="SBT: com.google.inject:guice:3.0:jar" level="project" />
-    <orderEntry type="library" name="SBT: com.google.guava:guava:14.0.1:jar" level="project" />
     <orderEntry type="library" name="SBT: com.google.code.findbugs:jsr305:1.3.9:jar" level="project" />
     <orderEntry type="library" name="SBT: com.github.rwl:jtransforms:2.4.0:jar" level="project" />
     <orderEntry type="library" name="SBT: com.github.fommil.netlib:core:1.1.2:jar" level="project" />
@@ -173,5 +182,7 @@
     <orderEntry type="library" name="SBT: com.clearspring.analytics:stream:2.7.0:jar" level="project" />
     <orderEntry type="library" name="SBT: asm:asm:3.1:jar" level="project" />
     <orderEntry type="library" name="SBT: aopalliance:aopalliance:1.0:jar" level="project" />
+    <orderEntry type="library" scope="TEST" name="SBT: org.scalactic:scalactic_2.11:3.0.4:jar" level="project" />
+    <orderEntry type="library" scope="TEST" name="SBT: org.scalatest:scalatest_2.11:3.0.4:jar" level="project" />
   </component>
 </module>
