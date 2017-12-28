@@ -2,7 +2,7 @@ name := "odkl-ml-pipelines"
 
 version := "1.0"
 
-scalaVersion := "2.11.11"
+scalaVersion := "2.10.7"
 
 libraryDependencies ++= {
   val sparkVer = "1.6.3"
@@ -16,8 +16,10 @@ libraryDependencies ++= {
   )
 }
 
-lazy val scalatest = "org.scalatest" %% "scalatest" % "3.0.4"
-libraryDependencies += scalatest % Test
+libraryDependencies ++= Seq(
+  "org.scalatest" %% "scalatest" % "3.0.4" % Test,
+  "org.mockito" % "mockito-core" % "2.13.0" % Test
+)
 
 libraryDependencies ++= {
   val luceneVersion = "5.4.1"
@@ -25,6 +27,7 @@ libraryDependencies ++= {
     "org.apache.lucene"    % "lucene-core"             % luceneVersion,
     "org.apache.lucene"    % "lucene-analyzers-common" % luceneVersion,
 
-    "com.optimaize.languagedetector" % "language-detector"  % "0.6"
+    "com.optimaize.languagedetector" % "language-detector"  % "0.6",
+    "com.tdunning" % "t-digest" % "3.2"
   )
 }
