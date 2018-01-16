@@ -80,7 +80,6 @@ object LanguageAwareStemmerUtil {
     val reader = new StringReader(text.toLowerCase)
 
     val tokens = analyzer.tokenStream("text", reader)
-    val offsetAttribute: OffsetAttribute = tokens.addAttribute(classOf[OffsetAttribute])
     val charTermAttribute = tokens.addAttribute(classOf[CharTermAttribute])
     tokens.reset()
     var ansList = scala.collection.mutable.ArrayBuffer.empty[String]

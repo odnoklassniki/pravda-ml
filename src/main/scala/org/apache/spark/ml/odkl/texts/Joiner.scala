@@ -10,8 +10,9 @@ import org.apache.spark.sql.{Column, DataFrame, Row}
 /**
   * Created by eugeny.malyutin on 06.05.16.
   *
-  * Simple dataframe's join as transformer with right dataframe and col. expression as parameters
+  * dataframe's join as transformer with right dataframe and col. expression as parameters
   * used to join two dataframes through pipeline
+  * Don't save such pipelines.
   **/
 
 class Joiner(override val uid: String) extends Transformer with Params {
@@ -58,11 +59,11 @@ class Joiner(override val uid: String) extends Transformer with Params {
   @DeveloperApi
   override def transformSchema(schema: StructType): StructType = {
 
-    val rDF = $(right)
-    val rSchema = rDF.schema
-    val dummyRDf = rDF.sqlContext.createDataFrame(rDF.sqlContext.sparkContext.emptyRDD[Row], rSchema)
-    val dummyLDf = rDF.sqlContext.createDataFrame(rDF.sqlContext.sparkContext.emptyRDD[Row], schema)
+    val rightDataFrame = $(right)
+    val rightDFSchema = rightDataFrame.schema
+    val dummyRightDataFrame = rightDataFrame.sqlContext.createDataFrame(rightDataFrame.sqlContext.sparkContext.emptyRDD[Row], rightDFSchema)
+    val dummyLeftDataFrameSchema = rightDataFrame.sqlContext.createDataFrame(rightDataFrame.sqlContext.sparkContext.emptyRDD[Row], schema)
 
-    dummyLDf.join(dummyRDf, $(joinColExpr), $(joinType)).schema
+    dummyLeftDataFrameSchema.join(dummyRightDataFrame, $(joinColExpr), $(joinType)).schema
   }
 }
