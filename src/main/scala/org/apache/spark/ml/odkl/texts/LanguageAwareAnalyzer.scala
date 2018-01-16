@@ -25,7 +25,7 @@ class LanguageAwareAnalyzer(override val uid: String) extends Transformer with H
   }
 
   @transient lazy val tokenizer = {
-    languageAnalyzerMap.asInstanceOf[Map[String, ThreadLocal[StopwordAnalyzerBase]]]($(defaultLanguage)) 
+    languageAnalyzerMap.asInstanceOf[Map[String, ThreadLocal[StopwordAnalyzerBase]]]($(defaultLanguage))
 
   }
   val inputColLang = new Param[String](this, "inputColLang",
