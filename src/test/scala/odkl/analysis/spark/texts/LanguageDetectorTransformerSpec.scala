@@ -9,7 +9,8 @@ class LanguageDetectorTransformerSpec extends FlatSpec with TestEnv with org.sca
     import sqlc.implicits._
     val data = sc.parallelize(Seq(
       "Мальчик, водочки нам принеси! Мы домой летим",
-      "Luke, I am Your Father"
+      "Luke, I am Your Father",
+      "սիրելի, ուրախ է տեսնել ձեզ"
     ))
       .toDF("text")
 
@@ -17,7 +18,7 @@ class LanguageDetectorTransformerSpec extends FlatSpec with TestEnv with org.sca
         .setInputCol("text")
       .setOutputCol("lang")
 
-    assertResult(Seq("ru", "en"))(transformer.transform(data)
+    assertResult(Seq("ru", "en", "hy"))(transformer.transform(data)
         .collect()
       .map(_.getString(1)))
   }

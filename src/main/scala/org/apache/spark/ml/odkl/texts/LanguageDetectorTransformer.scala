@@ -76,7 +76,7 @@ class LanguageDetectorTransformer(override val uid: String) extends Transformer
   @transient object languageDetectorWrapped extends Serializable {
     val languageDetector: LanguageDetector =
       LanguageDetectorUtils.buildLanguageDetector(
-        LanguageDetectorUtils.readListLangsBuildIn(),
+        LanguageDetectorUtils.readListLangsBuiltIn(),
         $(minimalConfidence),
         $(languagePriors).toMap)
   }
