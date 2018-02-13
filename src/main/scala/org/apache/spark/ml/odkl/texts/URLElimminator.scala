@@ -14,7 +14,7 @@ import org.apache.spark.sql.types.StructType
   * Created by eugeny.malyutin on 05.05.16.
   *
   * Transformer to remove URL's from text based on lucene UAX29URLEmailTokenizer
-  * With given column inputColumn of StringType returns outputColemn of StringType with text filtered non-url
+  * With given column inputColumn of StringType returns outputColumn of StringType with text filtered non-url
   */
 class URLElimminator(override val uid: String) extends Transformer with HasInputCol with HasOutputCol {
   @transient lazy val urlTokenizer = {

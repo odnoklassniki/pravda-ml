@@ -25,18 +25,24 @@ class LanguageAwareAnalyzer(override val uid: String) extends Transformer with H
   }
 
   @transient lazy val tokenizer = {
-    languageAnalyzerMap.asInstanceOf[Map[String, ThreadLocal[StopwordAnalyzerBase]]]
-      .get("ru").get // russianAnalyzer, always exists
+    languageAnalyzerMap.asInstanceOf[Map[String, ThreadLocal[StopwordAnalyzerBase]]]($(defaultLanguage))
 
   }
   val inputColLang = new Param[String](this, "inputColLang",
     "language code from langdetect")
-  val inputColText = new Param[String](this, "inputColVector",
-    "column with text")
+
   setDefault(inputColLang -> "lang")
 
+  val inputColText = new Param[String](this, "inputColText",
+    "column with text")
 
   setDefault(inputColText -> "text")
+
+  val defaultLanguage = new Param[String](this, "defaultLanguage",
+  "language to use as default if actual unknown")
+
+  setDefault(defaultLanguage -> "ru")
+
   val stemmTextUDF = udf((lang: String, text: String) => {
     val analyzer = languageAnalyzerMap.asInstanceOf[Map[String, ThreadLocal[StopwordAnalyzerBase]]].getOrElse(lang, tokenizer).get()
     LanguageAwareStemmerUtil.stemmString(text, analyzer)
@@ -53,6 +59,9 @@ class LanguageAwareAnalyzer(override val uid: String) extends Transformer with H
 
   /** @group setParam */
   def setInputColText(value: String): this.type = set(inputColText, value)
+
+  /** @group setParam */
+  def setDefaultLanguage(value: String): this.type = set(defaultLanguage, value)
 
   /** @group setParam */
   def setOutputCol(value: String): this.type = set(outputCol, value)

@@ -18,20 +18,19 @@ import scala.collection.Map
   * Created by eugeny.malyutin on 05.05.16.
   *
   * LanguageDetector transformer from String Column with Text creates String column with language-code or (Unknown)
-  * based on odkl's  [[LanguageDetector]] fork (Guava downgrade)
-  * list of  languages are given in (odnoklassnilki-analysis/language/languages)
+  * Bulded around optimaize langdetect
   **/
 class LanguageDetectorTransformer(override val uid: String) extends Transformer
   with HasInputCol with HasOutputCol {
 
-  val minimalConfidence = new DoubleParam(this, "minimalConfidence", "langdetect parameter e.g. probab lower treshold")
+  val minimalConfidence = new DoubleParam(this, "minimalConfidence", "langdetect parameter e.g. probability lower treshold")
 
   val languagePriors = new Param[Map[String, Double]](
-    this, "languagePriors", "Adjust probabilities for languages using our a-priory knowledge."
+    this, "languagePriors", "adjust probabilities for languages using our a-priory knowledge."
   )
 
   val priorAlpha = new Param[Double](
-    this, "priorAlpha", "Smoothing parameter used to allow langages we haven't seen")
+    this, "priorAlpha", "smoothing parameter used to allow languages we haven't seen")
 
   setDefault(
     inputCol -> "text",
@@ -77,7 +76,7 @@ class LanguageDetectorTransformer(override val uid: String) extends Transformer
   @transient object languageDetectorWrapped extends Serializable {
     val languageDetector: LanguageDetector =
       LanguageDetectorUtils.buildLanguageDetector(
-        LanguageDetectorUtils.readListLangsBuildIn(),
+        LanguageDetectorUtils.readListLangsBuiltIn(),
         $(minimalConfidence),
         $(languagePriors).toMap)
   }

@@ -43,10 +43,10 @@ trait OdklCountVectorizerParams extends Params {
 
 /**
   * ml.feature.CountVectorizer and CountVectorizerModel extension with vocabulary or vocab size saved
-  * in outputColumn metadata as AttrobuteGroup
+  * in outputColumn metadata as AttributeGroup
   *
   * @param uid
-  * @param vocabulary BagOfWord vocabulary from mllib.CountVectorizer
+  * @param vocabulary BagOfWords vocabulary from mllib.CountVectorizer
   **/
 class OdklCountVectorizerModel(override val uid: String, override val vocabulary: Array[String])
   extends CountVectorizerModel(uid, vocabulary) with OdklCountVectorizerParams {
