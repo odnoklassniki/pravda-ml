@@ -2,7 +2,7 @@ package org.apache.spark.ml.odkl
 
 import com.github.fommil.netlib.BLAS.{getInstance => NativeBLAS}
 import com.github.fommil.netlib.{F2jBLAS, BLAS => NetlibBLAS}
-import org.apache.spark.mllib.linalg.{DenseVector, Matrices, Vector, Vectors}
+import org.apache.spark.ml.linalg.{DenseVector, Matrices, Vector, Vectors}
 /**
   * Created by dmitriybugaichenko on 19.11.16.
   *
@@ -33,8 +33,8 @@ object HasNetlibBlas extends Serializable {
   }
 
   private def initSparkBlas = synchronized {
-    org.apache.spark.mllib.linalg.BLAS.dot(Vectors.zeros(2), Vectors.zeros(2))
-    org.apache.spark.mllib.linalg.BLAS.gemv(1.0, Matrices.zeros(2, 2), Vectors.zeros(2), 0.5, Vectors.zeros(2).toDense)
+    org.apache.spark.ml.linalg.BLAS.dot(Vectors.zeros(2), Vectors.zeros(2))
+    org.apache.spark.ml.linalg.BLAS.gemv(1.0, Matrices.zeros(2, 2), Vectors.zeros(2), 0.5, Vectors.zeros(2).toDense)
   }
 
   @transient private lazy val _nativeBLAS: NetlibBLAS = {

@@ -17,7 +17,7 @@ import org.apache.spark.ml.param.{Param, ParamMap, StringArrayParam}
 import org.apache.spark.ml.util.{DefaultParamsReadable, Identifiable}
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.{IntegerType, StructType}
-import org.apache.spark.sql.{DataFrame, Row, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, functions}
 
 /**
   * Used to train and evaluate model in folds.
@@ -45,8 +45,8 @@ class CrossValidator[M <: ModelWithSummary[M]]
   }
 
 
-  override protected def createForks(dataset: DataFrame): Seq[(Int, DataFrame)] = {
-    val numFoldsValue: Int = getNumFolds(dataset)
+  override protected def createForks(dataset: Dataset[_]): Seq[(Int, DataFrame)] = {
+    val numFoldsValue: Int = getNumFolds(dataset.toDF)
 
     val folds = for (i <- 0 until numFoldsValue)
       yield (i, dataset.withColumn($(isTestColumn), dataset($(numFoldsColumn)) === i))
@@ -98,7 +98,7 @@ object CrossValidator extends DefaultParamsReadable[CrossValidator[_]] with Seri
 
     def setPartitionBy(columns: String*) = set(partitionBy, columns.toArray)
 
-    override def transform(dataset: DataFrame): DataFrame = {
+    override def transform(dataset: Dataset[_]): DataFrame = {
       val partition = SparkSqlUtils.reflectionLock.synchronized(
         if ($(numFolds) > 0) {
           functions.udf[Int, Row](x => Math.abs(x.hashCode() % $(numFolds)))

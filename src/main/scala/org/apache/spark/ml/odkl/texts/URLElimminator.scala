@@ -6,7 +6,7 @@ import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.param.shared.{HasInputCol, HasOutputCol}
 import org.apache.spark.ml.util.Identifiable
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.types.StructType
 
@@ -40,7 +40,7 @@ class URLElimminator(override val uid: String) extends Transformer with HasInput
 
   def this() = this(Identifiable.randomUID("URLEliminator"))
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
     dataset.withColumn($(outputCol), filterTextUDF(dataset.col($(inputCol))))
   }
 

@@ -18,7 +18,7 @@ import org.apache.spark.ml.odkl.ModelWithSummary.{Block, WithSummaryReaderUntype
 import org.apache.spark.ml.param.{BooleanParam, Param, ParamMap, ParamPair}
 import org.apache.spark.ml.util._
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, functions}
 import org.json4s.DefaultWriters._
 import org.json4s.jackson.JsonMethods
 import org.json4s.{DefaultFormats, JValue}
@@ -196,7 +196,7 @@ class MLWrapper[M <: Model[M]](val nested: Estimator[M],
 
   def this(nested: Estimator[M]) = this(nested, (x: M) => Map())
 
-  override def fit(dataset: DataFrame): MLWrapperModel[M] = {
+  override def fit(dataset: Dataset[_]): MLWrapperModel[M] = {
     val model = nested.fit(dataset)
     new MLWrapperModel[M](model).copy(summaryExtractor(model)).setParent(this)
   }
@@ -218,7 +218,7 @@ class MLWrapperModel[M <: Model[M]](val nestedModel: M,
 
   def nested: M = nestedModelRef
 
-  override def transform(dataset: DataFrame): DataFrame = nested.transform(dataset)
+  override def transform(dataset: Dataset[_]): DataFrame = nested.transform(dataset)
 
   override def transformSchema(schema: StructType): StructType = nested.transformSchema(schema)
 

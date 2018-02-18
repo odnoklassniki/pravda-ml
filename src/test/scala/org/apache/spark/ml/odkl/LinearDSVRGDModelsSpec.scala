@@ -8,9 +8,10 @@ import odkl.analysis.spark.TestEnv
 import odkl.analysis.spark.util.SQLOperations
 import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
-import org.apache.spark.mllib.linalg._
+import org.apache.spark.ml.linalg._
+import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, UserDefinedFunction, functions}
+import org.apache.spark.sql.{DataFrame, functions}
 import org.scalatest.FlatSpec
 
 
@@ -26,7 +27,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
 
     val model = estimator.fit(noInterceptData)
 
-    val dev: linalg.Vector[Double] = hiddenModel.toBreeze - model.getCoefficients.toBreeze
+    val dev: linalg.Vector[Double] = hiddenModel.asBreeze - model.getCoefficients.asBreeze
 
     val deviation: Double = dev dot dev
 
@@ -38,7 +39,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
 
     val model = interceptedSgdModel
 
-    val dev: linalg.Vector[Double] = hiddenModel.toBreeze - model.getCoefficients.toBreeze
+    val dev: linalg.Vector[Double] = hiddenModel.asBreeze - model.getCoefficients.asBreeze
 
     val deviation: Double = dev dot dev
 
@@ -69,6 +70,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
 
     val rmse = Math.sqrt(interceptedSgdModel.transform(interceptData)
       .select(interceptedSgdModel.getLabelCol, interceptedSgdModel.getPredictionCol)
+      .rdd
       .map(r => (r.getDouble(0) - r.getDouble(1)) * (r.getDouble(0) - r.getDouble(1)))
       .mean())
 
@@ -80,7 +82,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
 
     val auc = new BinaryClassificationMetrics(
       model.transform(noInterceptDataLogistic)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 
@@ -104,12 +106,12 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
 
     val auc = new BinaryClassificationMetrics(
       model.transform(scaled)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
     val aucScaled = new BinaryClassificationMetrics(
       modelScaled.transform(scaled)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 
@@ -134,12 +136,12 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
 
     val auc = new BinaryClassificationMetrics(
       model.transform(scaled)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
     val aucScaled = new BinaryClassificationMetrics(
       modelScaled.transform(scaled)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 
@@ -165,12 +167,12 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
 
     val auc = new BinaryClassificationMetrics(
       model.transform(scaledData)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
     val aucScaled = new BinaryClassificationMetrics(
       scaledModel.transform(scaledData)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 
@@ -182,7 +184,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
 
     val summary = interceptedSgdModel.summary
 
-    val names = (summary $ interceptedSgdModel.weights).map(r => r.getInt(0) -> r.getString(1)).collect().toMap
+    val names = (summary $ interceptedSgdModel.weights).rdd.map(r => r.getInt(0) -> r.getString(1)).collect().toMap
 
     names(0) should be("first")
     names(1) should be("second")
@@ -194,7 +196,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
     val model = interceptedSgdModel
     val summary = model.summary
 
-    val weigths = (summary $ model.weights).map(r => r.getInt(0) -> r.getDouble(2)).collect().toMap
+    val weigths = (summary $ model.weights).rdd.map(r => r.getInt(0) -> r.getDouble(2)).collect().toMap
 
     weigths(0) should be(model.getCoefficients(0))
     weigths(1) should be(model.getCoefficients(1))
@@ -208,13 +210,13 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
 
     val weightsFrame: DataFrame = summary $ model.weights
     val weightIndex = weightsFrame.schema.fieldIndex("weight")
-    val weigths = weightsFrame.map(r => r.getInt(0) -> r.getDouble(weightIndex)).collect().toMap
+    val weigths = weightsFrame.rdd.map(r => r.getInt(0) -> r.getDouble(weightIndex)).collect().toMap
 
     weigths(0) should be(model.getCoefficients(0))
     weigths(1) should be(model.getCoefficients(1))
     weigths(-1) should be(model.getIntercept)
 
-    val names = weightsFrame.map(r => r.getInt(0) -> r.getString(1)).collect().toMap
+    val names = weightsFrame.rdd.map(r => r.getInt(0) -> r.getString(1)).collect().toMap
 
     names(0) should be("first")
     names(1) should be("second")
@@ -252,7 +254,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
 
       val auc = new BinaryClassificationMetrics(
         predictions
-          .select(extractor(prediction), extractor(label))
+          .select(extractor(prediction), extractor(label)).rdd
           .map(r => (r.getDouble(0), r.getDouble(1))))
         .areaUnderROC()
 
@@ -271,12 +273,12 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
 
     val auc = new BinaryClassificationMetrics(
       model.transform(noInterceptDataLogistic)
-        .select(model.getPredictionCol, model.getLabelCol)
+        .select(model.getPredictionCol, model.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
     val aucNoReg = new BinaryClassificationMetrics(
       noInterceptLogisticModel.transform(noInterceptDataLogistic)
-        .select(noInterceptLogisticModel.getPredictionCol, noInterceptLogisticModel.getLabelCol)
+        .select(noInterceptLogisticModel.getPredictionCol, noInterceptLogisticModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
     auc should be >= aucNoReg * 0.99
@@ -305,7 +307,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
 
     trainedForMatrix.foreach(pair => {
       val v = pair._2
-      Math.abs(v(0)) should be <= 0.0
+      Math.abs(v(0)) should be <= 1.0e-3
       Math.abs(v(1)) should be > 0.0
       Math.abs(v(2)) should be > 0.0
 
@@ -327,7 +329,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
 
     val trainedForMatrix: Map[String, Vector] = new LogisticMatrixDSVRGD()
         .setLocalMinibatchSize(1)
-      .setRegParam(0.035).setElasticNetParam(1.0).setTol(1e-8).setMaxIter(200).setLocalMinibatchSize(2)
+      .setRegParam(0.03).setElasticNetParam(1.0).setTol(1e-8).setMaxIter(200).setLocalMinibatchSize(2)
       .fit(withCorrelated)
       .nested.mapValues(_.getCoefficients)
 
@@ -339,7 +341,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
 
     trainedForMatrix.foreach(pair => {
       val v = pair._2
-      Math.abs(v(0)) should be <= 0.0
+      Math.abs(v(0)) should be <= 1.0e-3
       Math.abs(v(1)) should be > 0.0
       Math.abs(v(2)) should be > 0.0
 

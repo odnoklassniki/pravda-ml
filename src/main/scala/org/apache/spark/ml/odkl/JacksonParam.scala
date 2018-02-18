@@ -1,7 +1,7 @@
 package org.apache.spark.ml.odkl
 
 import odkl.analysis.spark.util.SparkJson
-import org.apache.spark.Logging
+import org.apache.spark.internal.Logging
 import org.apache.spark.ml.param.Param
 import org.apache.spark.ml.util.Identifiable
 

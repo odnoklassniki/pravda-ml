@@ -11,7 +11,7 @@ import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.types.{DoubleType, LongType, StringType, StructType}
-import org.apache.spark.sql.{Column, DataFrame}
+import org.apache.spark.sql.{Column, DataFrame, Dataset}
 
 /**
   * Created by eugeny.malyutin on 06.05.16.
@@ -39,8 +39,8 @@ class FreqStatsTransformer(override val uid: String) extends Transformer with Pa
     defaultCopy(extra)
   }
 
-  override def transform(dataset: DataFrame): DataFrame = {
-    dayToTermStat(dataset)
+  override def transform(dataset: Dataset[_]): DataFrame = {
+    dayToTermStat(dataset.toDF)
   }
 
   def dayToTermStat(preprocedDF: DataFrame): DataFrame = {

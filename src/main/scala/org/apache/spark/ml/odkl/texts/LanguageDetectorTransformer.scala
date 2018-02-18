@@ -8,7 +8,7 @@ import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.param.shared.{HasInputCol, HasOutputCol}
 import org.apache.spark.ml.param.{DoubleParam, Param, ParamMap}
 import org.apache.spark.ml.util.{Identifiable, SchemaUtils}
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.types.{StringType, StructType}
 
@@ -60,7 +60,7 @@ class LanguageDetectorTransformer(override val uid: String) extends Transformer
 
   def this() = this(Identifiable.randomUID("languageDetector"))
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
     dataset.withColumn($(outputCol), languageDetection(dataset.col($(inputCol))))
   }
 

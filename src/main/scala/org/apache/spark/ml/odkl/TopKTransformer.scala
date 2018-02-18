@@ -5,7 +5,7 @@ import org.apache.spark.ml.param.{IntParam, Param, ParamMap, ParamValidators}
 import org.apache.spark.ml.util.{DefaultParamsWritable, Identifiable}
 import org.apache.spark.sql.functions.{col, explode}
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, functions}
 
 /**
   * Created by eugeny.malyutin on 20.07.17.
@@ -23,7 +23,7 @@ class TopKTransformer[B](override val uid: String) (implicit val cmp: Ordering[B
   val columnToOrderGroupsBy: Param[String] = new Param[String](this, "columnToOrderGroupsBy",
     "column to order groups by")
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
     val guidedTempColumn = Identifiable.randomUID("tempData");
 
     val aggFun = new TopKUDAF[B]($(topK),  new StructType().add(guidedTempColumn,dataset.schema), $(columnToOrderGroupsBy))(cmp)
@@ -35,6 +35,7 @@ class TopKTransformer[B](override val uid: String) (implicit val cmp: Ordering[B
       .agg(aggFun(functions.struct(columnsSeq: _*)).as(guidedTempColumn))
       .select(explode(col(guidedTempColumn).getField("arrData")))
       .select(seqToSelect:_*)
+      .toDF
   }
 
   override def copy(extra: ParamMap): Transformer = defaultCopy(extra)

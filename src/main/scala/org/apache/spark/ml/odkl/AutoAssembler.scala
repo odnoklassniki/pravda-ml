@@ -16,8 +16,8 @@ import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
 import org.apache.spark.ml.{Estimator, PipelineModel, Transformer}
 import org.apache.spark.ml.param.shared.HasOutputCol
-import org.apache.spark.mllib.linalg.VectorUDT
-import org.apache.spark.sql.{DataFrame, functions}
+import org.apache.spark.ml.linalg.VectorUDT
+import org.apache.spark.sql.{DataFrame, Dataset, functions}
 import org.apache.spark.sql.types._
 
 /**
@@ -39,8 +39,8 @@ class AutoAssembler(override val uid: String) extends Estimator[PipelineModel]
 
   def this() = this(Identifiable.randomUID("autoAssembler"))
 
-  override def fit(dataset: DataFrame): PipelineModel = {
-    val columns = extractColumns(dataset)
+  override def fit(dataset: Dataset[_]): PipelineModel = {
+    val columns = extractColumns(dataset.toDF())
 
     val nominal: Array[StructField] = columns.filter(
       x => x.dataType.isInstanceOf[StringType]
@@ -50,7 +50,7 @@ class AutoAssembler(override val uid: String) extends Estimator[PipelineModel]
 
     val nominalizers: Array[Transformer] = if (nominal.length > 0) {
 
-      val mayBeExploded = nominal.foldLeft(dataset)((data, field) =>
+      val mayBeExploded = nominal.foldLeft(dataset.toDF)((data, field) =>
         if (field.dataType.isInstanceOf[ArrayType])
           data.withColumn(field.name, functions.explode(data(field.name)))
         else data)

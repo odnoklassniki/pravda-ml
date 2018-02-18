@@ -5,18 +5,19 @@ import java.util.concurrent.{ArrayBlockingQueue, CountDownLatch, ThreadPoolExecu
 
 import breeze.linalg
 import breeze.optimize.{CachedDiffFunction, DiffFunction, OWLQN}
-import org.apache.spark.Logging
+import org.apache.spark.internal.Logging
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.PredictorParams
 import org.apache.spark.ml.attribute.{Attribute, AttributeGroup, NumericAttribute}
 import org.apache.spark.ml.param.shared.{HasMaxIter, HasRegParam, HasTol}
 import org.apache.spark.ml.param.{BooleanParam, Param, ParamMap}
 import org.apache.spark.ml.util.{Identifiable, SchemaUtils}
-import org.apache.spark.mllib.linalg._
+import org.apache.spark.ml.linalg._
+import org.apache.spark.mllib
 import org.apache.spark.mllib.stat.MultivariateOnlineSummarizer
 import org.apache.spark.mllib.util.MLUtils
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.types.StructType
 
 import scala.collection.mutable
@@ -58,9 +59,9 @@ class MatrixLBFGS(override val uid: String) extends
 
   def this() = this(Identifiable.randomUID("matrixLBFGS"))
 
-  override def fit(dataset: DataFrame): LinearCombinationModel[LogisticRegressionModel] = {
+  override def fit(dataset: Dataset[_]): LinearCombinationModel[LogisticRegressionModel] = {
     val result: Map[String, Vector] = MatrixLBFGS.multiClassLBFGS(
-      dataset, $(featuresCol), $(labelCol), 10, $(tol), $(maxIter), $(batchSize), $(regParam), $(regularizeLast))
+      dataset.toDF, $(featuresCol), $(labelCol), 10, $(tol), $(maxIter), $(batchSize), $(regParam), $(regularizeLast))
 
     val model = new LinearCombinationModel[LogisticRegressionModel](result.map(
       x => x._1 -> LogisticRegressionModel
@@ -293,7 +294,7 @@ object MatrixLBFGS extends Logging with HasNetlibBlas {
     logInfo(s"Deduced max regularization settings $regMax for labels $labels")
 
     val batchCostFunction = new BatchCostFunction(
-      data.select(featuresColumn, labelColumn).map(r => (r.getAs[Vector](0), r.getAs[Vector](1))),
+      data.select(featuresColumn, labelColumn).rdd.map(r => (r.getAs[Vector](0), r.getAs[Vector](1))),
       features.size,
       labels.size,
       numElements,
@@ -383,22 +384,24 @@ object MatrixLBFGS extends Logging with HasNetlibBlas {
     labelColumn: String,
     regulaizeLast: Boolean) : (Long, Vector) = {
 
+
     val labels = AttributeGroup.fromStructField(data.schema(labelColumn))
     val features = AttributeGroup.fromStructField(data.schema(featuresColumn))
 
-    val rdd = data.select(featuresColumn, labelColumn).map(x => x.getAs[Vector](0) -> x.getAs[Vector](1))
+    val rdd = data.toDF.select(featuresColumn, labelColumn)
+        .rdd.map(x => x.getAs[Vector](0) -> x.getAs[Vector](1))
 
     val labelsStat = rdd.map(_._2).mapPartitions(i => {
       val aggregator = new MultivariateOnlineSummarizer()
 
-      i.foreach(x => aggregator.add(x))
+      i.foreach(x => aggregator.add(mllib.linalg.Vectors.fromML(x)))
 
       Iterator(aggregator)
     }).treeReduce(_ merge _)
 
     (labelsStat.count, evaluateMaxRegularization(
       rdd,
-      regulaizeLast, features.size, labelsStat.mean.toDense, labelsStat.count))
+      regulaizeLast, features.size, labelsStat.mean.asML.toDense, labelsStat.count))
   }
 
   /**
@@ -597,7 +600,7 @@ object MatrixLBFGS extends Logging with HasNetlibBlas {
 
 
     val iterations: Iterator[lbfgs.State] = lbfgs.iterations(
-      new CachedDiffFunction(this), initials.toBreeze.toDenseVector)
+      new CachedDiffFunction(this), initials.asBreeze.toDenseVector)
 
     val lossHistory = mutable.ArrayBuilder.make[Double]
 

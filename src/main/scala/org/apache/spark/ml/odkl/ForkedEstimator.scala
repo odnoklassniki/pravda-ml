@@ -16,7 +16,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.param.{Param, Params}
 import org.apache.spark.ml.util.DefaultParamsReader
-import org.apache.spark.sql.{DataFrame, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, functions}
 import org.apache.spark.sql.types.StructType
 
 import scala.collection.parallel.TaskSupport
@@ -61,7 +61,7 @@ ModelOut <: ModelWithSummary[ModelOut]]
   /**
     * Override this method and create forks to train from the data.
     */
-  protected def createForks(dataset: DataFrame): Seq[(ForeKeyType, DataFrame)]
+  protected def createForks(dataset: Dataset[_]): Seq[(ForeKeyType, DataFrame)]
 
   /**
     * Given models trained for each fork create a combined model. This model is the
@@ -69,12 +69,12 @@ ModelOut <: ModelWithSummary[ModelOut]]
     */
   protected def mergeModels(models: Seq[(ForeKeyType, ModelIn)]): ModelOut
 
-  override def fit(dataset: DataFrame): ModelOut = {
+  override def fit(dataset: Dataset[_]): ModelOut = {
 
-    val forks = createForks(dataset)
+    val forks: Seq[(ForeKeyType, DataFrame)] = createForks(dataset)
 
     if ($(cacheForks)) {
-      forks.map(_._2.cache()).reduce((a, b) => a.unionAll(b)).count()
+      forks.map(_._2.toDF.cache()).reduce((a, b) => a.union(b)).count()
     }
 
     try {
@@ -113,7 +113,7 @@ ModelOut <: ModelWithSummary[ModelOut]]
     }
   }
 
-  def fitFork(wholeData: DataFrame, partialData: (ForeKeyType, DataFrame)): (ForeKeyType, ModelIn) = {
+  def fitFork(wholeData: Dataset[_], partialData: (ForeKeyType, DataFrame)): (ForeKeyType, ModelIn) = {
     logInfo(s"Fitting at $uid for ${partialData._1}...")
 
     if (isDefined(pathForTempModels)) {

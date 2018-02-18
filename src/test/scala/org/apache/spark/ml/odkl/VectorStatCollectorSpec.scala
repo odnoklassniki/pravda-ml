@@ -3,7 +3,7 @@ package org.apache.spark.ml.odkl
 import odkl.analysis.spark.TestEnv
 import odkl.analysis.spark.util.SQLOperations
 import org.apache.spark.ml.attribute.{Attribute, NumericAttribute, AttributeGroup}
-import org.apache.spark.mllib.linalg.{Vector, Vectors}
+import org.apache.spark.ml.linalg.{Vector, Vectors}
 import org.apache.spark.sql.Row
 import org.scalatest.FlatSpec
 
@@ -39,7 +39,7 @@ class VectorStatCollectorSpec extends FlatSpec with TestEnv with org.scalatest.M
     .transform(data)
 
   lazy val stat: Map[Int, Row] =
-    statFrame.map(r => r.getInt(0) -> r).collect().toMap
+    statFrame.rdd.map(r => r.getInt(0) -> r).collect().toMap
 
   lazy val withMetadata = new VectorStatCollector()
     .setGroupByColumns("id")
@@ -104,7 +104,7 @@ class VectorStatCollectorSpec extends FlatSpec with TestEnv with org.scalatest.M
 
     val field = statFrame.schema.fieldIndex("vector_p10")
     stat(1).getAs[Vector](field)(0) should be(1.0)
-    stat(1).getAs[Vector](field)(1) should be(2.0 +- 0.1)
+    stat(1).getAs[Vector](field)(1) should be(1.5 +- 0.1)
     stat(2).getAs[Vector](field)(0) should be(2.0)
     stat(2).getAs[Vector](field)(1) should be(1.0 +- 0.1)
   }
@@ -122,7 +122,7 @@ class VectorStatCollectorSpec extends FlatSpec with TestEnv with org.scalatest.M
 
     val field = statFrame.schema.fieldIndex("vector_p90")
     stat(1).getAs[Vector](field)(0) should be(1.0)
-    stat(1).getAs[Vector](field)(1) should be(9.0 +- 0.1)
+    stat(1).getAs[Vector](field)(1) should be(9.5 +- 0.1)
     stat(2).getAs[Vector](field)(0) should be(2.0)
     stat(2).getAs[Vector](field)(1) should be(2.0 +- 0.1)
   }

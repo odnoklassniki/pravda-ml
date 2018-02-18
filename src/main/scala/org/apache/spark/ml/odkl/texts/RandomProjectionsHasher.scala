@@ -8,8 +8,8 @@ import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.param.shared.{HasInputCol, HasOutputCol, HasSeed}
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.{Identifiable, SchemaUtils}
-import org.apache.spark.mllib.linalg.{Matrices, SparseMatrix, Vector}
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.ml.linalg.{Matrices, SparseMatrix, Vector}
+import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.types.{LongType, StructType}
 
@@ -63,7 +63,7 @@ class RandomProjectionsHasher(override val uid: String) extends Transformer
 
   def this() = this(Identifiable.randomUID("randomProjectionsHasher"))
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
     val dimensity = {
       if (!isSet(dim)) {//If dimensions is not set - will search  AttributeGroup in metadata as it comes from OdklCountVectorizer
         val vectorsIndex = dataset.schema.fieldIndex($(inputCol))

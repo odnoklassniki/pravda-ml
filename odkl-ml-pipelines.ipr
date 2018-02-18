@@ -83,13 +83,15 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/aopalliance/aopalliance/srcs/aopalliance-1.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: asm:asm:3.1:jar">
+    <library name="sbt: com.chuusai:shapeless_2.10:2.3.2:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/asm/asm/jars/asm-3.1.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.chuusai/shapeless_2.10/bundles/shapeless_2.10-2.3.2.jar!/" />
       </CLASSES>
-      <JAVADOC />
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.chuusai/shapeless_2.10/docs/shapeless_2.10-2.3.2-javadoc.jar!/" />
+      </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/asm/asm/srcs/asm-3.1-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.chuusai/shapeless_2.10/srcs/shapeless_2.10-2.3.2-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: com.clearspring.analytics:stream:2.7.0:jar">
@@ -103,37 +105,15 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/com.clearspring.analytics/stream/srcs/stream-2.7.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: com.esotericsoftware.kryo:kryo:2.21:jar">
+    <library name="sbt: com.esotericsoftware:kryo-shaded:3.0.3:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.esotericsoftware.kryo/kryo/bundles/kryo-2.21.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.esotericsoftware/kryo-shaded/bundles/kryo-shaded-3.0.3.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.esotericsoftware.kryo/kryo/docs/kryo-2.21-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.esotericsoftware/kryo-shaded/docs/kryo-shaded-3.0.3-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.esotericsoftware.kryo/kryo/srcs/kryo-2.21-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: com.esotericsoftware.minlog:minlog:1.2:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.esotericsoftware.minlog/minlog/jars/minlog-1.2.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.esotericsoftware.minlog/minlog/docs/minlog-1.2-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.esotericsoftware.minlog/minlog/srcs/minlog-1.2-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: com.esotericsoftware.reflectasm:reflectasm:1.07:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.esotericsoftware.reflectasm/reflectasm/jars/reflectasm-1.07.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.esotericsoftware.reflectasm/reflectasm/docs/reflectasm-1.07-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.esotericsoftware.reflectasm/reflectasm/srcs/reflectasm-1.07-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.esotericsoftware/kryo-shaded/srcs/kryo-shaded-3.0.3-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: com.esotericsoftware:kryo:4.0.1:jar">
@@ -169,48 +149,59 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/com.esotericsoftware/reflectasm/srcs/reflectasm-1.11.3-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: com.fasterxml.jackson.core:jackson-annotations:2.4.4:jar">
+    <library name="sbt: com.fasterxml.jackson.core:jackson-annotations:2.6.5:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-annotations/bundles/jackson-annotations-2.4.4.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-annotations/bundles/jackson-annotations-2.6.5.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-annotations/docs/jackson-annotations-2.4.4-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-annotations/docs/jackson-annotations-2.6.5-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-annotations/srcs/jackson-annotations-2.4.4-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-annotations/srcs/jackson-annotations-2.6.5-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: com.fasterxml.jackson.core:jackson-core:2.4.4:jar">
+    <library name="sbt: com.fasterxml.jackson.core:jackson-core:2.6.5:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-core/bundles/jackson-core-2.4.4.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-core/bundles/jackson-core-2.6.5.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-core/docs/jackson-core-2.4.4-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-core/docs/jackson-core-2.6.5-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-core/srcs/jackson-core-2.4.4-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-core/srcs/jackson-core-2.6.5-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: com.fasterxml.jackson.core:jackson-databind:2.4.4:jar">
+    <library name="sbt: com.fasterxml.jackson.core:jackson-databind:2.6.5:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-databind/bundles/jackson-databind-2.4.4.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-databind/bundles/jackson-databind-2.6.5.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-databind/docs/jackson-databind-2.4.4-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-databind/docs/jackson-databind-2.6.5-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-databind/srcs/jackson-databind-2.4.4-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.core/jackson-databind/srcs/jackson-databind-2.6.5-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: com.fasterxml.jackson.module:jackson-module-scala_2.10:2.4.4:jar">
+    <library name="sbt: com.fasterxml.jackson.module:jackson-module-paranamer:2.6.5:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.module/jackson-module-scala_2.10/bundles/jackson-module-scala_2.10-2.4.4.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.module/jackson-module-paranamer/bundles/jackson-module-paranamer-2.6.5.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.module/jackson-module-scala_2.10/docs/jackson-module-scala_2.10-2.4.4-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.module/jackson-module-paranamer/docs/jackson-module-paranamer-2.6.5-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.module/jackson-module-scala_2.10/srcs/jackson-module-scala_2.10-2.4.4-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.module/jackson-module-paranamer/srcs/jackson-module-paranamer-2.6.5-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: com.fasterxml.jackson.module:jackson-module-scala_2.10:2.6.5:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.module/jackson-module-scala_2.10/bundles/jackson-module-scala_2.10-2.6.5.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.module/jackson-module-scala_2.10/docs/jackson-module-scala_2.10-2.6.5-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.fasterxml.jackson.module/jackson-module-scala_2.10/srcs/jackson-module-scala_2.10-2.6.5-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: com.github.fommil.netlib:core:1.1.2:jar">
@@ -242,15 +233,24 @@
       <JAVADOC />
       <SOURCES />
     </library>
-    <library name="sbt: com.google.guava:guava:18.0:jar">
+    <library name="sbt: com.google.code.gson:gson:2.2.4:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.google.guava/guava/bundles/guava-18.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.google.code.gson/gson/jars/gson-2.2.4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.google.guava/guava/docs/guava-18.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.google.code.gson/gson/docs/gson-2.2.4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.google.guava/guava/srcs/guava-18.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.google.code.gson/gson/srcs/gson-2.2.4-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: com.google.guava:guava:16.0.1:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.google.guava/guava/jars/guava-16.0.1.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.google.guava/guava/srcs/guava-16.0.1-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: com.google.inject:guice:3.0:jar">
@@ -286,6 +286,17 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/com.intellij/annotations/srcs/annotations-12.0-sources.jar!/" />
       </SOURCES>
     </library>
+    <library name="sbt: com.jamesmurty.utils:java-xmlbuilder:1.0:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.jamesmurty.utils/java-xmlbuilder/jars/java-xmlbuilder-1.0.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.jamesmurty.utils/java-xmlbuilder/docs/java-xmlbuilder-1.0-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.jamesmurty.utils/java-xmlbuilder/srcs/java-xmlbuilder-1.0-sources.jar!/" />
+      </SOURCES>
+    </library>
     <library name="sbt: com.ning:compress-lzf:1.0.3:jar">
       <CLASSES>
         <root url="jar://$USER_HOME$/.ivy2/cache/com.ning/compress-lzf/bundles/compress-lzf-1.0.3.jar!/" />
@@ -306,105 +317,6 @@
       </JAVADOC>
       <SOURCES>
         <root url="jar://$USER_HOME$/.ivy2/cache/com.optimaize.languagedetector/language-detector/srcs/language-detector-0.6-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: com.sun.istack:istack-commons-runtime:2.16:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.istack/istack-commons-runtime/jars/istack-commons-runtime-2.16.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.istack/istack-commons-runtime/docs/istack-commons-runtime-2.16-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.istack/istack-commons-runtime/srcs/istack-commons-runtime-2.16-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: com.sun.jersey.contribs:jersey-guice:1.9:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey.contribs/jersey-guice/jars/jersey-guice-1.9.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey.contribs/jersey-guice/docs/jersey-guice-1.9-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey.contribs/jersey-guice/srcs/jersey-guice-1.9-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: com.sun.jersey.jersey-test-framework:jersey-test-framework-grizzly2:1.9:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey.jersey-test-framework/jersey-test-framework-grizzly2/jars/jersey-test-framework-grizzly2-1.9.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey.jersey-test-framework/jersey-test-framework-grizzly2/docs/jersey-test-framework-grizzly2-1.9-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey.jersey-test-framework/jersey-test-framework-grizzly2/srcs/jersey-test-framework-grizzly2-1.9-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: com.sun.jersey:jersey-core:1.9:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey/jersey-core/bundles/jersey-core-1.9.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey/jersey-core/docs/jersey-core-1.9-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey/jersey-core/srcs/jersey-core-1.9-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: com.sun.jersey:jersey-json:1.9:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey/jersey-json/bundles/jersey-json-1.9.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey/jersey-json/docs/jersey-json-1.9-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey/jersey-json/srcs/jersey-json-1.9-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: com.sun.jersey:jersey-server:1.9:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey/jersey-server/bundles/jersey-server-1.9.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey/jersey-server/docs/jersey-server-1.9-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.jersey/jersey-server/srcs/jersey-server-1.9-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: com.sun.xml.bind:jaxb-core:2.2.7:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.xml.bind/jaxb-core/jars/jaxb-core-2.2.7.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.xml.bind/jaxb-core/docs/jaxb-core-2.2.7-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.xml.bind/jaxb-core/srcs/jaxb-core-2.2.7-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: com.sun.xml.bind:jaxb-impl:2.2.7:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.xml.bind/jaxb-impl/jars/jaxb-impl-2.2.7.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.xml.bind/jaxb-impl/docs/jaxb-impl-2.2.7-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.xml.bind/jaxb-impl/srcs/jaxb-impl-2.2.7-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: com.sun.xml.fastinfoset:FastInfoset:1.2.12:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.xml.fastinfoset/FastInfoset/jars/FastInfoset-1.2.12.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.xml.fastinfoset/FastInfoset/docs/FastInfoset-1.2.12-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.sun.xml.fastinfoset/FastInfoset/srcs/FastInfoset-1.2.12-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: com.tdunning:t-digest:3.2:jar">
@@ -429,70 +341,37 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/com.thoughtworks.paranamer/paranamer/srcs/paranamer-2.6-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: com.twitter:chill-java:0.5.0:jar">
+    <library name="sbt: com.twitter:chill-java:0.8.0:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.twitter/chill-java/jars/chill-java-0.5.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.twitter/chill-java/jars/chill-java-0.8.0.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.twitter/chill-java/docs/chill-java-0.5.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.twitter/chill-java/docs/chill-java-0.8.0-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.twitter/chill-java/srcs/chill-java-0.5.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.twitter/chill-java/srcs/chill-java-0.8.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: com.twitter:chill_2.10:0.5.0:jar">
+    <library name="sbt: com.twitter:chill_2.10:0.8.0:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.twitter/chill_2.10/jars/chill_2.10-0.5.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.twitter/chill_2.10/jars/chill_2.10-0.8.0.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.twitter/chill_2.10/docs/chill_2.10-0.5.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.twitter/chill_2.10/docs/chill_2.10-0.8.0-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.twitter/chill_2.10/srcs/chill_2.10-0.5.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.twitter/chill_2.10/srcs/chill_2.10-0.8.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: com.typesafe.akka:akka-actor_2.10:2.3.11:jar">
+    <library name="sbt: com.univocity:univocity-parsers:2.2.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe.akka/akka-actor_2.10/jars/akka-actor_2.10-2.3.11.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.univocity/univocity-parsers/jars/univocity-parsers-2.2.1.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe.akka/akka-actor_2.10/docs/akka-actor_2.10-2.3.11-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.univocity/univocity-parsers/docs/univocity-parsers-2.2.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe.akka/akka-actor_2.10/srcs/akka-actor_2.10-2.3.11-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: com.typesafe.akka:akka-remote_2.10:2.3.11:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe.akka/akka-remote_2.10/jars/akka-remote_2.10-2.3.11.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe.akka/akka-remote_2.10/docs/akka-remote_2.10-2.3.11-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe.akka/akka-remote_2.10/srcs/akka-remote_2.10-2.3.11-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: com.typesafe.akka:akka-slf4j_2.10:2.3.11:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe.akka/akka-slf4j_2.10/jars/akka-slf4j_2.10-2.3.11.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe.akka/akka-slf4j_2.10/docs/akka-slf4j_2.10-2.3.11-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe.akka/akka-slf4j_2.10/srcs/akka-slf4j_2.10-2.3.11-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: com.typesafe:config:1.2.1:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe/config/bundles/config-1.2.1.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe/config/docs/config-1.2.1-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/com.typesafe/config/srcs/config-1.2.1-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/com.univocity/univocity-parsers/srcs/univocity-parsers-2.2.1-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: commons-beanutils:commons-beanutils-core:1.8.0:jar">
@@ -524,26 +403,26 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/commons-cli/commons-cli/srcs/commons-cli-1.2-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: commons-codec:commons-codec:1.5:jar">
+    <library name="sbt: commons-codec:commons-codec:1.10:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/commons-codec/commons-codec/jars/commons-codec-1.5.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/commons-codec/commons-codec/jars/commons-codec-1.10.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/commons-codec/commons-codec/docs/commons-codec-1.5-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/commons-codec/commons-codec/docs/commons-codec-1.10-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/commons-codec/commons-codec/srcs/commons-codec-1.5-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/commons-codec/commons-codec/srcs/commons-codec-1.10-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: commons-collections:commons-collections:3.2.1:jar">
+    <library name="sbt: commons-collections:commons-collections:3.2.2:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/commons-collections/commons-collections/jars/commons-collections-3.2.1.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/commons-collections/commons-collections/jars/commons-collections-3.2.2.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/commons-collections/commons-collections/docs/commons-collections-3.2.1-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/commons-collections/commons-collections/docs/commons-collections-3.2.2-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/commons-collections/commons-collections/srcs/commons-collections-3.2.1-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/commons-collections/commons-collections/srcs/commons-collections-3.2.2-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: commons-configuration:commons-configuration:1.6:jar">
@@ -584,15 +463,15 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/commons-io/commons-io/srcs/commons-io-2.4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: commons-lang:commons-lang:2.5:jar">
+    <library name="sbt: commons-lang:commons-lang:2.6:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/commons-lang/commons-lang/jars/commons-lang-2.5.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/commons-lang/commons-lang/jars/commons-lang-2.6.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/commons-lang/commons-lang/docs/commons-lang-2.5-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/commons-lang/commons-lang/docs/commons-lang-2.6-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/commons-lang/commons-lang/srcs/commons-lang-2.5-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/commons-lang/commons-lang/srcs/commons-lang-2.6-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: commons-net:commons-net:2.2:jar">
@@ -650,26 +529,46 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/io.dropwizard.metrics/metrics-jvm/srcs/metrics-jvm-3.1.2-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: io.netty:netty-all:4.0.29.Final:jar">
+    <library name="sbt: io.netty:netty-all:4.0.43.Final:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/io.netty/netty-all/jars/netty-all-4.0.29.Final.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/io.netty/netty-all/jars/netty-all-4.0.43.Final.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/io.netty/netty-all/docs/netty-all-4.0.29.Final-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/io.netty/netty-all/docs/netty-all-4.0.43.Final-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/io.netty/netty-all/srcs/netty-all-4.0.29.Final-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/io.netty/netty-all/srcs/netty-all-4.0.43.Final-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: io.netty:netty:3.8.0.Final:jar">
+    <library name="sbt: io.netty:netty:3.9.9.Final:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/io.netty/netty/bundles/netty-3.8.0.Final.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/io.netty/netty/bundles/netty-3.9.9.Final.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/io.netty/netty/docs/netty-3.8.0.Final-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/io.netty/netty/docs/netty-3.9.9.Final-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/io.netty/netty/srcs/netty-3.8.0.Final-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/io.netty/netty/srcs/netty-3.9.9.Final-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: javax.activation:activation:1.1.1:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.activation/activation/jars/activation-1.1.1.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.activation/activation/srcs/activation-1.1.1-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: javax.annotation:javax.annotation-api:1.2:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.annotation/javax.annotation-api/jars/javax.annotation-api-1.2.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.annotation/javax.annotation-api/docs/javax.annotation-api-1.2-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.annotation/javax.annotation-api/srcs/javax.annotation-api-1.2-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: javax.inject:javax.inject:1:jar">
@@ -683,23 +582,69 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/javax.inject/javax.inject/srcs/javax.inject-1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: javax.xml.bind:jaxb-api:2.2.7:jar">
+    <library name="sbt: javax.mail:mail:1.4.7:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/javax.xml.bind/jaxb-api/jars/jaxb-api-2.2.7.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.mail/mail/jars/mail-1.4.7.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/javax.xml.bind/jaxb-api/docs/jaxb-api-2.2.7-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.mail/mail/docs/mail-1.4.7-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/javax.xml.bind/jaxb-api/srcs/jaxb-api-2.2.7-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.mail/mail/srcs/mail-1.4.7-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: javax.xml.bind:jsr173_api:1.0:jar">
+    <library name="sbt: javax.servlet:javax.servlet-api:3.1.0:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/javax.xml.bind/jsr173_api/jars/jsr173_api-1.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.servlet/javax.servlet-api/jars/javax.servlet-api-3.1.0.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.servlet/javax.servlet-api/docs/javax.servlet-api-3.1.0-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.servlet/javax.servlet-api/srcs/javax.servlet-api-3.1.0-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: javax.validation:validation-api:1.1.0.Final:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.validation/validation-api/jars/validation-api-1.1.0.Final.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.validation/validation-api/docs/validation-api-1.1.0.Final-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.validation/validation-api/srcs/validation-api-1.1.0.Final-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: javax.ws.rs:javax.ws.rs-api:2.0.1:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.ws.rs/javax.ws.rs-api/jars/javax.ws.rs-api-2.0.1.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.ws.rs/javax.ws.rs-api/docs/javax.ws.rs-api-2.0.1-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.ws.rs/javax.ws.rs-api/srcs/javax.ws.rs-api-2.0.1-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: javax.xml.bind:jaxb-api:2.2.2:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.xml.bind/jaxb-api/jars/jaxb-api-2.2.2.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.xml.bind/jaxb-api/docs/jaxb-api-2.2.2-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.xml.bind/jaxb-api/srcs/jaxb-api-2.2.2-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: javax.xml.stream:stax-api:1.0-2:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.xml.stream/stax-api/jars/stax-api-1.0-2.jar!/" />
       </CLASSES>
       <JAVADOC />
-      <SOURCES />
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/javax.xml.stream/stax-api/srcs/stax-api-1.0-2-sources.jar!/" />
+      </SOURCES>
     </library>
     <library name="sbt: jline:jline:0.9.94:jar">
       <CLASSES>
@@ -720,6 +665,13 @@
       <SOURCES>
         <root url="jar://$USER_HOME$/.ivy2/cache/log4j/log4j/srcs/log4j-1.2.17-sources.jar!/" />
       </SOURCES>
+    </library>
+    <library name="sbt: mx4j:mx4j:3.0.2:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/mx4j/mx4j/jars/mx4j-3.0.2.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES />
     </library>
     <library name="sbt: net.arnx:jsonic:1.2.11:jar">
       <CLASSES>
@@ -754,13 +706,26 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/net.bytebuddy/byte-buddy/srcs/byte-buddy-1.7.9-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: net.java.dev.jets3t:jets3t:0.7.1:jar">
+    <library name="sbt: net.iharder:base64:2.3.8:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/net.java.dev.jets3t/jets3t/jars/jets3t-0.7.1.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/net.iharder/base64/jars/base64-2.3.8.jar!/" />
       </CLASSES>
-      <JAVADOC />
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/net.iharder/base64/docs/base64-2.3.8-javadoc.jar!/" />
+      </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/net.java.dev.jets3t/jets3t/srcs/jets3t-0.7.1-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/net.iharder/base64/srcs/base64-2.3.8-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: net.java.dev.jets3t:jets3t:0.9.3:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/net.java.dev.jets3t/jets3t/jars/jets3t-0.9.3.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/net.java.dev.jets3t/jets3t/docs/jets3t-0.9.3-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/net.java.dev.jets3t/jets3t/srcs/jets3t-0.9.3-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: net.jpountz.lz4:lz4:1.3.0:jar">
@@ -774,15 +739,15 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/net.jpountz.lz4/lz4/srcs/lz4-1.3.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: net.razorvine:pyrolite:4.9:jar">
+    <library name="sbt: net.razorvine:pyrolite:4.13:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/net.razorvine/pyrolite/jars/pyrolite-4.9.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/net.razorvine/pyrolite/jars/pyrolite-4.13.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/net.razorvine/pyrolite/docs/pyrolite-4.9-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/net.razorvine/pyrolite/docs/pyrolite-4.13-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/net.razorvine/pyrolite/srcs/pyrolite-4.9-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/net.razorvine/pyrolite/srcs/pyrolite-4.13-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: net.sf.opencsv:opencsv:2.3:jar">
@@ -796,15 +761,15 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/net.sf.opencsv/opencsv/srcs/opencsv-2.3-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: net.sf.py4j:py4j:0.9:jar">
+    <library name="sbt: net.sf.py4j:py4j:0.10.4:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/net.sf.py4j/py4j/jars/py4j-0.9.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/net.sf.py4j/py4j/jars/py4j-0.10.4.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/net.sf.py4j/py4j/docs/py4j-0.9-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/net.sf.py4j/py4j/docs/py4j-0.10.4-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/net.sf.py4j/py4j/srcs/py4j-0.9-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/net.sf.py4j/py4j/srcs/py4j-0.10.4-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: net.sourceforge.f2j:arpack_combined_all:0.1:jar">
@@ -815,6 +780,17 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/net.sourceforge.f2j/arpack_combined_all/docs/arpack_combined_all-0.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES />
+    </library>
+    <library name="sbt: org.antlr:antlr4-runtime:4.5.3:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.antlr/antlr4-runtime/jars/antlr4-runtime-4.5.3.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.antlr/antlr4-runtime/docs/antlr4-runtime-4.5.3-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.antlr/antlr4-runtime/srcs/antlr4-runtime-4.5.3-sources.jar!/" />
+      </SOURCES>
     </library>
     <library name="sbt: org.apache.avro:avro-ipc:1.7.7:jar">
       <CLASSES>
@@ -856,15 +832,26 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-compress/srcs/commons-compress-1.4.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.commons:commons-lang3:3.3.2:jar">
+    <library name="sbt: org.apache.commons:commons-crypto:1.0.0:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-lang3/jars/commons-lang3-3.3.2.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-crypto/jars/commons-crypto-1.0.0.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-lang3/docs/commons-lang3-3.3.2-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-crypto/docs/commons-crypto-1.0.0-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-lang3/srcs/commons-lang3-3.3.2-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-crypto/srcs/commons-crypto-1.0.0-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.apache.commons:commons-lang3:3.5:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-lang3/jars/commons-lang3-3.5.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-lang3/docs/commons-lang3-3.5-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-lang3/srcs/commons-lang3-3.5-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: org.apache.commons:commons-math3:3.4.1:jar">
@@ -878,200 +865,257 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-math3/srcs/commons-math3-3.4.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.commons:commons-math:2.1:jar">
+    <library name="sbt: org.apache.curator:curator-client:2.6.0:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-math/jars/commons-math-2.1.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-client/bundles/curator-client-2.6.0.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-math/docs/commons-math-2.1-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-client/docs/curator-client-2.6.0-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.commons/commons-math/srcs/commons-math-2.1-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-client/srcs/curator-client-2.6.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.curator:curator-client:2.4.0:jar">
+    <library name="sbt: org.apache.curator:curator-framework:2.6.0:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-client/bundles/curator-client-2.4.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-framework/bundles/curator-framework-2.6.0.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-client/docs/curator-client-2.4.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-framework/docs/curator-framework-2.6.0-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-client/srcs/curator-client-2.4.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-framework/srcs/curator-framework-2.6.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.curator:curator-framework:2.4.0:jar">
+    <library name="sbt: org.apache.curator:curator-recipes:2.6.0:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-framework/bundles/curator-framework-2.4.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-recipes/bundles/curator-recipes-2.6.0.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-framework/docs/curator-framework-2.4.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-recipes/docs/curator-recipes-2.6.0-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-framework/srcs/curator-framework-2.4.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-recipes/srcs/curator-recipes-2.6.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.curator:curator-recipes:2.4.0:jar">
+    <library name="sbt: org.apache.directory.api:api-asn1-api:1.0.0-M20:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-recipes/bundles/curator-recipes-2.4.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.directory.api/api-asn1-api/bundles/api-asn1-api-1.0.0-M20.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-recipes/docs/curator-recipes-2.4.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.directory.api/api-asn1-api/docs/api-asn1-api-1.0.0-M20-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.curator/curator-recipes/srcs/curator-recipes-2.4.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.directory.api/api-asn1-api/srcs/api-asn1-api-1.0.0-M20-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.hadoop:hadoop-annotations:2.2.0:jar">
+    <library name="sbt: org.apache.directory.api:api-util:1.0.0-M20:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-annotations/jars/hadoop-annotations-2.2.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.directory.api/api-util/bundles/api-util-1.0.0-M20.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-annotations/docs/hadoop-annotations-2.2.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.directory.api/api-util/docs/api-util-1.0.0-M20-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-annotations/srcs/hadoop-annotations-2.2.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.directory.api/api-util/srcs/api-util-1.0.0-M20-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.hadoop:hadoop-auth:2.2.0:jar">
+    <library name="sbt: org.apache.directory.server:apacheds-i18n:2.0.0-M15:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-auth/jars/hadoop-auth-2.2.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.directory.server/apacheds-i18n/bundles/apacheds-i18n-2.0.0-M15.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-auth/docs/hadoop-auth-2.2.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.directory.server/apacheds-i18n/docs/apacheds-i18n-2.0.0-M15-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-auth/srcs/hadoop-auth-2.2.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.directory.server/apacheds-i18n/srcs/apacheds-i18n-2.0.0-M15-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.hadoop:hadoop-client:2.2.0:jar">
+    <library name="sbt: org.apache.directory.server:apacheds-kerberos-codec:2.0.0-M15:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-client/jars/hadoop-client-2.2.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.directory.server/apacheds-kerberos-codec/bundles/apacheds-kerberos-codec-2.0.0-M15.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-client/docs/hadoop-client-2.2.0-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES />
-    </library>
-    <library name="sbt: org.apache.hadoop:hadoop-common:2.2.0:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-common/jars/hadoop-common-2.2.0.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-common/docs/hadoop-common-2.2.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.directory.server/apacheds-kerberos-codec/docs/apacheds-kerberos-codec-2.0.0-M15-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-common/srcs/hadoop-common-2.2.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.directory.server/apacheds-kerberos-codec/srcs/apacheds-kerberos-codec-2.0.0-M15-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.hadoop:hadoop-hdfs:2.2.0:jar">
+    <library name="sbt: org.apache.hadoop:hadoop-annotations:2.6.5:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-hdfs/jars/hadoop-hdfs-2.2.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-annotations/jars/hadoop-annotations-2.6.5.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-hdfs/docs/hadoop-hdfs-2.2.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-annotations/docs/hadoop-annotations-2.6.5-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-hdfs/srcs/hadoop-hdfs-2.2.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-annotations/srcs/hadoop-annotations-2.6.5-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.hadoop:hadoop-mapreduce-client-app:2.2.0:jar">
+    <library name="sbt: org.apache.hadoop:hadoop-auth:2.6.5:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-app/jars/hadoop-mapreduce-client-app-2.2.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-auth/jars/hadoop-auth-2.6.5.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-app/docs/hadoop-mapreduce-client-app-2.2.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-auth/docs/hadoop-auth-2.6.5-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-app/srcs/hadoop-mapreduce-client-app-2.2.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-auth/srcs/hadoop-auth-2.6.5-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.hadoop:hadoop-mapreduce-client-common:2.2.0:jar">
+    <library name="sbt: org.apache.hadoop:hadoop-client:2.6.5:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-common/jars/hadoop-mapreduce-client-common-2.2.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-client/jars/hadoop-client-2.6.5.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-common/docs/hadoop-mapreduce-client-common-2.2.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-client/docs/hadoop-client-2.6.5-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-common/srcs/hadoop-mapreduce-client-common-2.2.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-client/srcs/hadoop-client-2.6.5-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.hadoop:hadoop-mapreduce-client-core:2.2.0:jar">
+    <library name="sbt: org.apache.hadoop:hadoop-common:2.6.5:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-core/jars/hadoop-mapreduce-client-core-2.2.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-common/jars/hadoop-common-2.6.5.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-core/docs/hadoop-mapreduce-client-core-2.2.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-common/docs/hadoop-common-2.6.5-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-core/srcs/hadoop-mapreduce-client-core-2.2.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-common/srcs/hadoop-common-2.6.5-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.hadoop:hadoop-mapreduce-client-jobclient:2.2.0:jar">
+    <library name="sbt: org.apache.hadoop:hadoop-hdfs:2.6.5:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-jobclient/jars/hadoop-mapreduce-client-jobclient-2.2.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-hdfs/jars/hadoop-hdfs-2.6.5.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-jobclient/docs/hadoop-mapreduce-client-jobclient-2.2.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-hdfs/docs/hadoop-hdfs-2.6.5-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-jobclient/srcs/hadoop-mapreduce-client-jobclient-2.2.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-hdfs/srcs/hadoop-hdfs-2.6.5-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.hadoop:hadoop-mapreduce-client-shuffle:2.2.0:jar">
+    <library name="sbt: org.apache.hadoop:hadoop-mapreduce-client-app:2.6.5:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-shuffle/jars/hadoop-mapreduce-client-shuffle-2.2.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-app/jars/hadoop-mapreduce-client-app-2.6.5.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-shuffle/docs/hadoop-mapreduce-client-shuffle-2.2.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-app/docs/hadoop-mapreduce-client-app-2.6.5-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-shuffle/srcs/hadoop-mapreduce-client-shuffle-2.2.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-app/srcs/hadoop-mapreduce-client-app-2.6.5-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.hadoop:hadoop-yarn-api:2.2.0:jar">
+    <library name="sbt: org.apache.hadoop:hadoop-mapreduce-client-common:2.6.5:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-api/jars/hadoop-yarn-api-2.2.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-common/jars/hadoop-mapreduce-client-common-2.6.5.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-api/docs/hadoop-yarn-api-2.2.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-common/docs/hadoop-mapreduce-client-common-2.6.5-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-api/srcs/hadoop-yarn-api-2.2.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-common/srcs/hadoop-mapreduce-client-common-2.6.5-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.hadoop:hadoop-yarn-client:2.2.0:jar">
+    <library name="sbt: org.apache.hadoop:hadoop-mapreduce-client-core:2.6.5:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-client/jars/hadoop-yarn-client-2.2.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-core/jars/hadoop-mapreduce-client-core-2.6.5.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-client/docs/hadoop-yarn-client-2.2.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-core/docs/hadoop-mapreduce-client-core-2.6.5-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-client/srcs/hadoop-yarn-client-2.2.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-core/srcs/hadoop-mapreduce-client-core-2.6.5-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.hadoop:hadoop-yarn-common:2.2.0:jar">
+    <library name="sbt: org.apache.hadoop:hadoop-mapreduce-client-jobclient:2.6.5:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-common/jars/hadoop-yarn-common-2.2.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-jobclient/jars/hadoop-mapreduce-client-jobclient-2.6.5.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-common/docs/hadoop-yarn-common-2.2.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-jobclient/docs/hadoop-mapreduce-client-jobclient-2.6.5-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-common/srcs/hadoop-yarn-common-2.2.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-jobclient/srcs/hadoop-mapreduce-client-jobclient-2.6.5-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.hadoop:hadoop-yarn-server-common:2.2.0:jar">
+    <library name="sbt: org.apache.hadoop:hadoop-mapreduce-client-shuffle:2.6.5:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-server-common/jars/hadoop-yarn-server-common-2.2.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-shuffle/jars/hadoop-mapreduce-client-shuffle-2.6.5.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-server-common/docs/hadoop-yarn-server-common-2.2.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-shuffle/docs/hadoop-mapreduce-client-shuffle-2.6.5-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-server-common/srcs/hadoop-yarn-server-common-2.2.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-mapreduce-client-shuffle/srcs/hadoop-mapreduce-client-shuffle-2.6.5-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.apache.hadoop:hadoop-yarn-api:2.6.5:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-api/jars/hadoop-yarn-api-2.6.5.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-api/docs/hadoop-yarn-api-2.6.5-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-api/srcs/hadoop-yarn-api-2.6.5-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.apache.hadoop:hadoop-yarn-client:2.6.5:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-client/jars/hadoop-yarn-client-2.6.5.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-client/docs/hadoop-yarn-client-2.6.5-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-client/srcs/hadoop-yarn-client-2.6.5-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.apache.hadoop:hadoop-yarn-common:2.6.5:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-common/jars/hadoop-yarn-common-2.6.5.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-common/docs/hadoop-yarn-common-2.6.5-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-common/srcs/hadoop-yarn-common-2.6.5-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.apache.hadoop:hadoop-yarn-server-common:2.6.5:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-server-common/jars/hadoop-yarn-server-common-2.6.5.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-server-common/docs/hadoop-yarn-server-common-2.6.5-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.hadoop/hadoop-yarn-server-common/srcs/hadoop-yarn-server-common-2.6.5-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.apache.httpcomponents:httpclient:4.3.6:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.httpcomponents/httpclient/jars/httpclient-4.3.6.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.httpcomponents/httpclient/docs/httpclient-4.3.6-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.httpcomponents/httpclient/srcs/httpclient-4.3.6-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.apache.httpcomponents:httpcore:4.3.3:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.httpcomponents/httpcore/jars/httpcore-4.3.3.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.httpcomponents/httpcore/docs/httpcore-4.3.3-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.httpcomponents/httpcore/srcs/httpcore-4.3.3-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: org.apache.ivy:ivy:2.4.0:jar">
@@ -1107,188 +1151,203 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.lucene/lucene-core/srcs/lucene-core-5.4.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.mesos:mesos:0.21.1:shaded-protobuf:jar">
+    <library name="sbt: org.apache.parquet:parquet-column:1.8.2:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.mesos/mesos/jars/mesos-0.21.1-shaded-protobuf.jar!/" />
-      </CLASSES>
-      <JAVADOC />
-      <SOURCES />
-    </library>
-    <library name="sbt: org.apache.parquet:parquet-column:1.7.0:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-column/jars/parquet-column-1.7.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-column/jars/parquet-column-1.8.2.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-column/docs/parquet-column-1.7.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-column/docs/parquet-column-1.8.2-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-column/srcs/parquet-column-1.7.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-column/srcs/parquet-column-1.8.2-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.parquet:parquet-common:1.7.0:jar">
+    <library name="sbt: org.apache.parquet:parquet-common:1.8.2:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-common/jars/parquet-common-1.7.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-common/jars/parquet-common-1.8.2.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-common/docs/parquet-common-1.7.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-common/docs/parquet-common-1.8.2-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-common/srcs/parquet-common-1.7.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-common/srcs/parquet-common-1.8.2-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.parquet:parquet-encoding:1.7.0:jar">
+    <library name="sbt: org.apache.parquet:parquet-encoding:1.8.2:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-encoding/jars/parquet-encoding-1.7.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-encoding/jars/parquet-encoding-1.8.2.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-encoding/docs/parquet-encoding-1.7.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-encoding/docs/parquet-encoding-1.8.2-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-encoding/srcs/parquet-encoding-1.7.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-encoding/srcs/parquet-encoding-1.8.2-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.parquet:parquet-format:2.3.0-incubating:jar">
+    <library name="sbt: org.apache.parquet:parquet-format:2.3.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-format/jars/parquet-format-2.3.0-incubating.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-format/jars/parquet-format-2.3.1.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-format/docs/parquet-format-2.3.0-incubating-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-format/docs/parquet-format-2.3.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-format/srcs/parquet-format-2.3.0-incubating-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-format/srcs/parquet-format-2.3.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.parquet:parquet-generator:1.7.0:jar">
+    <library name="sbt: org.apache.parquet:parquet-hadoop:1.8.2:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-generator/jars/parquet-generator-1.7.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-hadoop/jars/parquet-hadoop-1.8.2.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-generator/docs/parquet-generator-1.7.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-hadoop/docs/parquet-hadoop-1.8.2-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-generator/srcs/parquet-generator-1.7.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-hadoop/srcs/parquet-hadoop-1.8.2-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.parquet:parquet-hadoop:1.7.0:jar">
+    <library name="sbt: org.apache.parquet:parquet-jackson:1.8.2:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-hadoop/jars/parquet-hadoop-1.7.0.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-hadoop/docs/parquet-hadoop-1.7.0-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-hadoop/srcs/parquet-hadoop-1.7.0-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: org.apache.parquet:parquet-jackson:1.7.0:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-jackson/jars/parquet-jackson-1.7.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-jackson/jars/parquet-jackson-1.8.2.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-jackson/srcs/parquet-jackson-1.7.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.parquet/parquet-jackson/srcs/parquet-jackson-1.8.2-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.spark:spark-catalyst_2.10:1.6.3:jar">
+    <library name="sbt: org.apache.spark:spark-catalyst_2.10:2.2.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-catalyst_2.10/jars/spark-catalyst_2.10-1.6.3.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-catalyst_2.10/jars/spark-catalyst_2.10-2.2.1.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-catalyst_2.10/docs/spark-catalyst_2.10-1.6.3-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-catalyst_2.10/docs/spark-catalyst_2.10-2.2.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-catalyst_2.10/srcs/spark-catalyst_2.10-1.6.3-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-catalyst_2.10/srcs/spark-catalyst_2.10-2.2.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.spark:spark-core_2.10:1.6.3:jar">
+    <library name="sbt: org.apache.spark:spark-core_2.10:2.2.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-core_2.10/jars/spark-core_2.10-1.6.3.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-core_2.10/jars/spark-core_2.10-2.2.1.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-core_2.10/srcs/spark-core_2.10-1.6.3-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-core_2.10/srcs/spark-core_2.10-2.2.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.spark:spark-graphx_2.10:1.6.3:jar">
+    <library name="sbt: org.apache.spark:spark-graphx_2.10:2.2.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-graphx_2.10/jars/spark-graphx_2.10-1.6.3.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-graphx_2.10/jars/spark-graphx_2.10-2.2.1.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-graphx_2.10/docs/spark-graphx_2.10-1.6.3-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-graphx_2.10/docs/spark-graphx_2.10-2.2.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-graphx_2.10/srcs/spark-graphx_2.10-1.6.3-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-graphx_2.10/srcs/spark-graphx_2.10-2.2.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.spark:spark-launcher_2.10:1.6.3:jar">
+    <library name="sbt: org.apache.spark:spark-launcher_2.10:2.2.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-launcher_2.10/jars/spark-launcher_2.10-1.6.3.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-launcher_2.10/jars/spark-launcher_2.10-2.2.1.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-launcher_2.10/docs/spark-launcher_2.10-1.6.3-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-launcher_2.10/docs/spark-launcher_2.10-2.2.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-launcher_2.10/srcs/spark-launcher_2.10-1.6.3-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-launcher_2.10/srcs/spark-launcher_2.10-2.2.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.spark:spark-mllib_2.10:1.6.3:jar">
+    <library name="sbt: org.apache.spark:spark-mllib-local_2.10:2.2.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-mllib_2.10/jars/spark-mllib_2.10-1.6.3.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-mllib-local_2.10/jars/spark-mllib-local_2.10-2.2.1.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-mllib-local_2.10/docs/spark-mllib-local_2.10-2.2.1-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-mllib-local_2.10/srcs/spark-mllib-local_2.10-2.2.1-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.apache.spark:spark-mllib_2.10:2.2.1:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-mllib_2.10/jars/spark-mllib_2.10-2.2.1.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-mllib_2.10/srcs/spark-mllib_2.10-1.6.3-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-mllib_2.10/srcs/spark-mllib_2.10-2.2.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.spark:spark-network-common_2.10:1.6.3:jar">
+    <library name="sbt: org.apache.spark:spark-network-common_2.10:2.2.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-network-common_2.10/jars/spark-network-common_2.10-1.6.3.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-network-common_2.10/jars/spark-network-common_2.10-2.2.1.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-network-common_2.10/docs/spark-network-common_2.10-1.6.3-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-network-common_2.10/docs/spark-network-common_2.10-2.2.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-network-common_2.10/srcs/spark-network-common_2.10-1.6.3-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-network-common_2.10/srcs/spark-network-common_2.10-2.2.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.spark:spark-network-shuffle_2.10:1.6.3:jar">
+    <library name="sbt: org.apache.spark:spark-network-shuffle_2.10:2.2.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-network-shuffle_2.10/jars/spark-network-shuffle_2.10-1.6.3.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-network-shuffle_2.10/jars/spark-network-shuffle_2.10-2.2.1.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-network-shuffle_2.10/docs/spark-network-shuffle_2.10-1.6.3-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-network-shuffle_2.10/docs/spark-network-shuffle_2.10-2.2.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-network-shuffle_2.10/srcs/spark-network-shuffle_2.10-1.6.3-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-network-shuffle_2.10/srcs/spark-network-shuffle_2.10-2.2.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.spark:spark-sql_2.10:1.6.3:jar">
+    <library name="sbt: org.apache.spark:spark-sketch_2.10:2.2.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-sql_2.10/jars/spark-sql_2.10-1.6.3.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-sketch_2.10/jars/spark-sketch_2.10-2.2.1.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-sketch_2.10/docs/spark-sketch_2.10-2.2.1-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-sketch_2.10/srcs/spark-sketch_2.10-2.2.1-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.apache.spark:spark-sql_2.10:2.2.1:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-sql_2.10/jars/spark-sql_2.10-2.2.1.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-sql_2.10/srcs/spark-sql_2.10-1.6.3-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-sql_2.10/srcs/spark-sql_2.10-2.2.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.spark:spark-streaming_2.10:1.6.3:jar">
+    <library name="sbt: org.apache.spark:spark-streaming_2.10:2.2.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-streaming_2.10/jars/spark-streaming_2.10-1.6.3.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-streaming_2.10/jars/spark-streaming_2.10-2.2.1.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-streaming_2.10/srcs/spark-streaming_2.10-1.6.3-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-streaming_2.10/srcs/spark-streaming_2.10-2.2.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.spark:spark-unsafe_2.10:1.6.3:jar">
+    <library name="sbt: org.apache.spark:spark-tags_2.10:2.2.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-unsafe_2.10/jars/spark-unsafe_2.10-1.6.3.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-tags_2.10/jars/spark-tags_2.10-2.2.1.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-unsafe_2.10/docs/spark-unsafe_2.10-1.6.3-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-tags_2.10/docs/spark-tags_2.10-2.2.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-unsafe_2.10/srcs/spark-unsafe_2.10-1.6.3-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-tags_2.10/srcs/spark-tags_2.10-2.2.1-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.apache.spark:spark-unsafe_2.10:2.2.1:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-unsafe_2.10/jars/spark-unsafe_2.10-2.2.1.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-unsafe_2.10/docs/spark-unsafe_2.10-2.2.1-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.spark/spark-unsafe_2.10/srcs/spark-unsafe_2.10-2.2.1-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: org.apache.xbean:xbean-asm5-shaded:4.4:jar">
@@ -1300,15 +1359,26 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.xbean/xbean-asm5-shaded/srcs/xbean-asm5-shaded-4.4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.apache.zookeeper:zookeeper:3.4.5:jar">
+    <library name="sbt: org.apache.zookeeper:zookeeper:3.4.6:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.zookeeper/zookeeper/jars/zookeeper-3.4.5.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.zookeeper/zookeeper/jars/zookeeper-3.4.6.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.zookeeper/zookeeper/docs/zookeeper-3.4.5-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.zookeeper/zookeeper/docs/zookeeper-3.4.6-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.zookeeper/zookeeper/srcs/zookeeper-3.4.5-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.apache.zookeeper/zookeeper/srcs/zookeeper-3.4.6-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.bouncycastle:bcprov-jdk15on:1.51:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.bouncycastle/bcprov-jdk15on/jars/bcprov-jdk15on-1.51.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.bouncycastle/bcprov-jdk15on/docs/bcprov-jdk15on-1.51-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.bouncycastle/bcprov-jdk15on/srcs/bcprov-jdk15on-1.51-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: org.codehaus.jackson:jackson-core-asl:1.9.13:jar">
@@ -1322,13 +1392,15 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.jackson/jackson-core-asl/srcs/jackson-core-asl-1.9.13-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.codehaus.jackson:jackson-jaxrs:1.8.3:jar">
+    <library name="sbt: org.codehaus.jackson:jackson-jaxrs:1.9.13:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.jackson/jackson-jaxrs/jars/jackson-jaxrs-1.8.3.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.jackson/jackson-jaxrs/jars/jackson-jaxrs-1.9.13.jar!/" />
       </CLASSES>
-      <JAVADOC />
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.jackson/jackson-jaxrs/docs/jackson-jaxrs-1.9.13-javadoc.jar!/" />
+      </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.jackson/jackson-jaxrs/srcs/jackson-jaxrs-1.8.3-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.jackson/jackson-jaxrs/srcs/jackson-jaxrs-1.9.13-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: org.codehaus.jackson:jackson-mapper-asl:1.9.13:jar">
@@ -1342,35 +1414,37 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.jackson/jackson-mapper-asl/srcs/jackson-mapper-asl-1.9.13-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.codehaus.jackson:jackson-xc:1.8.3:jar">
+    <library name="sbt: org.codehaus.jackson:jackson-xc:1.9.13:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.jackson/jackson-xc/jars/jackson-xc-1.8.3.jar!/" />
-      </CLASSES>
-      <JAVADOC />
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.jackson/jackson-xc/srcs/jackson-xc-1.8.3-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: org.codehaus.janino:commons-compiler:2.7.8:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.janino/commons-compiler/jars/commons-compiler-2.7.8.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.jackson/jackson-xc/jars/jackson-xc-1.9.13.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.janino/commons-compiler/docs/commons-compiler-2.7.8-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.jackson/jackson-xc/docs/jackson-xc-1.9.13-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.janino/commons-compiler/srcs/commons-compiler-2.7.8-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.jackson/jackson-xc/srcs/jackson-xc-1.9.13-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.codehaus.janino:janino:2.7.8:jar">
+    <library name="sbt: org.codehaus.janino:commons-compiler:3.0.0:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.janino/janino/jars/janino-2.7.8.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.janino/commons-compiler/jars/commons-compiler-3.0.0.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.janino/janino/docs/janino-2.7.8-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.janino/commons-compiler/docs/commons-compiler-3.0.0-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.janino/janino/srcs/janino-2.7.8-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.janino/commons-compiler/srcs/commons-compiler-3.0.0-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.codehaus.janino:janino:3.0.0:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.janino/janino/jars/janino-3.0.0.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.janino/janino/docs/janino-3.0.0-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.janino/janino/srcs/janino-3.0.0-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: org.codehaus.jettison:jettison:1.1:jar">
@@ -1384,17 +1458,6 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/org.codehaus.jettison/jettison/srcs/jettison-1.1-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.eclipse.jetty.orbit/javax.servlet/orbits/javax.servlet-3.0.0.v201112011016.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.eclipse.jetty.orbit/javax.servlet/docs/javax.servlet-3.0.0.v201112011016-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.eclipse.jetty.orbit/javax.servlet/srcs/javax.servlet-3.0.0.v201112011016-sources.jar!/" />
-      </SOURCES>
-    </library>
     <library name="sbt: org.fusesource.leveldbjni:leveldbjni-all:1.8:jar">
       <CLASSES>
         <root url="jar://$USER_HOME$/.ivy2/cache/org.fusesource.leveldbjni/leveldbjni-all/bundles/leveldbjni-all-1.8.jar!/" />
@@ -1406,70 +1469,222 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/org.fusesource.leveldbjni/leveldbjni-all/srcs/leveldbjni-all-1.8-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.jpmml:pmml-agent:1.1.15:jar">
+    <library name="sbt: org.glassfish.hk2.external:aopalliance-repackaged:2.4.0-b34:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-agent/jars/pmml-agent-1.1.15.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2.external/aopalliance-repackaged/jars/aopalliance-repackaged-2.4.0-b34.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-agent/docs/pmml-agent-1.1.15-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2.external/aopalliance-repackaged/docs/aopalliance-repackaged-2.4.0-b34-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-agent/srcs/pmml-agent-1.1.15-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2.external/aopalliance-repackaged/srcs/aopalliance-repackaged-2.4.0-b34-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.jpmml:pmml-model:1.1.15:jar">
+    <library name="sbt: org.glassfish.hk2.external:javax.inject:2.4.0-b34:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-model/jars/pmml-model-1.1.15.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2.external/javax.inject/jars/javax.inject-2.4.0-b34.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-model/docs/pmml-model-1.1.15-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2.external/javax.inject/docs/javax.inject-2.4.0-b34-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-model/srcs/pmml-model-1.1.15-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2.external/javax.inject/srcs/javax.inject-2.4.0-b34-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.jpmml:pmml-schema:1.1.15:jar">
+    <library name="sbt: org.glassfish.hk2:hk2-api:2.4.0-b34:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-schema/jars/pmml-schema-1.1.15.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2/hk2-api/jars/hk2-api-2.4.0-b34.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-schema/docs/pmml-schema-1.1.15-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2/hk2-api/docs/hk2-api-2.4.0-b34-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-schema/srcs/pmml-schema-1.1.15-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2/hk2-api/srcs/hk2-api-2.4.0-b34-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.json4s:json4s-ast_2.10:3.2.10:jar">
+    <library name="sbt: org.glassfish.hk2:hk2-locator:2.4.0-b34:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-ast_2.10/jars/json4s-ast_2.10-3.2.10.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2/hk2-locator/jars/hk2-locator-2.4.0-b34.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-ast_2.10/docs/json4s-ast_2.10-3.2.10-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2/hk2-locator/docs/hk2-locator-2.4.0-b34-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-ast_2.10/srcs/json4s-ast_2.10-3.2.10-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2/hk2-locator/srcs/hk2-locator-2.4.0-b34-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.json4s:json4s-core_2.10:3.2.10:jar">
+    <library name="sbt: org.glassfish.hk2:hk2-utils:2.4.0-b34:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-core_2.10/jars/json4s-core_2.10-3.2.10.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2/hk2-utils/jars/hk2-utils-2.4.0-b34.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-core_2.10/docs/json4s-core_2.10-3.2.10-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2/hk2-utils/docs/hk2-utils-2.4.0-b34-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-core_2.10/srcs/json4s-core_2.10-3.2.10-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2/hk2-utils/srcs/hk2-utils-2.4.0-b34-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.json4s:json4s-jackson_2.10:3.2.10:jar">
+    <library name="sbt: org.glassfish.hk2:osgi-resource-locator:1.0.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-jackson_2.10/jars/json4s-jackson_2.10-3.2.10.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2/osgi-resource-locator/jars/osgi-resource-locator-1.0.1.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-jackson_2.10/docs/json4s-jackson_2.10-3.2.10-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2/osgi-resource-locator/docs/osgi-resource-locator-1.0.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-jackson_2.10/srcs/json4s-jackson_2.10-3.2.10-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.hk2/osgi-resource-locator/srcs/osgi-resource-locator-1.0.1-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.glassfish.jersey.bundles.repackaged:jersey-guava:2.22.2:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.bundles.repackaged/jersey-guava/bundles/jersey-guava-2.22.2.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.bundles.repackaged/jersey-guava/srcs/jersey-guava-2.22.2-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.glassfish.jersey.containers:jersey-container-servlet-core:2.22.2:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.containers/jersey-container-servlet-core/jars/jersey-container-servlet-core-2.22.2.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.containers/jersey-container-servlet-core/docs/jersey-container-servlet-core-2.22.2-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.containers/jersey-container-servlet-core/srcs/jersey-container-servlet-core-2.22.2-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.glassfish.jersey.containers:jersey-container-servlet:2.22.2:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.containers/jersey-container-servlet/jars/jersey-container-servlet-2.22.2.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.containers/jersey-container-servlet/docs/jersey-container-servlet-2.22.2-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.containers/jersey-container-servlet/srcs/jersey-container-servlet-2.22.2-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.glassfish.jersey.core:jersey-client:2.22.2:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.core/jersey-client/jars/jersey-client-2.22.2.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.core/jersey-client/docs/jersey-client-2.22.2-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.core/jersey-client/srcs/jersey-client-2.22.2-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.glassfish.jersey.core:jersey-common:2.22.2:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.core/jersey-common/jars/jersey-common-2.22.2.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.core/jersey-common/docs/jersey-common-2.22.2-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.core/jersey-common/srcs/jersey-common-2.22.2-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.glassfish.jersey.core:jersey-server:2.22.2:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.core/jersey-server/jars/jersey-server-2.22.2.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.core/jersey-server/docs/jersey-server-2.22.2-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.core/jersey-server/srcs/jersey-server-2.22.2-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.glassfish.jersey.media:jersey-media-jaxb:2.22.2:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.media/jersey-media-jaxb/jars/jersey-media-jaxb-2.22.2.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.media/jersey-media-jaxb/docs/jersey-media-jaxb-2.22.2-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.glassfish.jersey.media/jersey-media-jaxb/srcs/jersey-media-jaxb-2.22.2-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.htrace:htrace-core:3.0.4:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.htrace/htrace-core/jars/htrace-core-3.0.4.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.htrace/htrace-core/docs/htrace-core-3.0.4-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.htrace/htrace-core/srcs/htrace-core-3.0.4-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.javassist:javassist:3.18.1-GA:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.javassist/javassist/bundles/javassist-3.18.1-GA.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.javassist/javassist/docs/javassist-3.18.1-GA-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.javassist/javassist/srcs/javassist-3.18.1-GA-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.jpmml:pmml-model:1.2.15:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-model/jars/pmml-model-1.2.15.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-model/docs/pmml-model-1.2.15-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-model/srcs/pmml-model-1.2.15-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.jpmml:pmml-schema:1.2.15:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-schema/jars/pmml-schema-1.2.15.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-schema/docs/pmml-schema-1.2.15-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.jpmml/pmml-schema/srcs/pmml-schema-1.2.15-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.json4s:json4s-ast_2.10:3.2.11:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-ast_2.10/jars/json4s-ast_2.10-3.2.11.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-ast_2.10/docs/json4s-ast_2.10-3.2.11-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-ast_2.10/srcs/json4s-ast_2.10-3.2.11-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.json4s:json4s-core_2.10:3.2.11:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-core_2.10/jars/json4s-core_2.10-3.2.11.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-core_2.10/docs/json4s-core_2.10-3.2.11-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-core_2.10/srcs/json4s-core_2.10-3.2.11-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.json4s:json4s-jackson_2.10:3.2.11:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-jackson_2.10/jars/json4s-jackson_2.10-3.2.11.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-jackson_2.10/docs/json4s-jackson_2.10-3.2.11-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.json4s/json4s-jackson_2.10/srcs/json4s-jackson_2.10-3.2.11-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: org.mockito:mockito-core:2.13.0:jar">
@@ -1602,37 +1817,37 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/org.scalactic/scalactic_2.10/srcs/scalactic_2.10-3.0.4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.scalamacros:quasiquotes_2.10:2.0.0:jar">
+    <library name="sbt: org.scalamacros:quasiquotes_2.10:2.1.0:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalamacros/quasiquotes_2.10/jars/quasiquotes_2.10-2.0.0.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalamacros/quasiquotes_2.10/jars/quasiquotes_2.10-2.1.0.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalamacros/quasiquotes_2.10/docs/quasiquotes_2.10-2.0.0-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalamacros/quasiquotes_2.10/docs/quasiquotes_2.10-2.1.0-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalamacros/quasiquotes_2.10/srcs/quasiquotes_2.10-2.0.0-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalamacros/quasiquotes_2.10/srcs/quasiquotes_2.10-2.1.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.scalanlp:breeze-macros_2.10:0.11.2:jar">
+    <library name="sbt: org.scalanlp:breeze-macros_2.10:0.13.2:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalanlp/breeze-macros_2.10/jars/breeze-macros_2.10-0.11.2.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalanlp/breeze-macros_2.10/jars/breeze-macros_2.10-0.13.2.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalanlp/breeze-macros_2.10/docs/breeze-macros_2.10-0.11.2-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalanlp/breeze-macros_2.10/docs/breeze-macros_2.10-0.13.2-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalanlp/breeze-macros_2.10/srcs/breeze-macros_2.10-0.11.2-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalanlp/breeze-macros_2.10/srcs/breeze-macros_2.10-0.13.2-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.scalanlp:breeze_2.10:0.11.2:jar">
+    <library name="sbt: org.scalanlp:breeze_2.10:0.13.2:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalanlp/breeze_2.10/jars/breeze_2.10-0.11.2.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalanlp/breeze_2.10/jars/breeze_2.10-0.13.2.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalanlp/breeze_2.10/docs/breeze_2.10-0.11.2-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalanlp/breeze_2.10/docs/breeze_2.10-0.13.2-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalanlp/breeze_2.10/srcs/breeze_2.10-0.11.2-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.scalanlp/breeze_2.10/srcs/breeze_2.10-0.13.2-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: org.scalatest:scalatest_2.10:3.0.4:jar">
@@ -1646,48 +1861,48 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/org.scalatest/scalatest_2.10/srcs/scalatest_2.10-3.0.4-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.slf4j:jcl-over-slf4j:1.7.10:jar">
+    <library name="sbt: org.slf4j:jcl-over-slf4j:1.7.16:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/jcl-over-slf4j/jars/jcl-over-slf4j-1.7.10.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/jcl-over-slf4j/jars/jcl-over-slf4j-1.7.16.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/jcl-over-slf4j/docs/jcl-over-slf4j-1.7.10-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/jcl-over-slf4j/docs/jcl-over-slf4j-1.7.16-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/jcl-over-slf4j/srcs/jcl-over-slf4j-1.7.10-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/jcl-over-slf4j/srcs/jcl-over-slf4j-1.7.16-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.slf4j:jul-to-slf4j:1.7.10:jar">
+    <library name="sbt: org.slf4j:jul-to-slf4j:1.7.16:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/jul-to-slf4j/jars/jul-to-slf4j-1.7.10.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/jul-to-slf4j/jars/jul-to-slf4j-1.7.16.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/jul-to-slf4j/docs/jul-to-slf4j-1.7.10-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/jul-to-slf4j/docs/jul-to-slf4j-1.7.16-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/jul-to-slf4j/srcs/jul-to-slf4j-1.7.10-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/jul-to-slf4j/srcs/jul-to-slf4j-1.7.16-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.slf4j:slf4j-api:1.7.10:jar">
+    <library name="sbt: org.slf4j:slf4j-api:1.7.16:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-api/jars/slf4j-api-1.7.10.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-api/jars/slf4j-api-1.7.16.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-api/docs/slf4j-api-1.7.10-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-api/docs/slf4j-api-1.7.16-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-api/srcs/slf4j-api-1.7.10-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-api/srcs/slf4j-api-1.7.16-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.slf4j:slf4j-log4j12:1.7.10:jar">
+    <library name="sbt: org.slf4j:slf4j-log4j12:1.7.16:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-log4j12/jars/slf4j-log4j12-1.7.10.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-log4j12/jars/slf4j-log4j12-1.7.16.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-log4j12/docs/slf4j-log4j12-1.7.10-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-log4j12/docs/slf4j-log4j12-1.7.16-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-log4j12/srcs/slf4j-log4j12-1.7.10-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.slf4j/slf4j-log4j12/srcs/slf4j-log4j12-1.7.16-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: org.sonatype.sisu.inject:cglib:2.2.1-v20090111:jar">
@@ -1712,70 +1927,26 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/org.spark-project.spark/unused/srcs/unused-1.0.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.spire-math:spire-macros_2.10:0.7.4:jar">
+    <library name="sbt: org.spire-math:spire-macros_2.10:0.13.0:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.spire-math/spire-macros_2.10/jars/spire-macros_2.10-0.7.4.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.spire-math/spire-macros_2.10/jars/spire-macros_2.10-0.13.0.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.spire-math/spire-macros_2.10/docs/spire-macros_2.10-0.7.4-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.spire-math/spire-macros_2.10/docs/spire-macros_2.10-0.13.0-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.spire-math/spire-macros_2.10/srcs/spire-macros_2.10-0.7.4-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.spire-math/spire-macros_2.10/srcs/spire-macros_2.10-0.13.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.spire-math:spire_2.10:0.7.4:jar">
+    <library name="sbt: org.spire-math:spire_2.10:0.13.0:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.spire-math/spire_2.10/jars/spire_2.10-0.7.4.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.spire-math/spire_2.10/jars/spire_2.10-0.13.0.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.spire-math/spire_2.10/docs/spire_2.10-0.7.4-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.spire-math/spire_2.10/docs/spire_2.10-0.13.0-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.spire-math/spire_2.10/srcs/spire_2.10-0.7.4-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: org.tachyonproject:tachyon-client:0.8.2:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.tachyonproject/tachyon-client/jars/tachyon-client-0.8.2.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.tachyonproject/tachyon-client/docs/tachyon-client-0.8.2-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.tachyonproject/tachyon-client/srcs/tachyon-client-0.8.2-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: org.tachyonproject:tachyon-underfs-hdfs:0.8.2:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.tachyonproject/tachyon-underfs-hdfs/jars/tachyon-underfs-hdfs-0.8.2.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.tachyonproject/tachyon-underfs-hdfs/docs/tachyon-underfs-hdfs-0.8.2-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.tachyonproject/tachyon-underfs-hdfs/srcs/tachyon-underfs-hdfs-0.8.2-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: org.tachyonproject:tachyon-underfs-local:0.8.2:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.tachyonproject/tachyon-underfs-local/jars/tachyon-underfs-local-0.8.2.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.tachyonproject/tachyon-underfs-local/docs/tachyon-underfs-local-0.8.2-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.tachyonproject/tachyon-underfs-local/srcs/tachyon-underfs-local-0.8.2-sources.jar!/" />
-      </SOURCES>
-    </library>
-    <library name="sbt: org.tachyonproject:tachyon-underfs-s3:0.8.2:jar">
-      <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.tachyonproject/tachyon-underfs-s3/jars/tachyon-underfs-s3-0.8.2.jar!/" />
-      </CLASSES>
-      <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.tachyonproject/tachyon-underfs-s3/docs/tachyon-underfs-s3-0.8.2-javadoc.jar!/" />
-      </JAVADOC>
-      <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.tachyonproject/tachyon-underfs-s3/srcs/tachyon-underfs-s3-0.8.2-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.spire-math/spire_2.10/srcs/spire_2.10-0.13.0-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: org.tukaani:xz:1.0:jar">
@@ -1789,15 +1960,26 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/org.tukaani/xz/srcs/xz-1.0-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: org.uncommons.maths:uncommons-maths:1.2.2a:jar">
+    <library name="sbt: org.typelevel:machinist_2.10:0.6.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.uncommons.maths/uncommons-maths/jars/uncommons-maths-1.2.2a.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.typelevel/machinist_2.10/jars/machinist_2.10-0.6.1.jar!/" />
       </CLASSES>
       <JAVADOC>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.uncommons.maths/uncommons-maths/docs/uncommons-maths-1.2.2a-javadoc.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.typelevel/machinist_2.10/docs/machinist_2.10-0.6.1-javadoc.jar!/" />
       </JAVADOC>
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/org.uncommons.maths/uncommons-maths/srcs/uncommons-maths-1.2.2a-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.typelevel/machinist_2.10/srcs/machinist_2.10-0.6.1-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.typelevel:macro-compat_2.10:1.1.1:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.typelevel/macro-compat_2.10/jars/macro-compat_2.10-1.1.1.jar!/" />
+      </CLASSES>
+      <JAVADOC>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.typelevel/macro-compat_2.10/docs/macro-compat_2.10-1.1.1-javadoc.jar!/" />
+      </JAVADOC>
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.typelevel/macro-compat_2.10/srcs/macro-compat_2.10-1.1.1-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: org.xerial.snappy:snappy-java:1.1.2.6:jar">
@@ -1820,12 +2002,21 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/oro/oro/srcs/oro-2.0.8-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: stax:stax-api:1.0.1:jar">
+    <library name="sbt: xerces:xercesImpl:2.9.1:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/stax/stax-api/jars/stax-api-1.0.1.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/xerces/xercesImpl/jars/xercesImpl-2.9.1.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES />
+    </library>
+    <library name="sbt: xml-apis:xml-apis:1.3.04:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/xml-apis/xml-apis/jars/xml-apis-1.3.04.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/xml-apis/xml-apis/srcs/xml-apis-1.3.04-sources.jar!/" />
+      </SOURCES>
     </library>
     <library name="sbt: xmlenc:xmlenc:0.52:jar">
       <CLASSES>

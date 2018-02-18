@@ -4,7 +4,7 @@ import org.apache.spark.annotation.{Experimental, Since}
 import org.apache.spark.ml.regression.IsotonicRegressionModel
 import org.apache.spark.ml.util._
 import org.apache.spark.mllib.odkl.{IsotonicRegression => MLlibIsotonicRegression}
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.storage.StorageLevel
 
 /**
@@ -27,7 +27,7 @@ class IsotonicRegression @Since("1.5.0")(@Since("1.5.0") override val uid: Strin
   def this() = this(Identifiable.randomUID("isoReg"))
 
   @Since("1.5.0")
-  override def fit(dataset: DataFrame): IsotonicRegressionModel = {
+  override def fit(dataset: Dataset[_]): IsotonicRegressionModel = {
     validateAndTransformSchema(dataset.schema, fitting = true)
     // Extract columns from data.  If dataset is persisted, do not persist oldDataset.
     val instances = extractWeightedLabeledPoints(dataset)

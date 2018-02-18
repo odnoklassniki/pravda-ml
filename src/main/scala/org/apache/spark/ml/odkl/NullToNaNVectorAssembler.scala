@@ -11,16 +11,13 @@ import org.apache.spark.sql.types.DoubleType
 import org.apache.spark.sql.types.NumericType
 import org.apache.spark.sql.types.StructField
 import org.apache.spark.sql.types.StructType
-
-
 import org.apache.spark.SparkException
-import org.apache.spark.annotation.{Since, Experimental}
+import org.apache.spark.annotation.{Experimental, Since}
 import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.attribute.{Attribute, AttributeGroup, NumericAttribute, UnresolvedAttribute}
 import org.apache.spark.ml.param.ParamMap
-import org.apache.spark.mllib.linalg.{Vector, VectorUDT, Vectors}
-import org.apache.spark.sql.{DataFrame, Row}
-import org.apache.spark.sql.functions
+import org.apache.spark.ml.linalg.{Vector, VectorUDT, Vectors}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, functions}
 
 /**
   * :: Experimental ::
@@ -42,10 +39,10 @@ class NullToNaNVectorAssembler(override val uid: String)
   /** @group setParam */
   def setOutputCol(value: String): this.type = set(outputCol, value)
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
     // Schema transformation.
     val schema = dataset.schema
-    lazy val first = dataset.first()
+    lazy val first = dataset.toDF.first()
 
     // Analyze fields metadata if available
     val prepared: Array[(StructField, Array[Attribute])] = $(inputCols).map { c =>

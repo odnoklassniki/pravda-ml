@@ -7,9 +7,11 @@ import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.param.{Param, ParamMap}
 import org.apache.spark.ml.util.{DefaultParamsWritable, Identifiable}
-import org.apache.spark.mllib.linalg.{Vector, VectorUDT}
+import org.apache.spark.ml.linalg.{Vector, VectorUDT}
+import org.apache.spark.sql.catalyst.expressions.GenericRowWithSchema
+import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Row, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, functions}
 
 /**
   * Utility used to extract nested values from vectors into dedicated columns. Requires vector metadata and extracts
@@ -27,7 +29,7 @@ class VectorExplode(override val uid: String) extends
 
   def this() = this(Identifiable.randomUID("vectorExplode"))
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
     val vectors: Array[StructField] = dataset.schema.fields.filter(_.dataType.isInstanceOf[VectorUDT])
 
     val resultSchema = StructType(Seq(
@@ -53,7 +55,7 @@ class VectorExplode(override val uid: String) extends
         val vector = r.getAs[Vector](i)
 
         vector.foreachActive((index, value) => {
-          val name = names(i).getOrElse(index, s"val_$index")
+          val name = names(i).getOrElse(index, s"${vectors(i).name}_$index")
 
           accumulator.changeValue(
             name,
@@ -62,10 +64,15 @@ class VectorExplode(override val uid: String) extends
         })
       }
 
-      accumulator.map(x => Row.fromSeq(Seq(x._1) ++ x._2.toSeq.map(v => if (v.isNaN) null else v))).toArray
+      accumulator.map(x => new GenericRowWithSchema(
+        (Seq(x._1) ++ x._2.toSeq.map(v => if (v.isNaN) null else v)).toArray,
+        resultSchema)).toArray
     }
 
-    val expression = functions.explode(functions.callUDF(explodeVectors, ArrayType(resultSchema), functions.struct(vectors.map(f => dataset(f.name)) :_*)))
+    val vectorsStruct = functions.struct(vectors.map(f => dataset(f.name)): _*)
+    val explodeUDF = SparkSqlUtils.customUDF(explodeVectors, ArrayType(resultSchema), Some(Seq(vectorsStruct.expr.dataType)))
+        
+    val expression = functions.explode(explodeUDF(vectorsStruct))
 
     dataset
       .withColumn(uid, expression)

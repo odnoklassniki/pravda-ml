@@ -1,6 +1,8 @@
 package org.apache.spark.sql.odkl
 
 import org.apache.spark.sql.catalyst.ScalaReflectionLock
+import org.apache.spark.sql.expressions.UserDefinedFunction
+import org.apache.spark.sql.types.DataType
 
 
 /**
@@ -11,5 +13,10 @@ import org.apache.spark.sql.catalyst.ScalaReflectionLock
 object SparkSqlUtils {
 
   def reflectionLock: AnyRef = ScalaReflectionLock
+
+  def customUDF(f: AnyRef,
+              dataType: DataType,
+              inputTypes: Option[Seq[DataType]]) : UserDefinedFunction
+  = UserDefinedFunction(f, dataType, inputTypes)
 
 }

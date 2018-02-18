@@ -15,10 +15,10 @@ import org.apache.spark.ml.attribute.{AttributeGroup, NumericAttribute}
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.param.shared.HasFeaturesCol
 import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
-import org.apache.spark.mllib.linalg.{DenseVector, SparseVector, Vector, Vectors}
+import org.apache.spark.ml.linalg.{DenseVector, SparseVector, Vector, Vectors}
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.{StructField, StructType}
-import org.apache.spark.sql.{DataFrame, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, functions}
 
 /**
   * Adds extra column to features vector with a fixed value of 1. Can be used with any model.
@@ -26,7 +26,7 @@ import org.apache.spark.sql.{DataFrame, functions}
 class Interceptor(override val uid: String = Identifiable.randomUID("interceptor"))
   extends Transformer with HasFeaturesCol with DefaultParamsWritable {
 
-  override def transform(dataset: DataFrame): DataFrame = intercept(dataset, $(featuresCol))
+  override def transform(dataset: Dataset[_]): DataFrame = intercept(dataset.toDF, $(featuresCol))
 
   def setFeaturesCol(value: String) : this.type = set(featuresCol, value)
 

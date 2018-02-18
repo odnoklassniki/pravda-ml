@@ -9,7 +9,7 @@ import org.apache.commons.io.FileUtils
 import org.apache.spark.ml.attribute.{Attribute, AttributeGroup, BinaryAttribute, NumericAttribute}
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage}
-import org.apache.spark.mllib.linalg.{Vector, Vectors}
+import org.apache.spark.ml.linalg.{Vector, Vectors}
 import org.apache.spark.sql.{DataFrame, Row, functions}
 import org.scalatest.FlatSpec
 
@@ -93,7 +93,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
   lazy val reReadTransform = reReadModel.transform(rawData)
 
   "AutoAssembler " should " add scalar columns" in {
-    transformed.select("first", "second", "features").map(r => (r.getDouble(0), r.getDouble(1), r.getAs[Vector](2))).collect.foreach {
+    transformed.select("first", "second", "features").rdd.map(r => (r.getDouble(0), r.getDouble(1), r.getAs[Vector](2))).collect.foreach {
       case (first: Double, second: Double, vector: Vector) =>
         vector(0) should be(first)
         vector(1) should be(second)
@@ -101,7 +101,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
   }
 
   "AutoAssembler " should " add binary columns" in {
-    transformed.select("boolean", "features").map(r => (r.getBoolean(0), r.getAs[Vector](1))).collect.foreach {
+    transformed.select("boolean", "features").rdd.map(r => (r.getBoolean(0), r.getAs[Vector](1))).collect.foreach {
       case (boolean: Boolean, vector: Vector) =>
         vector(4) should be(if (boolean) 1.0 else 0.0)
     }
@@ -112,7 +112,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
       "boolean",
       functions.expr("CASE WHEN first > 0.5 THEN null ELSE boolean END"))
 
-    assembler.fit(data).transform(data).select("features").map(r => r.getAs[Vector](0)).collect.foreach {
+    assembler.fit(data).transform(data).select("features").rdd.map(r => r.getAs[Vector](0)).collect.foreach {
       vector =>
         if (vector(0) > 0.5) {
           vector(4).isNaN should be(true)
@@ -129,7 +129,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
       "second",
       functions.expr("CASE WHEN first > 0.5 THEN null ELSE second END"))
 
-    assembler.fit(data).transform(data).select("features").map(r => r.getAs[Vector](0)).collect.foreach {
+    assembler.fit(data).transform(data).select("features").rdd.map(r => r.getAs[Vector](0)).collect.foreach {
       vector =>
         if (vector(0) > 0.5) {
           vector(1).isNaN should be(true)
@@ -144,7 +144,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
       "vector",
       functions.expr("CASE WHEN first > 0.5 THEN null ELSE vector END"))
 
-    assembler.fit(data).transform(data).select("features").map(r => r.getAs[Vector](0)).collect.foreach {
+    assembler.fit(data).transform(data).select("features").rdd.map(r => r.getAs[Vector](0)).collect.foreach {
       vector =>
         if (vector(0) > 0.5) {
           vector(2).isNaN should be(true)
@@ -168,7 +168,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
 
   "MultiNominalExtractor " should " set values for single" in {
     withNominalTransformed
-      .select("first", "second", "nominal")
+      .select("first", "second", "nominal").rdd
       .map(r => (r.getDouble(0), r.getDouble(1), r.getAs[Vector](2))).collect.foreach {
       case (first: Double, second: Double, vector: Vector) =>
         vector(1) should be(if (first > second) 1.0 else 0.0)
@@ -185,7 +185,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
 
   "MultiNominalExtractor " should " set values for multiple" in {
     withMultiNominalTransformed
-      .select("first", "second", "nominal")
+      .select("first", "second", "nominal").rdd
       .map(r => (r.getDouble(0), r.getDouble(1), r.getAs[Vector](2))).collect.foreach {
       case (first: Double, second: Double, vector: Vector) =>
         vector(0) should be(if (first > 0) 1.0 else 0.0)
@@ -200,7 +200,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
       "nominal", nullify(withMultiNominal("nominal")))
 
     multinominalExtractor.fit(withNulls).transform(withNulls)
-      .select("first", "second", "nominal")
+      .select("first", "second", "nominal").rdd
       .map(r => (r.getDouble(0), r.getDouble(1), r.getAs[Vector](2))).collect.foreach {
       case (first: Double, second: Double, vector: Vector) =>
         vector(0) should be(if (first > 0) 1.0 else 0.0)
@@ -218,7 +218,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
   "Pipelined model " should " set values" in {
     val attributes = AttributeGroup.fromStructField(pipelineTransfom.schema.fields.last)
 
-    pipelineTransfom.select("first", "second", "vector", "boolean", "nominal_s", "nominal", "features").collect().foreach {
+    pipelineTransfom.select("first", "second", "vector", "boolean", "nominal_s", "nominal", "features").rdd.collect().foreach {
       case Row(first: Double, second: Double, vector: Vector, boolean: Boolean, nominal_s: Vector, nominal: Vector, features: Vector) =>
         features(0) should be(first)
         features(1) should be(second)
@@ -249,7 +249,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
   "Pipelined model " should " set values after re-read" in {
     val attributes = AttributeGroup.fromStructField(reReadTransform.schema.fields.last)
 
-    reReadTransform.select("first", "second", "vector", "boolean", "nominal_s", "nominal", "features").collect().foreach {
+    reReadTransform.select("first", "second", "vector", "boolean", "nominal_s", "nominal", "features").rdd.collect().foreach {
       case Row(first: Double, second: Double, vector: Vector, boolean: Boolean, nominal_s: Vector, nominal: Vector, features: Vector) =>
         features(0) should be(first)
         features(1) should be(second)
@@ -294,7 +294,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
       .fit(assembled)
       .transform(assembled)
 
-    replaced.select("features").map(r => r.getAs[Vector](0)).collect.foreach {
+    replaced.select("features").rdd.map(r => r.getAs[Vector](0)).collect.foreach {
       vector =>
         if (vector(0) > 0.5) {
           vector(4) should be((1.0 / 3) +- 0.03)
@@ -336,7 +336,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
     val replaced = reReadModel
       .transform(assembled)
 
-    replaced.select("features").map(r => r.getAs[Vector](0)).collect.foreach {
+    replaced.select("features").rdd.map(r => r.getAs[Vector](0)).collect.foreach {
       vector =>
         if (vector(0) > 0.5) {
           vector(4) should be((1.0 / 3) +- 0.03)

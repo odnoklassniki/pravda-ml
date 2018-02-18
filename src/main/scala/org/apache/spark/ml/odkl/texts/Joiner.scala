@@ -5,7 +5,7 @@ import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.param.{Param, ParamMap, ParamValidators, Params}
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{Column, DataFrame, Row}
+import org.apache.spark.sql.{Column, DataFrame, Dataset, Row}
 
 /**
   * Created by eugeny.malyutin on 06.05.16.
@@ -46,9 +46,9 @@ class Joiner(override val uid: String) extends Transformer with Params {
 
   def this() = this(Identifiable.randomUID("joiner"))
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
 
-    dataset.join($(right), $(joinColExpr), $(joinType))
+    dataset.join($(right), $(joinColExpr), $(joinType)).toDF
   }
 
   override def copy(extra: ParamMap): Transformer = {

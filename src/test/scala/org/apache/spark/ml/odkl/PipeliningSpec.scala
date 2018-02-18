@@ -9,7 +9,7 @@ import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.ml.odkl.Evaluator.TrainTestEvaluator
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.{Pipeline, PipelineModel}
-import org.apache.spark.mllib.linalg.Vector
+import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.sql.functions
 import org.scalatest.FlatSpec
 
@@ -84,7 +84,7 @@ class PipeliningSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
   "Pipeline " should " be trained with metrics" in {
     val summary = ModelWithSummary.extractSummary(model)
 
-    val aucs = summary.$(metrics).filter("metric = 'auc'").select("value").map(_.getDouble(0)).collect()
+    val aucs = summary.$(metrics).filter("metric = 'auc'").select("value").rdd.map(_.getDouble(0)).collect()
 
     aucs.size should be(20)
     aucs.foreach(auc => auc should be >= 0.9)
@@ -93,7 +93,7 @@ class PipeliningSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
   "Pipeline " should " be trained with weights summary" in {
     val summary = ModelWithSummary.extractSummary(model)
 
-    val names = summary.$(weights).select("name").distinct().map(_.getString(0)).collect().sorted
+    val names = summary.$(weights).select("name").distinct().rdd.map(_.getString(0)).collect().sorted
 
     names should be(Seq("#intercept", "firstFeature", "secondFeature"))
   }
@@ -133,13 +133,13 @@ class PipeliningSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val weights = summary.blocks(this.weights)
 
-    val types = weights.select("type").distinct().map(_.getString(0)).collect().sorted
+    val types = weights.select("type").distinct().rdd.map(_.getString(0)).collect().sorted
     types should be(Seq("Direct", "Inverse"))
 
-    val classes = weights.select("classes").distinct().map(_.getString(0)).collect().sorted
+    val classes = weights.select("classes").distinct().rdd.map(_.getString(0)).collect().sorted
     classes should be(Seq(negative, "Positive"))
 
-    val combinations = weights.select("type", "classes").distinct().map(x => x.getString(0) -> x.getString(1)).collect().sorted
+    val combinations = weights.select("type", "classes").distinct().rdd.map(x => x.getString(0) -> x.getString(1)).collect().sorted
     combinations should be(Seq(
       "Direct" -> negative,
       "Direct" -> "Positive",
@@ -149,7 +149,7 @@ class PipeliningSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val directPositiveWeights = weights
       .filter("type = 'Direct' AND classes = 'Positive' AND index >= 0")
-      .select(index, weight)
+      .select(index, weight).rdd
       .collect()
       .map(x => x.getInt(0) -> x.getDouble(1))
       .toMap
@@ -160,7 +160,7 @@ class PipeliningSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
   "Pipeline " should " preserve aggregated metrics block after re-read" in {
     summary.blocks.size should be(2)
 
-    val aucs = summary.$(metrics).filter("metric = 'auc'").select("value").map(_.getDouble(0)).collect()
+    val aucs = summary.$(metrics).filter("metric = 'auc'").select("value").rdd.map(_.getDouble(0)).collect()
 
     aucs.size should be(20)
     aucs.foreach(auc => auc should be >= 0.9)

@@ -10,7 +10,7 @@ import odkl.analysis.spark.util.SQLOperations
 import org.apache.commons.io.FileUtils
 import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
-import org.apache.spark.mllib.linalg.{BLAS, Vector, Vectors}
+import org.apache.spark.ml.linalg.{BLAS, Vector, Vectors}
 import org.apache.spark.scheduler.{SparkListener, SparkListenerUnpersistRDD}
 import org.apache.spark.sql.{DataFrame, functions}
 import org.mockito.internal.verification.Description
@@ -31,7 +31,7 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val model = estimator.fit(noInterceptData)
 
-    val dev: linalg.Vector[Double] = hiddenModel.toBreeze - model.getCoefficients.toBreeze
+    val dev: linalg.Vector[Double] = hiddenModel.asBreeze - model.getCoefficients.asBreeze
 
     val deviation: Double = dev dot dev
 
@@ -43,7 +43,7 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val model = interceptedSgdModel
 
-    val dev: linalg.Vector[Double] = hiddenModel.toBreeze - model.getCoefficients.toBreeze
+    val dev: linalg.Vector[Double] = hiddenModel.asBreeze - model.getCoefficients.asBreeze
 
     val deviation: Double = dev dot dev
 
@@ -76,7 +76,7 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
     val intercept = interceptedSgdModel.getIntercept
 
     val rmse = Math.sqrt(interceptedSgdModel.transform(interceptData)
-      .select(interceptedSgdModel.getFeaturesCol, interceptedSgdModel.getPredictionCol)
+      .select(interceptedSgdModel.getFeaturesCol, interceptedSgdModel.getPredictionCol).rdd
       .map(r => {
         val expectedPrediction: Double = BLAS.dot(r.getAs[Vector](0), coefficients) + intercept
         (expectedPrediction - r.getDouble(1)) * (expectedPrediction - r.getDouble(1))
@@ -90,7 +90,7 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
   "Model " should " predict labels" in {
 
     val rmse = Math.sqrt(interceptedSgdModel.transform(interceptData)
-      .select(interceptedSgdModel.getLabelCol, interceptedSgdModel.getPredictionCol)
+      .select(interceptedSgdModel.getLabelCol, interceptedSgdModel.getPredictionCol).rdd
       .map(r => (r.getDouble(0) - r.getDouble(1)) * (r.getDouble(0) - r.getDouble(1)))
       .mean())
 
@@ -103,7 +103,7 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val auc = new BinaryClassificationMetrics(
       model.transform(noInterceptDataLogistic)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 
@@ -115,7 +115,7 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val auc = new BinaryClassificationMetrics(
       model.transform(noInterceptDataLogistic)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 
@@ -135,12 +135,12 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val auc = new BinaryClassificationMetrics(
       model.transform(interceptDataLogistig)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
     val aucIntercepted = new BinaryClassificationMetrics(
       modelIntercepted.transform(interceptDataLogistig)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 
@@ -163,12 +163,12 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val auc = new BinaryClassificationMetrics(
       model.transform(scaled)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
     val aucScaled = new BinaryClassificationMetrics(
       modelScaled.transform(scaled)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 
@@ -191,12 +191,12 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val auc = new BinaryClassificationMetrics(
       model.transform(scaled)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
     val aucScaled = new BinaryClassificationMetrics(
       modelScaled.transform(scaled)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 
@@ -206,7 +206,7 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
   lazy val scaledData = {
     val scale = functions.udf[Vector, Vector](x => {
-      Vectors.dense(x(0) * 5 - 10, x(1) * 100000 + 20000)
+      Vectors.dense(x(0) * 5 - 10, x(1) * 1000000 + 200000)
     })
 
     interceptDataLogistig.withColumn(
@@ -222,12 +222,12 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val auc = new BinaryClassificationMetrics(
       model.transform(scaledData)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
     val aucScaled = new BinaryClassificationMetrics(
       scaledModel.transform(scaledData)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 
@@ -258,7 +258,7 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
   "Model " should " save summary" in {
     val summary = reReadModel.summary
 
-    val weigths = (summary $ reReadModel.weights).map(r => r.getInt(0) -> r.getDouble(2)).collect().toMap
+    val weigths = (summary $ reReadModel.weights).rdd.map(r => r.getInt(0) -> r.getDouble(2)).collect().toMap
 
     weigths(0) should be(reReadModel.getCoefficients(0))
     weigths(1) should be(reReadModel.getCoefficients(1))
@@ -267,7 +267,7 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
   "Model " should " be able to predict labels after read" in {
     val rmse = Math.sqrt(reReadModel.transform(interceptData)
-      .select(reReadModel.getLabelCol, reReadModel.getPredictionCol)
+      .select(reReadModel.getLabelCol, reReadModel.getPredictionCol).rdd
       .map(r => (r.getDouble(0) - r.getDouble(1)) * (r.getDouble(0) - r.getDouble(1)))
       .mean())
 
@@ -290,7 +290,7 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val auc = new BinaryClassificationMetrics(
       model.transform(noInterceptDataLogistic)
-        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+        .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
     auc should be >= 0.9
@@ -302,7 +302,7 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val summary = interceptedSgdModel.summary
 
-    val names = (summary $ interceptedSgdModel.weights).map(r => r.getInt(0) -> r.getString(1)).collect().toMap
+    val names = (summary $ interceptedSgdModel.weights).rdd.map(r => r.getInt(0) -> r.getString(1)).collect().toMap
 
     names(0) should be("first")
     names(1) should be("second")
@@ -314,7 +314,7 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
     val model = interceptedSgdModel
     val summary = model.summary
 
-    val weigths = (summary $ model.weights).map(r => r.getInt(0) -> r.getDouble(2)).collect().toMap
+    val weigths = (summary $ model.weights).rdd.map(r => r.getInt(0) -> r.getDouble(2)).collect().toMap
 
     weigths(0) should be(model.getCoefficients(0))
     weigths(1) should be(model.getCoefficients(1))
@@ -328,13 +328,13 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val weightsFrame: DataFrame = summary $ model.weights
     val weightIndex = weightsFrame.schema.fieldIndex("weight")
-    val weigths = weightsFrame.map(r => r.getInt(0) -> r.getDouble(weightIndex)).collect().toMap
+    val weigths = weightsFrame.rdd.map(r => r.getInt(0) -> r.getDouble(weightIndex)).collect().toMap
 
     weigths(0) should be(model.getCoefficients(0))
     weigths(1) should be(model.getCoefficients(1))
     weigths(-1) should be(model.getIntercept)
 
-    val names = weightsFrame.map(r => r.getInt(0) -> r.getString(1)).collect().toMap
+    val names = weightsFrame.rdd.map(r => r.getInt(0) -> r.getString(1)).collect().toMap
 
     names(0) should be("first")
     names(1) should be("second")

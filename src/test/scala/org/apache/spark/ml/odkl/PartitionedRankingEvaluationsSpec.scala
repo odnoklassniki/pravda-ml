@@ -4,7 +4,7 @@ import breeze.numerics.log2
 import odkl.analysis.spark.TestEnv
 import odkl.analysis.spark.util.SQLOperations
 import org.apache.spark.ml.attribute.AttributeGroup
-import org.apache.spark.mllib.linalg.Vector
+import org.apache.spark.ml.linalg.Vector
 import org.scalatest.FlatSpec
 
 /**
@@ -63,7 +63,7 @@ class PartitionedRankingEvaluationsSpec extends FlatSpec with TestEnv with org.s
     .transform(data)
 
   lazy val evaluations: Map[Long, Vector] =
-    evaluationsFrame.map(r => r.getLong(0) -> r.getAs[Vector](1)).collect().toMap
+    evaluationsFrame.rdd.map(r => r.getLong(0) -> r.getAs[Vector](1)).collect().toMap
 
 
   lazy val multiLabel = new AutoAssembler()
@@ -83,7 +83,7 @@ class PartitionedRankingEvaluationsSpec extends FlatSpec with TestEnv with org.s
         .transform(multiLabel))
 
   lazy val multiLabelEvaluations: Map[(Long, String), Vector] =
-    multiLabelFrame.map(r => (r.getLong(0), r.getString(2)) -> r.getAs[Vector](1)).collect().toMap
+    multiLabelFrame.rdd.map(r => (r.getLong(0), r.getString(2)) -> r.getAs[Vector](1)).collect().toMap
 
 
   lazy val multiScore = new AutoAssembler()
@@ -102,7 +102,7 @@ class PartitionedRankingEvaluationsSpec extends FlatSpec with TestEnv with org.s
       .transform(multiScore))
 
   lazy val multiScoreEvaluations: Map[(Long, String), Vector] =
-    multiScoreFrame.map(r => (r.getLong(0), r.getString(2)) -> r.getAs[Vector](1)).collect().toMap
+    multiScoreFrame.rdd.map(r => (r.getLong(0), r.getString(2)) -> r.getAs[Vector](1)).collect().toMap
 
   lazy val multiLabelScore = new AutoAssembler()
     .setColumnsToInclude("score", "label")
@@ -120,7 +120,7 @@ class PartitionedRankingEvaluationsSpec extends FlatSpec with TestEnv with org.s
       .transform(multiLabelScore))
 
   lazy val multiLabelScoreEvaluations: Map[(Long, String, String), Vector] =
-    multiLabelScoreFrame.map(r => {
+    multiLabelScoreFrame.rdd.map(r => {
       (r.getLong(0), r.getString(2), r.getString(3)) -> r.getAs[Vector](1)
     }).collect().toMap
 

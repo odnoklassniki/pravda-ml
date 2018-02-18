@@ -17,10 +17,11 @@ import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.param.shared.HasInputCol
 import org.apache.spark.ml.param.{DoubleArrayParam, Param, ParamMap}
 import org.apache.spark.ml.util.{DefaultParamsWritable, Identifiable}
-import org.apache.spark.mllib.linalg.{Vector, VectorUDT}
+import org.apache.spark.ml.linalg.{Vector, VectorUDT}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{LongType, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, Row, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, functions}
+import org.apache.spark.mllib.linalg.VectorImplicits._
 
 /**
   * Utility used to collect detailed stat for vectors grouped by a certain keys. In addition to common stuff
@@ -67,14 +68,21 @@ class VectorStatCollector(override val uid: String) extends
 
   def this() = this(Identifiable.randomUID("vectorsStatCollector"))
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
 
     val dimensionsVal = get(dimensions).getOrElse(AttributeGroup.fromStructField(dataset.schema($(inputCol))).size)
     val compressionVal = $(compression)
     val numPartitionsVal = get(numPartitions).getOrElse(dataset.sqlContext.sparkContext.defaultParallelism)
 
-    val preAggregated: RDD[(Row, ExtendedMultivariateOnlineSummarizer)] = dataset
-      .select(functions.struct($(groupByColumns).map(dataset(_)): _*), dataset($(inputCol)))
+    val hasGrouping = isDefined(groupByColumns) && !$(groupByColumns).isEmpty
+
+    val groupingExpression = if (hasGrouping) functions.struct($(groupByColumns).map(dataset(_)): _*)
+      else functions.struct(functions.lit(1).as("lit"))
+
+
+    val preAggregated: RDD[(Row, ExtendedMultivariateOnlineSummarizer)] = dataset.toDF
+      .select(groupingExpression, dataset($(inputCol)))
+      .rdd
       .mapPartitions(data => {
         val aggregate = new OpenHashMap[Row, ExtendedMultivariateOnlineSummarizer]()
 
@@ -97,16 +105,20 @@ class VectorStatCollector(override val uid: String) extends
     dataset.sqlContext.createDataFrame(
       mayBeShuffled
         .reduceByKey((a, b) => a.merge(b), numPartitionsVal)
-        .map(x => Row.merge(x._1, Row.fromSeq(Seq(
-          x._2.count,
-          x._2.mean,
-          x._2.variance,
-          x._2.min,
-          x._2.max,
-          x._2.numNonzeros,
-          x._2.normL1,
-          x._2.normL2) ++ $(percentiles).map(p => x._2.percentile(p))
-        ))),
+        .map(x => {
+          val row = Row.fromSeq(Seq(
+            x._2.count,
+            x._2.mean.asML,
+            x._2.variance.asML,
+            x._2.min.asML,
+            x._2.max.asML,
+            x._2.numNonzeros.asML,
+            x._2.normL1.asML,
+            x._2.normL2.asML) ++ $(percentiles).map(p => x._2.percentile(p))
+          )
+
+          if (hasGrouping) Row.merge(x._1, row) else row}
+        ),
       transformSchema(dataset.schema))
 
   }

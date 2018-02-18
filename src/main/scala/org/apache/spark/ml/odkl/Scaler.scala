@@ -12,14 +12,16 @@ package org.apache.spark.ml.odkl
 
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.param.shared.HasFeaturesCol
-import org.apache.spark.ml.param.{Param, BooleanParam, ParamMap, Params}
+import org.apache.spark.ml.param.{BooleanParam, Param, ParamMap, Params}
 import org.apache.spark.ml.util.{DefaultParamsWritable, Identifiable}
 import org.apache.spark.ml.Estimator
 import org.apache.spark.mllib.feature.{StandardScaler, StandardScalerModel}
-import org.apache.spark.mllib.linalg.{DenseVector, SparseVector, BLAS, Vector}
+import org.apache.spark.ml.linalg.{BLAS, DenseVector, SparseVector, Vector}
+import org.apache.spark.mllib
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, functions}
+import org.apache.spark.mllib.linalg.VectorImplicits._
 
 /**
   * Scaler parameters.
@@ -71,8 +73,9 @@ class ScalerEstimator[M <: ModelWithSummary[M]]
   private[odkl] val modelTransformer = new Param[(M,StandardScalerModel) => M](
     this, "modelTransformer", "Function used to transform nested model.")
 
-  override def fit(dataset: DataFrame): Scaler.Unscaler[M] = {
-    val scaler = new StandardScaler($(withMean), $(withStd)).fit(dataset.select($(featuresCol)).map(_.getAs[Vector](0)))
+  override def fit(dataset: Dataset[_]): Scaler.Unscaler[M] = {
+    val scaler = new StandardScaler($(withMean), $(withStd)).fit(
+      dataset.select($(featuresCol)).rdd.map(r => mllib.linalg.Vectors.fromML(r.getAs[Vector](0))))
 
     new Scaler.Unscaler[M](scaler, $(modelTransformer)).setParent(this)
   }
@@ -182,7 +185,8 @@ object Scaler extends Serializable {
   )
     extends ModelTransformer[M, Unscaler[M]] with HasFeaturesCol with ScalerParams {
 
-    override def transform(dataset: DataFrame): DataFrame = Scaler.transformData(dataset, $(featuresCol), scaler)
+    override def transform(dataset: Dataset[_]): DataFrame = Scaler.transformData(
+      dataset.toDF, $(featuresCol), scaler)
 
     override def transformModel(model: M, originalData: DataFrame): M = modelTransformer(model, scaler)
 

@@ -1,14 +1,14 @@
 package org.apache.spark.ml.odkl.texts
 
-import org.apache.spark.Logging
+import org.apache.spark.internal.Logging
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.Identifiable
-import org.apache.spark.mllib.linalg.Vectors.norm
-import org.apache.spark.mllib.linalg.{BLAS, Vector}
+import org.apache.spark.ml.linalg.Vectors.norm
+import org.apache.spark.ml.linalg.{BLAS, Vector}
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, Row}
+import org.apache.spark.sql.{DataFrame, Dataset, Row}
 
 import scala.collection.mutable.ArrayBuffer
 
@@ -48,9 +48,9 @@ class HashBasedDeduplicator(override val uid: String) extends Transformer with P
 
   def this() = this(Identifiable.randomUID("hashBasedDeduplication"))
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
     dataset.sqlContext.createDataFrame(
-      dataset
+      dataset.toDF
         .repartition(dataset.col($(inputColHash)))
         .sortWithinPartitions($(inputColHash))
         .rdd
@@ -63,7 +63,7 @@ class HashBasedDeduplicator(override val uid: String) extends Transformer with P
               if (newHash == curHash) {
                 val currentVector = it.getAs[Vector]($(inputColVector))
                 val isUnique = vectorsBuffer.forall(storedVector => { //are this vector is "different" with other in buffer?
-                  ((BLAS.dot(storedVector, currentVector)) / (norm(storedVector, 2) * norm(currentVector, 2))) < $(similarityThreshold) //is unsimilar?
+                  (BLAS.dot(storedVector, currentVector) / (norm(storedVector, 2) * norm(currentVector, 2))) < $(similarityThreshold) //is unsimilar?
                 })
                 if (isUnique) {
                   vectorsBuffer.append(currentVector)

@@ -50,7 +50,7 @@ class CRRSamplerSpec extends FlatSpec with TestEnv with org.scalatest.Matchers w
 
     val auc = new BinaryClassificationMetrics(
       model.transform(noInterceptDataLogistic)
-        .select(model.getPredictionCol, model.getLabelCol)
+        .select(model.getPredictionCol, model.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 
@@ -62,7 +62,7 @@ class CRRSamplerSpec extends FlatSpec with TestEnv with org.scalatest.Matchers w
 
     val auc = new BinaryClassificationMetrics(
       model.transform(noInterceptDataLogistic)
-        .select(model.getPredictionCol, model.getLabelCol)
+        .select(model.getPredictionCol, model.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 
@@ -74,7 +74,7 @@ class CRRSamplerSpec extends FlatSpec with TestEnv with org.scalatest.Matchers w
 
     val auc = new BinaryClassificationMetrics(
       model.transform(noInterceptDataLogistic)
-        .select(model.getPredictionCol, model.getLabelCol)
+        .select(model.getPredictionCol, model.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 
@@ -86,7 +86,7 @@ class CRRSamplerSpec extends FlatSpec with TestEnv with org.scalatest.Matchers w
 
     val auc = new BinaryClassificationMetrics(
       model.transform(noInterceptDataLogistic)
-        .select(model.getPredictionCol, model.getLabelCol)
+        .select(model.getPredictionCol, model.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 
@@ -98,7 +98,7 @@ class CRRSamplerSpec extends FlatSpec with TestEnv with org.scalatest.Matchers w
 
     val auc = new BinaryClassificationMetrics(
       model.transform(noInterceptDataLogistic)
-        .select(model.getPredictionCol, model.getLabelCol)
+        .select(model.getPredictionCol, model.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 

@@ -5,7 +5,7 @@ import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.param.shared.{HasInputCol, HasOutputCol}
 import org.apache.spark.ml.param.{IntParam, ParamMap, ParamPair, ParamValidators}
 import org.apache.spark.ml.util.{DefaultParamsWritable, Identifiable}
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.types.{ArrayType, StringType, StructType}
 
@@ -41,7 +41,7 @@ class NGramExtractor(override val uid: String)
 
   setDefault(new ParamPair[Int](upperN, 2), new ParamPair[Int](lowerN, 1))
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
     val lowerBound = $(lowerN)
     val upperBound = $(upperN)
     val nGramUDF = udf[Seq[String], Seq[String]](NGramUtils.nGramFun(_,lowerBound,upperBound))

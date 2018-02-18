@@ -10,7 +10,7 @@ import org.apache.spark.ml.attribute.{Attribute, AttributeGroup, NumericAttribut
 import org.apache.spark.ml.odkl.PartitionedRankingEvaluator.Metric
 import org.apache.spark.ml.param.shared.HasOutputCol
 import org.apache.spark.ml.param.{DoubleParam, Param, ParamMap, StringArrayParam}
-import org.apache.spark.mllib.linalg.{Vector, VectorUDT, Vectors}
+import org.apache.spark.ml.linalg.{Vector, VectorUDT, Vectors}
 import org.apache.spark.sql._
 import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}
 import org.apache.spark.sql.types._
@@ -55,7 +55,7 @@ class PartitionedRankingEvaluator extends Evaluator[PartitionedRankingEvaluator]
 
   override def copy(extra: ParamMap): PartitionedRankingEvaluator = defaultCopy(extra)
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
 
     val indexedMetrics: immutable.IndexedSeq[PartitionedRankingEvaluator.Metric] = $(metrics).toIndexedSeq
 
@@ -67,7 +67,7 @@ class PartitionedRankingEvaluator extends Evaluator[PartitionedRankingEvaluator]
 
     val attributes = constructMetadata(indexedMetrics)
 
-    val groupedData: GroupedData = dataset.groupBy($(groupByColumns).map(dataset(_)): _*)
+    val groupedData: RelationalGroupedDataset = dataset.groupBy($(groupByColumns).map(dataset(_)): _*)
 
 
     val prediction: StructField = dataset.schema($(predictionCol))

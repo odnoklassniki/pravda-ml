@@ -24,7 +24,7 @@ class RDDOperationsSpec extends FlatSpec with TestEnv with Matchers with SQLOper
       .repartition(2, $"key")
       .sortWithinPartitions($"key")
 
-    val data: Array[(String, Seq[String])] = frame
+    val data: Array[(String, Seq[String])] = frame.rdd
       .map(r => r.getString(0) -> r.getString(1))
       .groupWithinPartitionsByKey
       .collect()
@@ -52,7 +52,7 @@ class RDDOperationsSpec extends FlatSpec with TestEnv with Matchers with SQLOper
       .repartition(3, $"key")
       .sortWithinPartitions($"key")
 
-    val data: Array[(String, Seq[Row])] = frame
+    val data: Array[(String, Seq[Row])] = frame.rdd
       .map(x => x)
       .groupWithinPartitionsBy(r => r.getString(0))
       .collect()
