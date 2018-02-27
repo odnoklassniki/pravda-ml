@@ -1,5 +1,5 @@
 # ok-ml-pipelines
-This project is used to capture machine learning pipelines created on top of Spark as OK. 
+This project is used to define machine learning pipelines on top of Spark. 
 This an *extension*, not a replacement, of the Spark ML package with a focus on structural aspects
 of distributed machine learning deployments. Core features added by the project are:
 
