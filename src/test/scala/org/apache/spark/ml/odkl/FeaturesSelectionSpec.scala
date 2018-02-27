@@ -77,7 +77,7 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
       evaluator = new EmptyEvaluator(),
       numFolds = 5
     ),
-    minSignificance = 15)
+    minSignificance = 10)
     .fit(withBoth)
 
   "Selector " should " should eliminate both" in {

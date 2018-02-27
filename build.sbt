@@ -35,11 +35,11 @@ libraryDependencies ++= {
 
 organization := "ru.odnoklassniki"
 
-version := "0.1-spark1.6-SNAPSHOT"
+version := "0.1-spark2.2-SNAPSHOT"
 
-scalaVersion := "2.10.7"
+scalaVersion := "2.11.11"
 
-crossScalaVersions := Seq("2.11.11")
+crossScalaVersions := Seq("2.10.7", "2.11.11")
 
 licenses := Seq("Apache 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0"))
 
