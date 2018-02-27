@@ -32,11 +32,11 @@ libraryDependencies ++= {
 
 organization := "ru.odnoklassniki"
 
-version := "0.1-spark1.6-SNAPSHOT"
+version := "0.1-spark1.6"
 
-scalaVersion := "2.10.7"
+//scalaVersion := "2.10.7"
 
-crossScalaVersions := Seq("2.11.11")
+crossScalaVersions := Seq("2.10.7", "2.11.11")
 
 licenses := Seq("Apache 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0"))
 
@@ -60,7 +60,7 @@ developers := List(
     id    = "EugenyMalyutin",
     name  = "Eugeny Malyutin",
     email = "eugeny.malyutin@corp.mail.ru",
-    url   = url("https://github.com/WarlockTheGrait")
+    url   = url("https://www.linkedin.com/in/eugenymalyutin")
   )
 )
 
