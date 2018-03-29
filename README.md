@@ -21,3 +21,5 @@ In addition to structural improvements there are few ML algorithms incorporated:
 * Improved distributed implementation of variance reduced SGD.
 * Multi-label version of LBFGS with a matrix gradient.
 * Feature selection based on the stability of features importance in cross-validation.
+
+Slides available from JBreak 2018 demo: https://cloud.mail.ru/public/77xY/GKAfB3mjn
