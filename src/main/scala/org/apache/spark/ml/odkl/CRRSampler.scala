@@ -97,14 +97,14 @@ class CRRSamplerModel(override val uid: String) extends
     get(shuffleToPartitions).map(x => noExtraColumn.repartition(x)).getOrElse(noExtraColumn)
   }
 
-  def sampleRows(rows: Seq[Row], labelIndex: Int, featureIndex: Int): Iterator[Row] = {
+  def sampleRows(rows: Iterator[Row], labelIndex: Int, featureIndex: Int): Iterator[Row] = {
     if ($(groupSampleRate) < 1 && ThreadLocalRandom.current().nextDouble() > $(groupSampleRate)) {
       // Skip entire group
       Iterator.empty
     } else if ($(rankingPower) > 0) {
 
-      val positives = new CompactBuffer[Row](rows.size)
-      val negatives = new CompactBuffer[Row](rows.size)
+      val positives = new CompactBuffer[Row]()
+      val negatives = new CompactBuffer[Row]()
 
       rows.foreach(x => if (x.getDouble(labelIndex) > 0) {
         positives += x
@@ -119,7 +119,7 @@ class CRRSamplerModel(override val uid: String) extends
         counterSample(positives.iterator, negatives, featureIndex) ++ counterSample(negatives.iterator, positives, featureIndex)
       }
     } else {
-      counterSample(rows.iterator, Seq.empty, featureIndex)
+      counterSample(rows, Seq.empty, featureIndex)
     }
   }
 

@@ -114,7 +114,7 @@ trait RDDOperations {
       * and sorted by key. The RDD data are processed sequentialy without shuffling and materializing them in memory.
       * @return RDD with key -> values.
       */
-    def groupWithinPartitionsByKey: RDD[(K,Seq[A])] = {
+    def groupWithinPartitionsByKey: RDD[(K,Iterator[A])] = {
       RDDOperations.groupWithinPartitions(rdd)
     }
   }
@@ -138,7 +138,7 @@ trait RDDOperations {
       * @param expr Expression to extract key from a value.
       * @return RDD with key -> values.
       */
-    def groupWithinPartitionsBy[K: ClassTag](expr: T => K): RDD[(K,Seq[T])] = {
+    def groupWithinPartitionsBy[K: ClassTag](expr: T => K): RDD[(K,Iterator[T])] = {
       RDDOperations.groupWithinPartitions(rdd.map(x => expr(x) -> x))
     }
   }
@@ -241,8 +241,8 @@ object RDDOperations extends RDDOperations with CollectionOperations with Serial
     * @tparam V Type of the value
     * @return RDD with key -> values.
     */
-  def groupWithinPartitions[K: ClassTag, V: ClassTag](rdd: RDD[(K,V)]): RDD[(K,Seq[V])] = {
-    rdd.mapPartitions(x => GroupingIterator(x))
+  def groupWithinPartitions[K: ClassTag, V: ClassTag](rdd: RDD[(K,V)]): RDD[(K,Iterator[V])] = {
+    rdd.mapPartitions(x => IteratorUtils.groupByKey(x))
   }
 
   private def uniqueJoinedMapper[K: ClassTag, A: ClassTag, B: ClassTag](
