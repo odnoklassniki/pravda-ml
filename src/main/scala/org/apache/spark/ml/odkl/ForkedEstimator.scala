@@ -16,8 +16,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.param.{Param, Params}
 import org.apache.spark.ml.util.DefaultParamsReader
-import org.apache.spark.sql.{DataFrame, SQLContext, functions}
-import org.apache.spark.sql.{DataFrame, Dataset, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, SQLContext, functions}
 import org.apache.spark.sql.types.StructType
 
 import scala.collection.parallel.TaskSupport

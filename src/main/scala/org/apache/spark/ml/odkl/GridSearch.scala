@@ -4,7 +4,7 @@ import org.apache.spark.ml.odkl.ModelWithSummary.Block
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Row, SQLContext, functions}
+import org.apache.spark.sql._
 
 class GridSearch[ModelIn <: ModelWithSummary[ModelIn]]
 (
@@ -58,8 +58,8 @@ class GridSearch[ModelIn <: ModelWithSummary[ModelIn]]
   /**
     * Override this method and create forks to train from the data.
     */
-  override protected def createForks(dataset: DataFrame): Seq[(ParamMap, DataFrame)] = {
-    $(estimatorParamMaps).map(x => (x, dataset))
+  override protected def createForks(dataset: Dataset[_]): Seq[(ParamMap, DataFrame)] = {
+    $(estimatorParamMaps).map(x => (x, dataset.toDF()))
   }
 
   /**
@@ -78,9 +78,9 @@ class GridSearch[ModelIn <: ModelWithSummary[ModelIn]]
       val tableName = model.uid + "_metrics"
       val query = $(metricsExpression).replaceAll("__THIS__", tableName)
 
-      metrics.registerTempTable(tableName)
+      metrics.createOrReplaceTempView(tableName)
 
-      val quality = metrics.sqlContext.sql(query).map(_.getAs[Number](0)).collect().map(_.doubleValue()).sum
+      val quality = metrics.sqlContext.sql(query).rdd.map(_.getAs[Number](0)).collect().map(_.doubleValue()).sum
 
       (params, model, quality)
     }).sortBy(x => -x._3)
@@ -139,6 +139,6 @@ class GridSearch[ModelIn <: ModelWithSummary[ModelIn]]
 
   override def copy(extra: ParamMap): SummarizableEstimator[ModelIn] = new GridSearch[ModelIn](nested.copy(extra))
 
-  override def fitFork(estimator: SummarizableEstimator[ModelIn], wholeData: DataFrame, partialData: (ParamMap, DataFrame)): (ParamMap, ModelIn) =
+  override def fitFork(estimator: SummarizableEstimator[ModelIn], wholeData: Dataset[_], partialData: (ParamMap, DataFrame)): (ParamMap, ModelIn) =
     super.fitFork(estimator.copy(partialData._1), wholeData, partialData)
 }
