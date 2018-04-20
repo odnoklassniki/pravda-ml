@@ -16,6 +16,7 @@ import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.param.{Param, Params}
 import org.apache.spark.ml.util.DefaultParamsReader
+import org.apache.spark.sql.{DataFrame, SQLContext, functions}
 import org.apache.spark.sql.{DataFrame, Dataset, functions}
 import org.apache.spark.sql.types.StructType
 
@@ -67,7 +68,7 @@ ModelOut <: ModelWithSummary[ModelOut]]
     * Given models trained for each fork create a combined model. This model is the
     * result of the estimator.
     */
-  protected def mergeModels(models: Seq[(ForeKeyType, ModelIn)]): ModelOut
+  protected def mergeModels(sqlContext: SQLContext, models: Seq[(ForeKeyType, ModelIn)]): ModelOut
 
   override def fit(dataset: Dataset[_]): ModelOut = {
 
@@ -86,14 +87,14 @@ ModelOut <: ModelWithSummary[ModelOut]]
 
 
       val models: Array[(ForeKeyType, ModelIn)] = mayBeParallel.map(partialData => try {
-        fitFork(dataset, partialData)
+        fitFork(nested, dataset, partialData)
       } catch {
         case e: Throwable =>
           logError(s"Exception while handling fork ${partialData._1}", e)
           throw e
       }).toArray
 
-      val result = mergeModels(models).setParent(this)
+      val result = mergeModels(dataset.sqlContext, models).setParent(this)
 
       if (isDefined(propagatedKeyColumn) && result.isInstanceOf[ForkedModelParams]) {
         result.asInstanceOf[ForkedModelParams].setPropagatedKeyColumn($(propagatedKeyColumn))
@@ -113,7 +114,7 @@ ModelOut <: ModelWithSummary[ModelOut]]
     }
   }
 
-  def fitFork(wholeData: Dataset[_], partialData: (ForeKeyType, DataFrame)): (ForeKeyType, ModelIn) = {
+  def fitFork(estimator: SummarizableEstimator[ModelIn], wholeData: Dataset[_], partialData: (ForeKeyType, DataFrame)): (ForeKeyType, ModelIn) = {
     logInfo(s"Fitting at $uid for ${partialData._1}...")
 
     if (isDefined(pathForTempModels)) {
@@ -127,7 +128,7 @@ ModelOut <: ModelWithSummary[ModelOut]]
 
     val result: (ForeKeyType, ModelIn) = (
       partialData._1,
-      nested.fit(get(propagatedKeyColumn).map(x => partialData._2.withColumn(x, functions.lit(partialData._1))).getOrElse(partialData._2)))
+      estimator.fit(get(propagatedKeyColumn).map(x => partialData._2.withColumn(x, functions.lit(partialData._1))).getOrElse(partialData._2)))
     logInfo(s"Fitting at $uid for ${partialData._1} DONE")
 
     if (isDefined(pathForTempModels)) {

@@ -17,7 +17,7 @@ import org.apache.spark.ml.param.{Param, ParamMap, StringArrayParam}
 import org.apache.spark.ml.util.{DefaultParamsReadable, Identifiable}
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.{IntegerType, StructType}
-import org.apache.spark.sql.{DataFrame, Dataset, Row, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, SQLContext, functions}
 
 /**
   * Used to train and evaluate model in folds.
@@ -66,7 +66,7 @@ class CrossValidator[M <: ModelWithSummary[M]]
     numFoldsValue
   }
 
-  override protected def mergeModels(models: Seq[(Int, M)]): M = {
+  override protected def mergeModels(sqlContext: SQLContext, models: Seq[(Int, M)]): M = {
     val wholeModel: M = if ($(addGlobal)) models.find(_._1 == -1).get._2 else models.find(_._1 == 0).get._2
     val foldModels = models.filter(_._1 >= 0)
 
