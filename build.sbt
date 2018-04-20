@@ -33,6 +33,12 @@ libraryDependencies ++= {
   )
 }
 
+libraryDependencies ++= Seq(
+  "com.github.hirofumi" %% "xgboost4j" % "0.7.1-p1",
+  "com.github.hirofumi" %% "xgboost4j-spark" % "0.7.1-p1"
+)
+
+
 organization := "ru.odnoklassniki"
 
 version := "0.2-spark2.2-SNAPSHOT"

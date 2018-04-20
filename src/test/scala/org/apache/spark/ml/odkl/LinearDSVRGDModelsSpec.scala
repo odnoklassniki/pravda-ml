@@ -409,12 +409,12 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
   }
 
   "DSVRGD " should " add loss history to summary" in {
-    interceptedSgdModel.summary(DSVRGD.LossHistory).count() should be > 0L
+    interceptedSgdModel.summary(DSVRGD.lossHistory).count() should be > 0L
   }
 
   "DSVRGD " should " add label, iter and loss columns" in {
     val model = new LogisticMatrixDSVRGD().setLocalMinibatchSize(2).fit(multiClassData)
-    val schema: StructType = model.summary(DSVRGD.LossHistory).schema
+    val schema: StructType = model.summary(DSVRGD.lossHistory).schema
 
     schema.size should be(3L)
     schema(0).name should be("label")
@@ -423,7 +423,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
   }
 
   "DSVRGD " should " ommit label column for scalars" in {
-    val schema: StructType = interceptedSgdModel.summary(DSVRGD.LossHistory).schema
+    val schema: StructType = interceptedSgdModel.summary(DSVRGD.lossHistory).schema
 
     schema.size should be(2L)
     schema(0).name should be("iteration")

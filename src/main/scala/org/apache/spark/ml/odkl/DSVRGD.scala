@@ -301,7 +301,7 @@ abstract class DSVRGD[M <: ModelWithSummary[M]]
     val sc = dataset.sqlContext.sparkContext
 
     Map(
-      DSVRGD.LossHistory -> extractBlock(lossHistory, dataset, names, sc),
+      DSVRGD.lossHistory -> extractBlock(lossHistory, dataset, names, sc),
       DSVRGD.WeightDiffHistory -> extractBlock(weightDiffHistory, dataset, names, sc),
       DSVRGD.WeightNormHistory -> extractBlock(weightNormHistory, dataset, names, sc))
   }
@@ -757,12 +757,11 @@ abstract class DSVRGD[M <: ModelWithSummary[M]]
 
 }
 
-object DSVRGD extends Serializable with HasNetlibBlas {
+object DSVRGD extends Serializable with HasNetlibBlas with HasLossHistory {
 
   /**
     * Summary block used for keeping loss history.
     */
-  val LossHistory = new Block("lossHistory")
   val WeightDiffHistory = new Block("weightDiffHistory")
   val WeightNormHistory = new Block("weightNormHistory")
 
