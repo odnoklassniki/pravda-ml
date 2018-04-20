@@ -32,7 +32,7 @@ libraryDependencies ++= {
 
 organization := "ru.odnoklassniki"
 
-version := "0.1-spark1.6-SNAPSHOT"
+version := "0.2-spark1.6-SNAPSHOT"
 
 scalaVersion := "2.10.7"
 

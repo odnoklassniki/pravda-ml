@@ -29,15 +29,21 @@ object IteratorUtils {
     def next(): (Key, Iterator[Value]) = {
       while(prev.hasNext) prev.next()
 
-      val (firstKey, firstValue) = buffer.head
+      val firstKey = buffer.head._1
 
-
-      val (prefix, suffix) =
-        buffer.span(x => firstKey != null && firstKey.equals(x._1) || firstKey == null && x._1 == null)
+      val prefix = continue(firstKey)
 
       prev = prefix
 
-      (firstKey, prefix.map(_._2))
+      (firstKey, prefix)
+    }
+
+    private def continue(firstKey: Key): Iterator[Value] = {
+      new Iterator[Value] {
+        override def hasNext: Boolean = buffer.hasNext && (firstKey != null && firstKey.equals(buffer.head._1) || firstKey == null && buffer.head._1 == null)
+
+        override def next(): Value = buffer.next()._2
+      }
     }
   }
 
@@ -56,19 +62,7 @@ object IteratorUtils {
     def next(): (Int, Iterator[Value]) = {
       while(prev.hasNext) prev.next()
 
-      val firstValue = buffer.head
-
-      var lastReturned =  timeExtractor(firstValue)
-
-      val (pref, suff) = buffer.span(x => {
-        val current = timeExtractor(x)
-        if (current < lastReturned + maxDiff) {
-          lastReturned = current
-          true
-        } else {
-          false
-        }
-      })
+      val pref = continue(buffer.head)
 
       val result = (index, pref)
 
@@ -76,6 +70,20 @@ object IteratorUtils {
       prev = pref
 
       result
+    }
+
+    private def continue(firstValue: Value): Iterator[Value] = {
+      new Iterator[Value] {
+        var lastReturned = timeExtractor(firstValue)
+
+        override def hasNext: Boolean = buffer.hasNext && timeExtractor(buffer.head) < lastReturned + maxDiff
+
+        override def next(): Value = {
+          val value = buffer.next()
+          lastReturned = timeExtractor(value)
+          value
+        }
+      }
     }
   }
 }

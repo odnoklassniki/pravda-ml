@@ -208,7 +208,7 @@ object CombinedModel extends MLReadable[PipelineStage] {
       types.map(t => t -> dataset.filter(dataset($(typeColumn)) === t))
     }
 
-    protected def mergeModels(models: Seq[(String, M)]): SelectingModel[M] = {
+    protected def mergeModels(sqlContext: SQLContext, models: Seq[(String, M)]): SelectingModel[M] = {
       val result = new SelectingModel[M](models.toMap, $(typeColumn))
       result.set(result.predictionCol, $(predictionCol))
     }
@@ -310,7 +310,7 @@ object CombinedModel extends MLReadable[PipelineStage] {
 
     override def copy(extra: ParamMap): MultiClassModelLearner[M] = copyValues(new MultiClassModelLearner[M](nested.copy(extra)), extra)
 
-    protected def mergeModels(models: Seq[(String, M)]): MultiClassCombinationModel[M] = {
+    protected def mergeModels(sqlContext: SQLContext, models: Seq[(String, M)]): MultiClassCombinationModel[M] = {
       val result: MultiClassCombinationModel[M] =
         new MultiClassCombinationModel[M](models.toMap)
 
@@ -335,7 +335,7 @@ object CombinedModel extends MLReadable[PipelineStage] {
     override def copy(extra: ParamMap): SummarizableEstimator[LinearCombinationModel[M]] =
       copyValues(new LinearCombinationModelLearner[M](nested.copy(extra)), extra)
 
-    override protected def mergeModels(models: Seq[(String, M)]): LinearCombinationModel[M] = {
+    override protected def mergeModels(sqlContext: SQLContext, models: Seq[(String, M)]): LinearCombinationModel[M] = {
       val result: LinearCombinationModel[M] =
         new LinearCombinationModel[M](models.toMap)
 
