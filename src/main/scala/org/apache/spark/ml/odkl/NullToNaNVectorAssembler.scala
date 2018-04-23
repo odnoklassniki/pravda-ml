@@ -14,7 +14,7 @@ import org.apache.spark.sql.types.StructType
 import org.apache.spark.SparkException
 import org.apache.spark.annotation.{Experimental, Since}
 import org.apache.spark.ml.Transformer
-import org.apache.spark.ml.attribute.{Attribute, AttributeGroup, NumericAttribute, UnresolvedAttribute}
+import org.apache.spark.ml.attribute._
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.linalg.{Vector, VectorUDT, Vectors}
 import org.apache.spark.sql.{DataFrame, Dataset, Row, functions}
@@ -33,10 +33,8 @@ class NullToNaNVectorAssembler(override val uid: String)
 
   def this() = this(Identifiable.randomUID("nullToNanVecAssembler"))
 
-  /** @group setParam */
   def setInputCols(value: Array[String]): this.type = set(inputCols, value)
 
-  /** @group setParam */
   def setOutputCol(value: String): this.type = set(outputCol, value)
 
   override def transform(dataset: Dataset[_]): DataFrame = {
@@ -58,7 +56,10 @@ class NullToNaNVectorAssembler(override val uid: String)
           } else {
             Array[Attribute](attr.withName(attributeName))
           }
-        case _: NumericType | BooleanType =>
+        case _: BooleanType =>
+          // If the input column type is a compatible scalar type, assume numeric.
+          Array[Attribute](BinaryAttribute.defaultAttr.withName(attributeName))
+        case _: NumericType =>
           // If the input column type is a compatible scalar type, assume numeric.
           Array[Attribute](NumericAttribute.defaultAttr.withName(attributeName))
         case _: VectorUDT =>
@@ -158,7 +159,7 @@ class NullToNaNVectorAssembler(override val uid: String)
     if (schema.fieldNames.contains(outputColName)) {
       throw new IllegalArgumentException(s"Output column $outputColName already exists.")
     }
-    StructType(schema.fields :+ new StructField(outputColName, new VectorUDT, true))
+    StructType(schema.fields :+ StructField(outputColName, new VectorUDT, true))
   }
 
   override def copy(extra: ParamMap): NullToNaNVectorAssembler = defaultCopy(extra)
