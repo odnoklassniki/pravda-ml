@@ -163,7 +163,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
     attributes(1) should be(NumericAttribute.defaultAttr.withName("second").withIndex(1))
     attributes(2) should be(NumericAttribute.defaultAttr.withName("vector_v1").withIndex(2))
     attributes(3) should be(NumericAttribute.defaultAttr.withName("vector_v2").withIndex(3))
-    attributes(4) should be(NumericAttribute.defaultAttr.withName("boolean").withIndex(4))
+    attributes(4) should be(BinaryAttribute.defaultAttr.withName("boolean").withIndex(4))
   }
 
   "MultiNominalExtractor " should " set values for single" in {
@@ -239,7 +239,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
     attributes(1) should be(NumericAttribute.defaultAttr.withName("second").withIndex(1))
     attributes(2) should be(NumericAttribute.defaultAttr.withName("vector_v1").withIndex(2))
     attributes(3) should be(NumericAttribute.defaultAttr.withName("vector_v2").withIndex(3))
-    attributes(4) should be(NumericAttribute.defaultAttr.withName("boolean").withIndex(4))
+    attributes(4) should be(BinaryAttribute.defaultAttr.withName("boolean").withIndex(4))
     attributes(5) should be(BinaryAttribute.defaultAttr.withName("nominal_s_first_s").withIndex(5))
     attributes(6) should be(BinaryAttribute.defaultAttr.withName("nominal_s_second_s").withIndex(6))
     attributes(7) should be(BinaryAttribute.defaultAttr.withName("nominal_first").withIndex(7))
@@ -270,7 +270,7 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
     attributes(1) should be(NumericAttribute.defaultAttr.withName("second").withIndex(1))
     attributes(2) should be(NumericAttribute.defaultAttr.withName("vector_v1").withIndex(2))
     attributes(3) should be(NumericAttribute.defaultAttr.withName("vector_v2").withIndex(3))
-    attributes(4) should be(NumericAttribute.defaultAttr.withName("boolean").withIndex(4))
+    attributes(4) should be(BinaryAttribute.defaultAttr.withName("boolean").withIndex(4))
     attributes(5) should be(BinaryAttribute.defaultAttr.withName("nominal_s_first_s").withIndex(5))
     attributes(6) should be(BinaryAttribute.defaultAttr.withName("nominal_s_second_s").withIndex(6))
     attributes(7) should be(BinaryAttribute.defaultAttr.withName("nominal_first").withIndex(7))
