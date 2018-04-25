@@ -1,9 +1,14 @@
 package org.apache.spark.ml.odkl
 
-import odkl.analysis.spark.util.SparkJson
+import com.fasterxml.jackson.core.{JsonGenerator, JsonParser}
+import com.fasterxml.jackson.databind.deser.std.PrimitiveArrayDeserializers
+import com.fasterxml.jackson.databind.module.SimpleModule
+import com.fasterxml.jackson.databind._
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import org.apache.spark.internal.Logging
 import org.apache.spark.ml.param.Param
 import org.apache.spark.ml.util.Identifiable
+import org.apache.spark.mllib.linalg.DenseVector
 
 import scala.reflect.ClassTag
 
@@ -41,12 +46,12 @@ class JacksonParam[T] (
   }
 
   override def jsonEncode(value: T): String = {
-    SparkJson.objectMapper.writeValueAsString(value)
+    JacksonParam.objectMapper.writeValueAsString(value)
   }
 
   override def jsonDecode(json: String): T = {
     try {
-      SparkJson.objectMapper.readValue[T](json, ct.runtimeClass.asInstanceOf[Class[T]])
+      JacksonParam.objectMapper.readValue[T](json, ct.runtimeClass.asInstanceOf[Class[T]])
     } catch {
       case e: Throwable =>
         logError(s"Failed to read param $name from data $json due error", e)
@@ -73,4 +78,44 @@ object JacksonParam extends Serializable {
   def arrayParam[V](parent: Identifiable, name: String, doc: String)(implicit ct: ClassTag[Array[V]], cv: ClassTag[V]) = {
     new JacksonParam[Array[V]](parent.uid, name, doc, (x : Array[V]) => true, Some[Array[V]](Array[V]()))
   }
+
+  lazy val objectMapper: ObjectMapper = createDefaultMapper
+
+  private def createDefaultMapper: ObjectMapper = {
+    val m = new ObjectMapper()
+    m.registerModule(DefaultScalaModule)
+    m.registerModule(sparkModule)
+    m
+  }
+
+  def sparkModule: Module = {
+    val module = new SimpleModule("SparkJson")
+    module.addSerializer(classOf[DenseVector], DenseVectorSerializer)
+    module.addDeserializer(classOf[DenseVector], DenseVectorDeserializer)
+
+
+    module
+  }
+
+  private object DenseVectorSerializer extends JsonSerializer[DenseVector] {
+
+    override def serialize(value: DenseVector, gen: JsonGenerator, serializers: SerializerProvider): Unit = {
+      gen.writeStartArray(value.size)
+      for (i <- 0 until value.size) gen.writeNumber(value(i))
+      gen.writeEndArray()
+    }
+  }
+
+  private object DenseVectorDeserializer extends JsonDeserializer[DenseVector] {
+
+
+    private val arrayDeserializer = PrimitiveArrayDeserializers.forType(java.lang.Double.TYPE)
+
+    override def deserialize(p: JsonParser, ctxt: DeserializationContext): DenseVector = {
+      val array = arrayDeserializer.deserialize(p, ctxt).asInstanceOf[Array[Double]]
+      new DenseVector(array)
+    }
+  }
+
 }
+
