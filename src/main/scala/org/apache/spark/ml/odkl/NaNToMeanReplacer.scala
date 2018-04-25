@@ -11,7 +11,6 @@ package org.apache.spark.ml.odkl
   * Replaces unknowns with mean values before proceeding to training.
   */
 
-import odkl.analysis.spark.util.SparkJson
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.odkl.NaNToMeanReplacerModel.NaNSafeVectorMean
@@ -88,11 +87,11 @@ class NaNToMeanReplacerModel(override val uid: String) extends Model[NaNToMeanRe
     this, "defaults", "Vector with the default values for replace.") {
     override def jsonEncode(value: Map[String, Vector]): String = {
       val values: Map[String, String] = value.mapValues(_.toJson)
-      SparkJson.objectMapper.writeValueAsString(values)
+      JacksonParam.objectMapper.writeValueAsString(values)
     }
 
     override def jsonDecode(json: String): Map[String, Vector] = {
-      val raw = SparkJson.objectMapper.readValue[Map[String, String]](json, classOf[Map[String, String]])
+      val raw = JacksonParam.objectMapper.readValue[Map[String, String]](json, classOf[Map[String, String]])
       raw.transform((key, value) => Vectors.fromJson(value))
     }
   }
