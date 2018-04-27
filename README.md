@@ -23,3 +23,6 @@ In addition to structural improvements there are few ML algorithms incorporated:
 * Feature selection based on the stability of features importance in cross-validation.
 
 Slides available from JBreak 2018 demo: https://cloud.mail.ru/public/77xY/GKAfB3mjn
+
+Set of usage examples available on Zepl:
+* Basic stat and ML features: https://www.zepl.com/viewer/notebooks/bm90ZTovL2RtaXRyeWJ1Z2F5Y2hlbmtvL2I4YWUyN2Y4YWMwMzRlNzZiMmQyOWFkZGRhOGIwMWQ1L25vdGUuanNvbg
