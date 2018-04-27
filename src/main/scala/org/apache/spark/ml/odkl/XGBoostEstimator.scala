@@ -187,7 +187,7 @@ class XGBoostEstimator(override val uid: String)
               case _ => "g"
             }
           } else "q"
-          (index, attr.name.getOrElse(s"f$index"), flag)
+          (index, attr.name.getOrElse(s"f$index").replaceAll(" |\t", "_"), flag)
         }))
 
 

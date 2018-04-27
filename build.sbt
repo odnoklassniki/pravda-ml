@@ -17,6 +17,8 @@ libraryDependencies ++= {
   )
 }
 
+
+
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.4" % Test,
   "org.mockito" % "mockito-core" % "2.13.0" % Test
@@ -41,11 +43,11 @@ libraryDependencies ++= Seq(
 
 organization := "ru.odnoklassniki"
 
-version := "0.2-spark2.2-SNAPSHOT"
+version := "0.2.1-spark2.2-SNAPSHOT"
 
-scalaVersion := "2.11.11"
+scalaVersion := "2.11.8"
 
-crossScalaVersions := Seq("2.10.7", "2.11.11")
+crossScalaVersions := Seq("2.11.11")
 
 licenses := Seq("Apache 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0"))
 
