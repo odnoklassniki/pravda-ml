@@ -1,8 +1,8 @@
 package org.apache.spark.ml.odkl
 
 import com.google.common.base.Strings
+import odkl.analysis.spark.util.Logging
 import org.apache.commons.math3.distribution.TDistribution
-import org.apache.spark.internal.Logging
 import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.param.shared.HasFeaturesCol

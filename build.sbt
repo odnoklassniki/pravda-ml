@@ -6,7 +6,7 @@ name := "ok-ml-pipelines"
 libraryDependencies += "com.google.guava" % "guava" % "16.0.1" withSources()
 
 libraryDependencies ++= {
-  val sparkVer = "2.2.1"
+  val sparkVer = "2.3.1"
   Seq(
     "org.apache.spark"     %% "spark-core"              % sparkVer withSources() exclude("com.google.guava", "guava"),
     "org.apache.spark"     %% "spark-mllib"             % sparkVer withSources() exclude("com.google.guava", "guava"),
@@ -16,8 +16,6 @@ libraryDependencies ++= {
     "com.esotericsoftware" % "kryo" % "4.0.1"
   )
 }
-
-
 
 libraryDependencies ++= Seq(
   "org.scalatest" %% "scalatest" % "3.0.4" % Test,
@@ -36,8 +34,8 @@ libraryDependencies ++= {
 }
 
 libraryDependencies ++= Seq(
-  "com.github.hirofumi" %% "xgboost4j" % "0.7.1-p1",
-  "com.github.hirofumi" %% "xgboost4j-spark" % "0.7.1-p1"
+  "ml.dmlc" % "xgboost4j" % "0.72",
+  "ml.dmlc" % "xgboost4j-spark" % "0.72"
 )
 
 

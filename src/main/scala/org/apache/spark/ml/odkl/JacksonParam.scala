@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.deser.std.PrimitiveArrayDeserializers
 import com.fasterxml.jackson.databind.module.SimpleModule
 import com.fasterxml.jackson.databind._
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import org.apache.spark.internal.Logging
+import odkl.analysis.spark.util.Logging
 import org.apache.spark.ml.param.Param
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.mllib.linalg.DenseVector

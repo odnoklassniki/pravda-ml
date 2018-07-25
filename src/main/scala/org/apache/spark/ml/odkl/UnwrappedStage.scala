@@ -14,7 +14,6 @@ package org.apache.spark.ml.odkl
 import java.util.concurrent.ThreadLocalRandom
 
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.apache.spark.internal.Logging
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.param.shared.HasSeed
@@ -35,7 +34,7 @@ import scala.collection.mutable
   *
   * This interface defines the logic of model transformation.
   */
-trait ModelTransformer[M <: ModelWithSummary[M], T <: ModelTransformer[M, T]] extends Model[T] with Logging {
+trait ModelTransformer[M <: ModelWithSummary[M], T <: ModelTransformer[M, T]] extends Model[T] {
   def transformModel(model: M, originalData: DataFrame): M
 
   def copy(extra: ParamMap): T = defaultCopy(extra)
@@ -580,7 +579,7 @@ object UnwrappedStage extends Serializable {
     * Collects all summary blocks and materializes them as into a single partition.
     */
   class CollectSummaryTransformer[M <: ModelWithSummary[M]](override val uid: String)
-    extends ModelOnlyTransformer[M, CollectSummaryTransformer[M]](uid) with Logging {
+    extends ModelOnlyTransformer[M, CollectSummaryTransformer[M]](uid) {
 
     def this() = this(Identifiable.randomUID("summaryCollector"))
 

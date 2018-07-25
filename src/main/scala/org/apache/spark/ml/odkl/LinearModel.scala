@@ -12,7 +12,7 @@ package org.apache.spark.ml.odkl
 
 import breeze.linalg.{DenseVector => BDV}
 import breeze.optimize.{CachedDiffFunction, DiffFunction, OWLQN, LBFGS => BreezeLBFGS}
-import org.apache.spark.internal.Logging
+import odkl.analysis.spark.util.Logging
 import org.apache.spark.annotation.Since
 import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.odkl.CombinedModel.DirectPredictionModel
@@ -116,7 +116,7 @@ abstract class LinearRegressor[M <: LinearModel[M], O <: Optimizer, T <: LinearR
 (
   override val uid: String
 )
-  extends LinearEstimator[M, T] with DefaultParamsWritable with Logging with HasCacheTrainData {
+  extends LinearEstimator[M, T] with DefaultParamsWritable with HasCacheTrainData {
 
   setDefault(cacheTrainData, true)
 

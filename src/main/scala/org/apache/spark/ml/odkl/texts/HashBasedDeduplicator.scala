@@ -1,6 +1,6 @@
 package org.apache.spark.ml.odkl.texts
 
-import org.apache.spark.internal.Logging
+import odkl.analysis.spark.util.Logging
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.param._
@@ -19,7 +19,7 @@ import scala.collection.mutable.ArrayBuffer
   *
   **/
 
-class HashBasedDeduplicator(override val uid: String) extends Transformer with Params with Logging {
+class HashBasedDeduplicator(override val uid: String) extends Transformer with Params {
 
   val similarityThreshold =
     new DoubleParam(this, "simTresh",

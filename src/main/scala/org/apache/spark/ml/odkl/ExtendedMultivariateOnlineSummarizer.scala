@@ -6,7 +6,7 @@ import java.nio.ByteBuffer
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{DefaultSerializer, Kryo, Serializer}
 import com.tdunning.math.stats.AVLTreeDigest
-import org.apache.spark.internal.Logging
+import odkl.analysis.spark.util.Logging
 import org.apache.spark.ml.linalg.{Vector, Vectors}
 import org.apache.spark.mllib
 import org.apache.spark.mllib.stat.MultivariateOnlineSummarizer

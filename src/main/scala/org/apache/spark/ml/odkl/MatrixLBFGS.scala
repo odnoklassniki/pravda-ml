@@ -5,7 +5,7 @@ import java.util.concurrent.{ArrayBlockingQueue, CountDownLatch, ThreadPoolExecu
 
 import breeze.linalg
 import breeze.optimize.{CachedDiffFunction, DiffFunction, OWLQN}
-import org.apache.spark.internal.Logging
+import odkl.analysis.spark.util.Logging
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.PredictorParams
 import org.apache.spark.ml.attribute.{Attribute, AttributeGroup, NumericAttribute}
