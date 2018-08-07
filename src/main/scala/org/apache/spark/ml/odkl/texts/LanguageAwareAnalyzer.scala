@@ -6,7 +6,7 @@ import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.param.shared.HasOutputCol
 import org.apache.spark.ml.param.{Param, ParamMap}
 import org.apache.spark.ml.util.{Identifiable, SchemaUtils}
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.types.{ArrayType, StringType, StructType}
 
@@ -72,8 +72,8 @@ class LanguageAwareAnalyzer(override val uid: String) extends Transformer with H
 
   def this() = this(Identifiable.randomUID("languageAnalyzer"))
 
-  override def transform(dataset: DataFrame): DataFrame = {
-    dataset.withColumn($(outputCol), stemmTextUDF(dataset.col($(inputColLang)), dataset.col($(inputColText))))
+  override def transform(dataset: Dataset[_]): DataFrame = {
+    dataset.withColumn($(outputCol), stemmTextUDF(dataset.col($(inputColLang)), dataset.col($(inputColText)))).toDF
   }
 
   @DeveloperApi

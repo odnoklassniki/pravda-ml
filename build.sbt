@@ -2,13 +2,16 @@ import sbt.Developer
 
 name := "ok-ml-pipelines"
 
+// Have to fix Guava in order to avoid conflict on Stopwatch in FileInputFormat (of haddop 2.6.5)
+libraryDependencies += "com.google.guava" % "guava" % "16.0.1" withSources()
+
 libraryDependencies ++= {
-  val sparkVer = "1.6.3"
+  val sparkVer = "2.3.1"
   Seq(
-    "org.apache.spark"     %% "spark-core"              % sparkVer withSources(),
-    "org.apache.spark"     %% "spark-mllib"             % sparkVer withSources(),
-    "org.apache.spark"     %% "spark-sql"               % sparkVer withSources(),
-    "org.apache.spark"     %% "spark-streaming"         % sparkVer withSources(),
+    "org.apache.spark"     %% "spark-core"              % sparkVer withSources() exclude("com.google.guava", "guava"),
+    "org.apache.spark"     %% "spark-mllib"             % sparkVer withSources() exclude("com.google.guava", "guava"),
+    "org.apache.spark"     %% "spark-sql"               % sparkVer withSources() exclude("com.google.guava", "guava"),
+    "org.apache.spark"     %% "spark-streaming"         % sparkVer withSources() exclude("com.google.guava", "guava"),
 
     "com.esotericsoftware" % "kryo" % "4.0.1"
   )
@@ -25,18 +28,24 @@ libraryDependencies ++= {
     "org.apache.lucene"    % "lucene-core"             % luceneVersion,
     "org.apache.lucene"    % "lucene-analyzers-common" % luceneVersion,
 
-    "com.optimaize.languagedetector" % "language-detector"  % "0.6",
+    "com.optimaize.languagedetector" % "language-detector"  % "0.6" exclude("com.google.guava", "guava"),
     "com.tdunning" % "t-digest" % "3.2"
   )
 }
 
+libraryDependencies ++= Seq(
+  "ml.dmlc" % "xgboost4j" % "0.72",
+  "ml.dmlc" % "xgboost4j-spark" % "0.72"
+)
+
+
 organization := "ru.odnoklassniki"
 
-version := "0.2-spark1.6-SNAPSHOT"
+version := "0.2.1-spark2.2-SNAPSHOT"
 
-scalaVersion := "2.10.7"
+scalaVersion := "2.11.8"
 
-crossScalaVersions := Seq("2.10.7", "2.11.11")
+crossScalaVersions := Seq("2.11.11")
 
 licenses := Seq("Apache 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0"))
 
@@ -78,4 +87,4 @@ publishTo := {
 
 credentials += Credentials(Path.userHome / ".sonatype" / "credentials.ini")
 
-useGpg := true 
+useGpg := true

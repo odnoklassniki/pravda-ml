@@ -6,8 +6,8 @@ import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.param.shared.HasInputCols
 import org.apache.spark.ml.util.Identifiable
-import org.apache.spark.mllib.linalg.VectorUDT
-import org.apache.spark.sql.{functions, DataFrame}
+import org.apache.spark.ml.linalg.VectorUDT
+import org.apache.spark.sql.{DataFrame, Dataset, functions}
 import org.apache.spark.sql.types.{Metadata, StringType, StructField, StructType}
 
 /**
@@ -21,10 +21,10 @@ class NameAssigner(override val uid: String) extends Transformer with HasInputCo
 
   def this() = this(Identifiable.randomUID("NameAssigner"))
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
     $(inputCols)
 
-    $(inputCols).foldLeft(dataset)((data, column) => {
+    $(inputCols).foldLeft(dataset.toDF)((data, column) => {
       val metadata: Metadata = dataset.schema(column).metadata
       val attributes = AttributeGroup.fromStructField(
         StructField(column, new VectorUDT, nullable = false, metadata = metadata))
@@ -41,7 +41,7 @@ class NameAssigner(override val uid: String) extends Transformer with HasInputCo
       })
 
       data.withColumn(column, func(data(column)).as(column, metadata))
-    })
+    }).toDF
   }
 
   override def copy(extra: ParamMap): Transformer = defaultCopy(extra)

@@ -9,9 +9,9 @@ import org.apache.spark.ml.{Estimator, Model, Transformer}
 import org.apache.spark.ml.param.shared.{HasInputCol, HasLabelCol}
 import org.apache.spark.ml.param.{DoubleParam, IntParam, ParamMap, Params}
 import org.apache.spark.ml.util.{DefaultParamsWritable, Identifiable}
-import org.apache.spark.mllib.linalg.{BLAS, Vector, Vectors}
+import org.apache.spark.ml.linalg.{BLAS, Vector, Vectors}
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, Row, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, functions}
 
 
 /**
@@ -61,7 +61,7 @@ class CRRSamplerModel(override val uid: String) extends
     itemSampleRate -> 1.0
   )
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
 
     val (data, keyIndex, toDrop) = if (isDefined(groupByColumns) && $(groupByColumns).length > 0) {
       if ($(groupByColumns).length == 1) {
@@ -85,7 +85,7 @@ class CRRSamplerModel(override val uid: String) extends
 
 
     val result = dataset.sqlContext.createDataFrame(
-      data
+      data.toDF
         .rdd
         .groupWithinPartitionsBy(x => x.get(keyIndex))
         .flatMap(x => sampleRows(x._2, labelIndex, featuresIndex)),
@@ -194,7 +194,7 @@ class CRRSamplerEstimator(override val uid: String) extends Estimator[CRRSampler
 
   def this() = this(Identifiable.randomUID("crrSamplerEstimator"))
 
-  override def fit(dataset: DataFrame): CRRSamplerModel = {
+  override def fit(dataset: Dataset[_]): CRRSamplerModel = {
     val totalSamples: Double = if ($(rankingPower) > 0 && isDefined(groupByColumns) && $(groupByColumns).length > 0) {
       val (withKey, keyIndex) = if ($(groupByColumns).length == 1) {
         (dataset, dataset.schema.fieldIndex($(groupByColumns).head))
@@ -208,7 +208,7 @@ class CRRSamplerEstimator(override val uid: String) extends Estimator[CRRSampler
 
       val labelIndex = withKey.schema.fieldIndex($(labelCol))
 
-      withKey
+      withKey.toDF
         .rdd
         .groupWithinPartitionsBy(x => x.get(keyIndex))
         .map(x => {

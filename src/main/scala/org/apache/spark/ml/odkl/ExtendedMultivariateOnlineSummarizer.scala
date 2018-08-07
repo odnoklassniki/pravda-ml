@@ -6,8 +6,9 @@ import java.nio.ByteBuffer
 import com.esotericsoftware.kryo.io.{Input, Output}
 import com.esotericsoftware.kryo.{DefaultSerializer, Kryo, Serializer}
 import com.tdunning.math.stats.AVLTreeDigest
-import org.apache.spark.Logging
-import org.apache.spark.mllib.linalg.{Vector, Vectors}
+import odkl.analysis.spark.util.Logging
+import org.apache.spark.ml.linalg.{Vector, Vectors}
+import org.apache.spark.mllib
 import org.apache.spark.mllib.stat.MultivariateOnlineSummarizer
 
 /**
@@ -29,7 +30,7 @@ class ExtendedMultivariateOnlineSummarizer
 
   val percentileAggregators = Array.tabulate(dimension) { i => new SeriallizableAvlTreeDigest(compression) }
 
-  override def add(sample: Vector): this.type = {
+  override def add(sample: mllib.linalg.Vector): this.type = {
     require(sample.size == dimension, s"Expecting vector of size $dimension")
     super.add(sample)
 

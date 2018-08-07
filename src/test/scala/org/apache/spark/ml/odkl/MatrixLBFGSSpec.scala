@@ -5,11 +5,14 @@ import java.util.concurrent.ThreadLocalRandom
 import odkl.analysis.spark.TestEnv
 import odkl.analysis.spark.util.SQLOperations
 import org.apache.spark.ml.attribute.AttributeGroup
-import org.apache.spark.mllib.linalg._
+import org.apache.spark.ml.linalg._
+import org.apache.spark.mllib.linalg
 import org.apache.spark.mllib.optimization.{LBFGS, LogisticGradient, SquaredL2Updater}
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.{DataFrame, UserDefinedFunction, functions}
+import org.apache.spark.sql.expressions.UserDefinedFunction
+import org.apache.spark.sql.{DataFrame, functions}
 import org.scalatest.FlatSpec
+import org.apache.spark.mllib.linalg.VectorImplicits._
 
 
 /**
@@ -35,7 +38,7 @@ class MatrixLBFGSSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     hiddenModel(1), hiddenModel2(1), hiddenModel3(1)
   )).asInstanceOf[DenseMatrix]
 
-  lazy val multiclassRdd: RDD[(Vector, Vector)] = multiClassData.select("features", "label").map(r => r.getAs[Vector](0) -> r.getAs[Vector](1))
+  lazy val multiclassRdd: RDD[(Vector, Vector)] = multiClassData.select("features", "label").rdd.map(r => r.getAs[Vector](0) -> r.getAs[Vector](1))
 
   lazy val matrixResult = MatrixLBFGS.computeGradientAndLoss[Vector](multiclassRdd, weights, batchSize = 13,
     labelsAssigner = (pos, vector, target) => System.arraycopy(vector.toArray, 0, target, pos, vector.size))
@@ -48,12 +51,14 @@ class MatrixLBFGSSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
 
   lazy val reference3: (Vector, Double) = reference(multiClassData, 2, hiddenModel3)
 
-  def reference(data: DataFrame, label: Int, model: Vector) = {
+  def reference(data: DataFrame, label: Int, model: Vector): (Vector, Double) = {
     val referenceGradient = new LogisticGradient()
-    data
-      .select("label", "features")
+    val result: (linalg.Vector, Double) = data
+      .select("label", "features").rdd
       .map(r => referenceGradient.compute(r.getAs[Vector](1), r.getAs[Vector](0)(label), model))
-      .treeReduce((x, y) => (Vectors.fromBreeze(x._1.toBreeze + y._1.toBreeze), x._2 + y._2))
+      .treeReduce((x, y) => (Vectors.fromBreeze(x._1.asBreeze + y._1.asBreeze), x._2 + y._2))
+
+    result._1.asML -> result._2
   }
 
   "MatrixLogisticGradient " should " produce same losses for point" in  {

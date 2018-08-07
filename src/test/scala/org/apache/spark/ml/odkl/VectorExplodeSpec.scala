@@ -3,7 +3,7 @@ package org.apache.spark.ml.odkl
 import odkl.analysis.spark.TestEnv
 import odkl.analysis.spark.util.SQLOperations
 import org.apache.spark.ml.attribute.{Attribute, AttributeGroup, NumericAttribute}
-import org.apache.spark.mllib.linalg.{Vector, Vectors}
+import org.apache.spark.ml.linalg.{Vector, Vectors}
 import org.apache.spark.sql.{functions, Row}
 import org.apache.spark.sql.types.{StructType, StructField, DoubleType}
 import org.scalatest.FlatSpec

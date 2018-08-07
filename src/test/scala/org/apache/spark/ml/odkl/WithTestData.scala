@@ -4,7 +4,7 @@ import java.util.Random
 
 import odkl.analysis.spark.TestEnv
 import org.apache.spark.ml.feature.VectorAssembler
-import org.apache.spark.mllib.linalg.{BLAS, Vector, Vectors}
+import org.apache.spark.ml.linalg.{BLAS, Vector, Vectors}
 import org.apache.spark.sql.{Column, Row, functions}
 
 /**

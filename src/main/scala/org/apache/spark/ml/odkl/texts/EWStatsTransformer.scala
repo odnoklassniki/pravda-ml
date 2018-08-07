@@ -4,7 +4,7 @@ import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions.{col, expr, udf}
 import org.apache.spark.sql.types.{DoubleType, StructField, StructType}
 
@@ -31,7 +31,7 @@ class EWStatsTransformer(override val uid: String) extends Transformer with Para
 
   def this() = this(Identifiable.randomUID("ewStatsTransformer"))
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
 
     val preparedDataset = {
       val beforeTimestamp = dataset

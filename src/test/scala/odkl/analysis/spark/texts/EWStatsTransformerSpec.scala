@@ -29,7 +29,7 @@ class EWStatsTransformerSpec extends FlatSpec with TestEnv with org.scalatest.Ma
         Row.fromSeq(f)
       }), new StructType().add("term", StringType)
         .add("sig", DoubleType).add("ewma", DoubleType).add("ewmvar", DoubleType))
-    val rddRes = oldDF.
+    val rddRes = oldDF.rdd.
       map { case Row(term, sig, ewma, ewmvar) => Row(term, Row(sig, ewma, ewmvar)) }
 
     val schemaRes = StructType(

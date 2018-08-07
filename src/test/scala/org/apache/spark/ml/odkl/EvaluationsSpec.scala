@@ -4,7 +4,7 @@ import odkl.analysis.spark.TestEnv
 import odkl.analysis.spark.util.SQLOperations
 import org.apache.spark.ml.odkl.Evaluator.TrainTestEvaluator
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
-import org.apache.spark.mllib.linalg.Vectors
+import org.apache.spark.ml.linalg.Vectors
 import org.apache.spark.sql.DataFrame
 import org.scalatest.FlatSpec
 
@@ -18,7 +18,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
 
   lazy val directBinaryMetrics = new BinaryClassificationMetrics(
     noInterceptBinaryPredictions
-      .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol)
+      .select(interceptedSgdModel.getPredictionCol, interceptedSgdModel.getLabelCol).rdd
       .map(r => (r.getDouble(0), r.getDouble(1))),
     numBins = 100)
 
@@ -129,7 +129,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     val model = modelWithMetrics
     val summary = model.summary
 
-    val weigths = (summary $ model.weights).map(r => r.getInt(0) -> r.getDouble(2)).collect().toMap
+    val weigths = (summary $ model.weights).rdd.map(r => r.getInt(0) -> r.getDouble(2)).collect().toMap
 
     weigths(0) should be(model.getCoefficients(0))
     weigths(1) should be(model.getCoefficients(1))
@@ -181,7 +181,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
 
     val weightsFrame: DataFrame = summary $ model.weights
     val weigths = weightsFrame
-      .filter(weightsFrame("foldNum") === -1)
+      .filter(weightsFrame("foldNum") === -1).rdd
       .map(r => r.getInt(0) -> r.getDouble(2)).collect().toMap
 
     weigths(0) should be(model.getCoefficients(0))
@@ -197,7 +197,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     for(i <- -1 to 1) {
       val weigths = weightsFrame
         .filter(weightsFrame("foldNum") === 0)
-        .select("index", "weight")
+        .select("index", "weight").rdd
         .map(r => r.getInt(0) -> r.getDouble(1)).collect().toMap
 
       val average = Vectors.dense(Array(weigths(0), weigths(1)))

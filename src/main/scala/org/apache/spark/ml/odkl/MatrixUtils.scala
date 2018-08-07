@@ -1,6 +1,6 @@
-package org.apache.spark.mllib.odkl
+package org.apache.spark.ml.odkl
 
-import org.apache.spark.mllib.linalg.{DenseMatrix, Matrix}
+import org.apache.spark.ml.linalg.{DenseMatrix, Matrix, VectorUDT}
 
 /**
   * Created by dmitriybugaichenko on 19.11.16.
@@ -8,6 +8,8 @@ import org.apache.spark.mllib.linalg.{DenseMatrix, Matrix}
   * Utility alowing access of certain hidden methods of Spark's mllib linalg
   */
 object MatrixUtils {
+
+  def vectorUDT = new VectorUDT()
 
   def transformDense(matrix: DenseMatrix, transformer: (Int, Int, Double) => Double): DenseMatrix = {
     matrix.foreachActive((i, j, v) => {

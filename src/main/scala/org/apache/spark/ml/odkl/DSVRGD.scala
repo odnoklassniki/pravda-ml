@@ -10,13 +10,13 @@ import org.apache.spark.ml.odkl.ModelWithSummary.Block
 import org.apache.spark.ml.param.shared._
 import org.apache.spark.ml.param.{BooleanParam, DoubleParam, Param, ParamMap}
 import org.apache.spark.ml.util.{DefaultParamsReadable, Identifiable, SchemaUtils}
-import org.apache.spark.mllib.linalg._
-import org.apache.spark.mllib.odkl.MatrixUtils
+import org.apache.spark.ml.linalg._
+import org.apache.spark.mllib
 import org.apache.spark.mllib.stat.MultivariateOnlineSummarizer
 import org.apache.spark.mllib.util.MLUtils
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.types.{StructField, StructType}
-import org.apache.spark.sql.{DataFrame, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, functions}
 
 import scala.util.Random
 
@@ -104,7 +104,7 @@ abstract class DSVRGD[M <: ModelWithSummary[M]]
   def setSpeedUpFactor(value: Double) : this.type = set(speedUpFactor, value)
   def setSlowDownFactor(value: Double) : this.type = set(slowDownFactor, value)
 
-  override def fit(dataset: DataFrame): M = {
+  override def fit(dataset: Dataset[_]): M = {
     // Extract information regarding labels and features.
     val labelColumn = dataset.schema($(labelCol))
     val labelAttributeGroup = AttributeGroup.fromStructField(labelColumn)
@@ -161,7 +161,7 @@ abstract class DSVRGD[M <: ModelWithSummary[M]]
         // Do the step
         val state = try {
           singleStep(
-            data.map(r => {
+            data.toDF.rdd.map(r => {
               r.getAs[Vector](0) -> relabel(activeLabels, r.getAs[Vector](1))
             }),
             weightsBroadcast,
@@ -273,11 +273,11 @@ abstract class DSVRGD[M <: ModelWithSummary[M]]
     }
 
     // Create an appropriate model
-    val model = extractModel(labelAttributeGroup, numLabels, weights, dataset)
+    val model = extractModel(labelAttributeGroup, numLabels, weights, dataset.toDF)
       .setParent(this)
 
     // Add summary info with loss history
-    model.setSummary(model.summary.copy(extractSummaryBlocks(lossHistory, weightDiffHistory, weightNormHistory, dataset, labelAttributeGroup)))
+    model.setSummary(model.summary.copy(extractSummaryBlocks(lossHistory, weightDiffHistory, weightNormHistory, dataset.toDF, labelAttributeGroup)))
   }
 
   /**
@@ -301,7 +301,7 @@ abstract class DSVRGD[M <: ModelWithSummary[M]]
     val sc = dataset.sqlContext.sparkContext
 
     Map(
-      DSVRGD.LossHistory -> extractBlock(lossHistory, dataset, names, sc),
+      DSVRGD.lossHistory -> extractBlock(lossHistory, dataset, names, sc),
       DSVRGD.WeightDiffHistory -> extractBlock(weightDiffHistory, dataset, names, sc),
       DSVRGD.WeightNormHistory -> extractBlock(weightNormHistory, dataset, names, sc))
   }
@@ -757,12 +757,11 @@ abstract class DSVRGD[M <: ModelWithSummary[M]]
 
 }
 
-object DSVRGD extends Serializable with HasNetlibBlas {
+object DSVRGD extends Serializable with HasNetlibBlas with HasLossHistory {
 
   /**
     * Summary block used for keeping loss history.
     */
-  val LossHistory = new Block("lossHistory")
   val WeightDiffHistory = new Block("weightDiffHistory")
   val WeightNormHistory = new Block("weightNormHistory")
 
@@ -864,9 +863,9 @@ object DSVRGD extends Serializable with HasNetlibBlas {
   }
 
   def logisticInitialization(data: DataFrame, numLabels: Int, numFeatures: Int): Matrix = {
-    val stat = data.map(_.getAs[Vector](0)).treeAggregate(
+    val stat = data.rdd.map(_.getAs[Vector](0)).treeAggregate(
       new MultivariateOnlineSummarizer)(
-      (a, v) => a.add(v), (a, b) => a.merge(b))
+      (a, v) => a.add(mllib.linalg.Vectors.fromML(v)), (a, b) => a.merge(b))
 
     MatrixUtils.transformDense(
       DenseMatrix.zeros(numLabels, numFeatures),
@@ -935,7 +934,7 @@ object DSVRGD extends Serializable with HasNetlibBlas {
 abstract class DeVectorizedDSVRGD[M <: ModelWithSummary[M]](override val uid: String)
   extends DSVRGD[M](uid) {
 
-  override def fit(dataset: DataFrame): M = {
+  override def fit(dataset: Dataset[_]): M = {
     val vectorize = functions.udf[Vector, Double](x => Vectors.dense(x))
 
     val labelField = dataset.schema($(labelCol))

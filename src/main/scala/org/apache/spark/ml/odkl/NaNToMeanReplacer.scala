@@ -16,12 +16,13 @@ import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.odkl.NaNToMeanReplacerModel.NaNSafeVectorMean
 import org.apache.spark.ml.param.shared.{HasInputCol, HasOutputCol}
 import org.apache.spark.ml.param.{Param, ParamMap}
-import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, DefaultParamsReader, Identifiable}
+import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsReader, DefaultParamsWritable, Identifiable}
 import org.apache.spark.ml.{Estimator, Model}
-import org.apache.spark.mllib.linalg._
+import org.apache.spark.ml.linalg._
+import org.apache.spark.mllib
 import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}
 import org.apache.spark.sql.types.{DataType, StructType}
-import org.apache.spark.sql.{DataFrame, Row, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, functions}
 
 /**
   * Set of parameters for the replacer
@@ -46,7 +47,7 @@ class NaNToMeanReplacerEstimator(override val uid: String) extends Estimator[NaN
   with NaNToMeanReplacerParams {
   def this() = this(Identifiable.randomUID("nanToMeanReplacerEstimator"))
 
-  override def fit(dataset: DataFrame): NaNToMeanReplacerModel = {
+  override def fit(dataset: Dataset[_]): NaNToMeanReplacerModel = {
 
     val size = AttributeGroup.fromStructField(dataset.schema($(inputCol))).size
     val mean = new NaNSafeVectorMean(size)
@@ -55,6 +56,7 @@ class NaNToMeanReplacerEstimator(override val uid: String) extends Estimator[NaN
     val means = dataset
       .groupBy($(groupByColumn))
       .agg(mean(dataset($(inputCol))))
+      .rdd
       .map(r => {
         r.getString(0) -> r.getAs[Vector](1)
       })
@@ -86,13 +88,13 @@ class NaNToMeanReplacerModel(override val uid: String) extends Model[NaNToMeanRe
   val defaults = new Param[Map[String, Vector]](
     this, "defaults", "Vector with the default values for replace.") {
     override def jsonEncode(value: Map[String, Vector]): String = {
-      val values: Map[String, String] = value.mapValues(_.toJson)
+      val values: Map[String, String] = value.mapValues(v => mllib.linalg.Vectors.fromML(v).toJson)
       JacksonParam.objectMapper.writeValueAsString(values)
     }
 
     override def jsonDecode(json: String): Map[String, Vector] = {
       val raw = JacksonParam.objectMapper.readValue[Map[String, String]](json, classOf[Map[String, String]])
-      raw.transform((key, value) => Vectors.fromJson(value))
+      raw.transform((key, value) => mllib.linalg.Vectors.fromJson(value).asML)
     }
   }
 
@@ -100,7 +102,7 @@ class NaNToMeanReplacerModel(override val uid: String) extends Model[NaNToMeanRe
 
   override def copy(extra: ParamMap): NaNToMeanReplacerModel = defaultCopy(extra)
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
     val localDefaults = $(defaults)
 
     val replacer = functions.udf[Vector, String, Vector]((group, vector) => {

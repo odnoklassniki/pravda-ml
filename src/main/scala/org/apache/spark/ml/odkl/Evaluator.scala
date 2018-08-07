@@ -18,7 +18,7 @@ import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.ml.{Estimator, Transformer}
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{DataFrame, Row, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, functions}
 
 /**
   * Base class for evaluators. It is expected that evaluators group data into
@@ -177,7 +177,7 @@ object Evaluator extends Serializable {
         .add($(isTestColumn), BooleanType, nullable = false)
     }
 
-    override def transform(dataset: DataFrame): DataFrame = {
+    override def transform(dataset: Dataset[_]): DataFrame = {
       val test = nested.transform(dataset.filter(dataset($(isTestColumn)) === true)).withColumn($(isTestColumn), functions.lit(true))
       val train = nested.transform(dataset.filter(dataset($(isTestColumn)) === false)).withColumn($(isTestColumn), functions.lit(false))
 
@@ -191,10 +191,10 @@ object Evaluator extends Serializable {
   class TrainOnlyFilter(override val uid: String) extends Transformer with HasIsTestCol {
     def this() = this(Identifiable.randomUID("trainOnlyFilter"))
 
-    override def transform(dataset: DataFrame): DataFrame = {
+    override def transform(dataset: Dataset[_]): DataFrame = {
       val col = dataset($(isTestColumn))
 
-      dataset.filter(dataset($(isTestColumn)) === false)
+      dataset.filter(dataset($(isTestColumn)) === false).toDF
     }
 
     override def copy(extra: ParamMap): Transformer = copyValues(new TrainOnlyFilter(), extra)
@@ -208,7 +208,7 @@ object Evaluator extends Serializable {
     override def copy(extra: ParamMap): PostProcessingEvaluator[E] = copyValues(
       new PostProcessingEvaluator[E](nested.copy(extra), postprocessing.copy(extra)))
 
-    override def transform(dataset: DataFrame): DataFrame = {
+    override def transform(dataset: Dataset[_]): DataFrame = {
       val evaluated: DataFrame = nested.transform(dataset)
       postprocessing.fit(evaluated).transform(evaluated)
     }
@@ -222,7 +222,7 @@ object Evaluator extends Serializable {
     */
   class EmptyEvaluator extends Evaluator[EmptyEvaluator] {
 
-    override def transform(dataset: DataFrame): DataFrame =
+    override def transform(dataset: Dataset[_]): DataFrame =
       // Can not use empty data frame as it causes troubles on the later stages of processing.
       SparkSqlUtils.reflectionLock.synchronized(
         dataset.sqlContext.createDataFrame(

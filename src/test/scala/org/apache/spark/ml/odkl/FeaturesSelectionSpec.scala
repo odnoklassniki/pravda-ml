@@ -8,7 +8,7 @@ import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.odkl.Evaluator.EmptyEvaluator
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
-import org.apache.spark.mllib.linalg.{Vector, Vectors}
+import org.apache.spark.ml.linalg.{Vector, Vectors}
 import org.apache.spark.sql.functions
 import org.scalatest.FlatSpec
 
@@ -56,7 +56,7 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
         evaluator = new EmptyEvaluator(),
         numFolds = 5
       ),
-      minSignificance = 15)
+      minSignificance = 10)
       .fit(withCorellated)
 
     model.summary(featuresSignificance).show(10)
@@ -77,7 +77,7 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
       evaluator = new EmptyEvaluator(),
       numFolds = 5
     ),
-    minSignificance = 15)
+    minSignificance = 10)
     .fit(withBoth)
 
   "Selector " should " should eliminate both" in {
@@ -96,15 +96,15 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
 
     summary.count should be(4)
 
-    summary.where("index = 0").select(significance).map(_.getDouble(0)).first() should be < 15.0
-    summary.where("index = 1").select(significance).map(_.getDouble(0)).first() should be < 15.0
-    summary.where("index = 2").select(significance).map(_.getDouble(0)).first() should be > 15.0
-    summary.where("index = 3").select(significance).map(_.getDouble(0)).first() should be > 15.0
+    summary.where("index = 0").select(significance).rdd.map(_.getDouble(0)).first() should be < 15.0
+    summary.where("index = 1").select(significance).rdd.map(_.getDouble(0)).first() should be < 15.0
+    summary.where("index = 2").select(significance).rdd.map(_.getDouble(0)).first() should be > 15.0
+    summary.where("index = 3").select(significance).rdd.map(_.getDouble(0)).first() should be > 15.0
 
 
     val foundModel = Vectors.dense(
-      summary.where("index = 2").select(avg).map(_.getDouble(0)).first(),
-      summary.where("index = 3").select(avg).map(_.getDouble(0)).first()
+      summary.where("index = 2").select(avg).rdd.map(_.getDouble(0)).first(),
+      summary.where("index = 3").select(avg).rdd.map(_.getDouble(0)).first()
     )
     val deviation: Double = cosineDistance(hiddenModel, foundModel)
 
@@ -118,7 +118,7 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
 
     val auc = new BinaryClassificationMetrics(
       model.transform(withBoth)
-        .select(linearModel.getPredictionCol, linearModel.getLabelCol)
+        .select(linearModel.getPredictionCol, linearModel.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 

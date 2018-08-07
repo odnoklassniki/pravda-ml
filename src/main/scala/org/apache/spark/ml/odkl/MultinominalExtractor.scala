@@ -18,10 +18,10 @@ import org.apache.spark.ml.param.shared.{HasInputCol, HasOutputCol}
 import org.apache.spark.ml.param.{Param, ParamMap, StringArrayParam}
 import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
 import org.apache.spark.ml.{Estimator, Model}
-import org.apache.spark.mllib.linalg.{Vector, VectorUDT, Vectors}
+import org.apache.spark.ml.linalg.{Vector, VectorUDT, Vectors}
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.{ArrayType, StringType, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, functions}
 
 /**
   * Parameters for multinominal feature extractor.
@@ -63,7 +63,7 @@ class MultinominalExtractor(override val uid: String) extends
 
   def setValuesToIgnore(value: String*): this.type = set(valuesToIgnore, value.toArray)
 
-  override def fit(dataset: DataFrame): MultinominalExtractorModel = {
+  override def fit(dataset: Dataset[_]): MultinominalExtractorModel = {
     val model: MultinominalExtractorModel = copyValues(
       if (isDefined(values)) {
         new MultinominalExtractorModel().setValues($(values): _*).setReplacements($(replacements))
@@ -81,6 +81,7 @@ class MultinominalExtractor(override val uid: String) extends
         val vals = dataset
           .filter(dataset($(inputCol)).isNotNull)
           .select(collectValues(dataset($(inputCol))))
+          .rdd
           .flatMap(_.getAs[Seq[String]](0))
           .countByValue().toSeq.filterNot(x => $(valuesToIgnore).contains(x._1)).sortBy(-_._2).map(_._1).toArray
 
@@ -114,7 +115,7 @@ class MultinominalExtractorModel(override val uid: String) extends Model[Multino
 
   override def copy(extra: ParamMap): MultinominalExtractorModel = defaultCopy(extra)
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
     val indices: Map[String, Int] = $(values).zipWithIndex.toMap
 
     val createVector = SparkSqlUtils.reflectionLock.synchronized(

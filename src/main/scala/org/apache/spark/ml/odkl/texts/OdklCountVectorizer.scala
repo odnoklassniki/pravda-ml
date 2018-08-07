@@ -4,9 +4,9 @@ import org.apache.spark.ml.attribute.{Attribute, AttributeGroup, NumericAttribut
 import org.apache.spark.ml.feature.{CountVectorizer, CountVectorizerModel}
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.{Identifiable, SchemaUtils}
-import org.apache.spark.mllib.linalg.VectorUDT
+import org.apache.spark.ml.linalg.VectorUDT
 import org.apache.spark.rdd.RDD
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.types.{ArrayType, StringType, StructType}
 import org.apache.spark.util.collection.OpenHashMap
 
@@ -52,7 +52,7 @@ class OdklCountVectorizerModel(override val uid: String, override val vocabulary
   extends CountVectorizerModel(uid, vocabulary) with OdklCountVectorizerParams {
   //change vocabulary to StringArrayParam when ApacheSpark fixes this
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
     val supDF = super.transform(dataset)
     supDF.withColumn($(outputCol), supDF.col($(outputCol)).as($(outputCol), metadataToAdd(vocabulary)))
   }
@@ -84,10 +84,10 @@ class OdklCountVectorizer(override val uid: String) extends CountVectorizer(uid)
   val inheritedVocabulary = new Param[Map[String,Int]](
     this, "inheritedVocabulary", "Dictionary inherited from the previous epoche. Can be used to try to preserve word indices.")
 
-  override def fit(dataset: DataFrame): CountVectorizerModel = {
+  override def fit(dataset: Dataset[_]): CountVectorizerModel = {
     transformSchema(dataset.schema, logging = true)
     val vocSize = $(vocabSize)
-    val input = dataset.select($(inputCol)).map(_.getAs[Seq[String]](0))
+    val input = dataset.select($(inputCol)).rdd.map(_.getAs[Seq[String]](0))
     val minDf = if ($(minDF) >= 1.0) {
       $(minDF)
     } else {

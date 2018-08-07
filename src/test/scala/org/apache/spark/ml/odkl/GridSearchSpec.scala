@@ -8,7 +8,7 @@ import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.odkl.Evaluator.TrainTestEvaluator
 import org.apache.spark.ml.odkl.ModelWithSummary.Block
 import org.apache.spark.ml.tuning.ParamGridBuilder
-import org.apache.spark.mllib.linalg.{Vector, Vectors}
+import org.apache.spark.ml.linalg.{Vector, Vectors}
 import org.apache.spark.sql.functions
 import org.scalatest.FlatSpec
 
@@ -22,7 +22,7 @@ class GridSearchSpec extends FlatSpec with TestEnv with org.scalatest.Matchers w
 
   "GridSearch " should " train a model" in {
 
-    val dev: linalg.Vector[Double] = Vectors.dense(hiddenModel.toArray ++ Array(0.0)).toBreeze - selectedModel.getCoefficients.toBreeze
+    val dev: linalg.Vector[Double] = Vectors.dense(hiddenModel.toArray ++ Array(0.0)).asBreeze - selectedModel.getCoefficients.asBreeze
 
     cosineDistance(Vectors.dense(Array(0.0) ++ hiddenModel.toArray), selectedModel.getCoefficients) should be <= delta
     selectedModel.getIntercept should be(0.0)
@@ -62,7 +62,7 @@ class GridSearchSpec extends FlatSpec with TestEnv with org.scalatest.Matchers w
   "Best model " should " have index 0" in {
     val configurations = selectedModel.summary(Block("configurations"))
 
-    configurations.where("configurationIndex = 0").first().getDouble(1) should be(configurations.map(_.getDouble(1)).collect.max)
+    configurations.where("configurationIndex = 0").rdd.first().getDouble(1) should be(configurations.rdd.map(_.getDouble(1)).collect.max)
   }
 
   "Best model " should " have proper weights" in {
@@ -71,6 +71,7 @@ class GridSearchSpec extends FlatSpec with TestEnv with org.scalatest.Matchers w
     val bestWeights = data
       .where("configurationIndex = 0 AND foldNum = -1")
       .orderBy("name")
+      .rdd
       .map(_.getAs[Double]("weight"))
       .collect()
 

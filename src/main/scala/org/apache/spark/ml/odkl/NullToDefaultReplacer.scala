@@ -16,7 +16,7 @@ import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
 import org.apache.spark.sql.types.{BooleanType, NumericType, StructType}
-import org.apache.spark.sql.{DataFrame, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, functions}
 
 /**
   * Utility used to replace null values with defaults (zero or false).
@@ -31,8 +31,8 @@ class NullToDefaultReplacer(override val uid: String) extends Transformer
 
   def this() = this(Identifiable.randomUID("nullToDefaultReplacer"))
 
-  override def transform(dataset: DataFrame): DataFrame = {
-    val columns = extractColumns(dataset).map(_.name).toSet
+  override def transform(dataset: Dataset[_]): DataFrame = {
+    val columns = extractColumns(dataset.toDF).map(_.name).toSet
 
     val expressions = dataset.schema.fields
       .map(field =>

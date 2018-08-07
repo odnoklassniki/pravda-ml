@@ -2,7 +2,8 @@ package odkl.analysis.spark.texts
 
 import odkl.analysis.spark.TestEnv
 import org.apache.spark.ml.odkl.texts.HashBasedDeduplicator
-import org.apache.spark.mllib.linalg.{VectorUDT, Vectors}
+import org.apache.spark.ml.linalg.{VectorUDT, Vectors}
+import org.apache.spark.ml.odkl.MatrixUtils
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.{LongType, StringType, StructType}
 import org.scalatest.FlatSpec
@@ -18,7 +19,7 @@ class HashBasedDeduplicatorSpec extends FlatSpec with TestEnv with org.scalatest
     val vector4 = (Vectors.sparse(vectorsSize, Array(1, 2), Array(1.0, 1.0)), 1L, "vector4") //completly another but in 1-st bucket
 
     val schema = new StructType()
-      .add("vector", new VectorUDT)
+      .add("vector", MatrixUtils.vectorUDT)
       .add("hash", LongType)
       .add("alias", StringType)
 
@@ -26,7 +27,7 @@ class HashBasedDeduplicatorSpec extends FlatSpec with TestEnv with org.scalatest
     val deduplicator = new HashBasedDeduplicator()
       .setInputColHash("hash")
       .setInputColVector("vector")
-      .setSimilarityTreshold(0.85)
+      .setSimilarityTreshold(0.80)
 
    val answer = deduplicator.transform(dataFrame)
         .collect().map(row => (row.getLong(1), row.getString(2)))

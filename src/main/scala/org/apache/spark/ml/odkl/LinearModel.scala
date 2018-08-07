@@ -12,7 +12,7 @@ package org.apache.spark.ml.odkl
 
 import breeze.linalg.{DenseVector => BDV}
 import breeze.optimize.{CachedDiffFunction, DiffFunction, OWLQN, LBFGS => BreezeLBFGS}
-import org.apache.spark.Logging
+import odkl.analysis.spark.util.Logging
 import org.apache.spark.annotation.Since
 import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.odkl.CombinedModel.DirectPredictionModel
@@ -21,12 +21,13 @@ import org.apache.spark.ml.param._
 import org.apache.spark.ml.param.shared._
 import org.apache.spark.ml.util._
 import org.apache.spark.ml.{Predictor, PredictorParams}
-import org.apache.spark.mllib.linalg._
+import org.apache.spark.ml.linalg._
+import org.apache.spark.mllib
 import org.apache.spark.mllib.optimization._
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.StructField
-import org.apache.spark.sql.{DataFrame, SQLContext}
+import org.apache.spark.sql.{DataFrame, Dataset, SQLContext}
 
 import scala.collection.mutable
 
@@ -115,16 +116,16 @@ abstract class LinearRegressor[M <: LinearModel[M], O <: Optimizer, T <: LinearR
 (
   override val uid: String
 )
-  extends LinearEstimator[M, T] with DefaultParamsWritable with Logging with HasCacheTrainData {
+  extends LinearEstimator[M, T] with DefaultParamsWritable with HasCacheTrainData {
 
   setDefault(cacheTrainData, true)
 
   override def copy(extra: ParamMap): T = defaultCopy(extra)
 
-  protected override def train(dataset: DataFrame): M = {
+  protected override def train(dataset: Dataset[_]): M = {
 
-    val data: RDD[(Double, Vector)] = dataset.select($(labelCol), $(featuresCol))
-      .map(r => (r.getAs[Number](0).doubleValue(), r.getAs[Vector](1)))
+    val data: RDD[(Double, mllib.linalg.Vector)] = dataset.select($(labelCol), $(featuresCol))
+        .rdd.map(r => (r.getAs[Number](0).doubleValue(), mllib.linalg.Vectors.fromML(r.getAs[Vector](1))))
 
     val operationalData = if ($(cacheTrainData)) {
       data.cache()
@@ -144,12 +145,12 @@ abstract class LinearRegressor[M <: LinearModel[M], O <: Optimizer, T <: LinearR
 
 
       //val initials = Vectors.zeros(numFeatures)
-      val initials = FoldedFeatureSelector.tryGetInitials(features).getOrElse(Vectors.zeros(numFeatures))
+      val initials: Vector = FoldedFeatureSelector.tryGetInitials(features).getOrElse(Vectors.zeros(numFeatures))
 
       val optimizer: O = createOptimizer()
-      val coefficients: Vector = optimizer.optimize(operationalData, initials)
+      val coefficients: mllib.linalg.Vector = optimizer.optimize(operationalData, mllib.linalg.Vectors.fromML(initials))
 
-      createModel(optimizer, coefficients, dataset.sqlContext, features)
+      createModel(optimizer, coefficients.asML, dataset.sqlContext, features)
 
     } finally {
       if ($(cacheTrainData)) {
@@ -215,11 +216,11 @@ class LogisticRegressionLBFSG(override val uid: String)
 
   override protected def createOptimizer(): LogisticRegressionLBFSG = this.copy(ParamMap())
 
-  override def optimize(data: RDD[(Double, Vector)], initialWeights: Vector): Vector = {
+  override def optimize(data: RDD[(Double, mllib.linalg.Vector)], initialWeights: mllib.linalg.Vector): mllib.linalg.Vector = {
     val lossHistory = mutable.ArrayBuilder.make[Double]
 
     val (sumLabel, numExamples) = data.aggregate(0.0 -> 0L)(
-      (pair: (Double, Long), item: (Double, Vector)) => (pair._1 + item._1) -> (pair._2 + 1),
+      (pair: (Double, Long), item: (Double, mllib.linalg.Vector)) => (pair._1 + item._1) -> (pair._2 + 1),
       (a: (Double, Long), b: (Double, Long)) => (a._1 + b._1) -> (a._2 + b._2)
     )
 
@@ -254,7 +255,7 @@ class LogisticRegressionLBFSG(override val uid: String)
       // For logistic regression where is a scheme for evaluating maximal possible L1 regularisation
       // see http://jmlr.org/papers/volume8/koh07a/koh07a.pdf for details
       val effectiveRegL1 = MatrixLBFGS.evaluateMaxRegularization(
-        data.map(x => x._2 -> Vectors.dense(x._1)),
+        data.map(x => x._2.asML -> Vectors.dense(x._1)),
         $(regularizeLast), numFeatures =  initialWeights.size,
         labelsMean = Vectors.dense(sumLabel / numExamples).toDense,
         numExamples
@@ -277,7 +278,7 @@ class LogisticRegressionLBFSG(override val uid: String)
     }
 
     val states =
-      lbfgs.iterations(new CachedDiffFunction(costFun), effectiveInitials.toBreeze.toDenseVector)
+      lbfgs.iterations(new CachedDiffFunction(costFun), effectiveInitials.asBreeze.toDenseVector)
 
     /**
       * NOTE: lossSum and loss is computed using the weights from the previous iteration
@@ -296,7 +297,7 @@ class LogisticRegressionLBFSG(override val uid: String)
     logInfo(s"LBFGS.runLBFGS finished in ${lossHistoryArray.length} iterations. Last 10 " +
       s"losses ${lossHistoryArray.takeRight(10).mkString(", ")}")
 
-    weights
+    mllib.linalg.Vectors.fromML(weights)
   }
 
   /**
@@ -304,7 +305,7 @@ class LogisticRegressionLBFSG(override val uid: String)
     * at a particular point (weights). It's used in Breeze's convex optimization routines.
     */
   private class CostFun(
-                         data: RDD[(Double, Vector)],
+                         data: RDD[(Double, mllib.linalg.Vector)],
                          regParamL2: Double,
                          numExamples: Long,
                          regularizeLast: Boolean,
@@ -315,7 +316,7 @@ class LogisticRegressionLBFSG(override val uid: String)
 
       val weightsArray = weights.toArray
       val result: (DenseMatrix, DenseVector) = MatrixLBFGS.computeGradientAndLoss[Double](
-        data.map(_.swap),
+        data.map(x => x._2.asML -> x._1),
         Matrices.dense(1, weights.size, weightsArray).asInstanceOf[DenseMatrix],
         batchSize,
         (pos, label, target) => target(pos) = label

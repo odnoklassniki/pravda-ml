@@ -1,17 +1,17 @@
 package org.apache.spark.ml.odkl
 
 import com.google.common.base.Strings
+import odkl.analysis.spark.util.Logging
 import org.apache.commons.math3.distribution.TDistribution
-import org.apache.spark.Logging
 import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.param.shared.HasFeaturesCol
 import org.apache.spark.ml.param.{DoubleParam, IntArrayParam, Param, ParamMap}
 import org.apache.spark.ml.util.Identifiable
-import org.apache.spark.mllib.linalg._
+import org.apache.spark.ml.linalg._
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.{Metadata, MetadataBuilder, StructField, StructType}
-import org.apache.spark.sql.{DataFrame, Row, functions}
+import org.apache.spark.sql.{DataFrame, Dataset, Row, functions}
 
 
 /**
@@ -32,7 +32,7 @@ abstract class FoldedFeatureSelector[SelectingModel <: ModelWithSummary[Selectin
   /**
     * Transforms the input dataset.
     */
-  override def fit(dataset: DataFrame): Filter = {
+  override def fit(dataset: Dataset[_]): Filter = {
     val model = nested.fit(dataset)
     val weightsDf = model.summary.$(weights)
 
@@ -98,7 +98,7 @@ abstract class FoldedFeatureSelector[SelectingModel <: ModelWithSummary[Selectin
       case _ => (r: Row) => ""
     }
 
-    WeightsStat(significance.map(r => WeightsStatRecord(
+    WeightsStat(significance.rdd.map(r => WeightsStatRecord(
       r.getInt(indexIndex),
       r.getString(nameIndex),
       discriminantExtractor(r),
@@ -160,7 +160,7 @@ abstract class GenericFeatureSelector[M <: ModelWithSummary[M]] extends ModelWit
   val relevantFeatures = new IntArrayParam(this, "relevantFeatures", "Features with high enough significance")
   val weightsStat = new Param[WeightsStat](this, "weightsStat", "Statistics regarding model weights acquired during selection.")
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
 
     val relevant: Array[Int] = $(relevantFeatures)
     val reverseMap = relevant.zipWithIndex.toMap

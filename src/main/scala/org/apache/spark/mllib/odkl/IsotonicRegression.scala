@@ -3,7 +3,7 @@ package org.apache.spark.mllib.odkl
 import java.io.Serializable
 import java.lang.{Double => JDouble}
 
-import org.apache.spark.Logging
+import odkl.analysis.spark.util.Logging
 import org.apache.spark.annotation.Since
 import org.apache.spark.api.java.JavaRDD
 import org.apache.spark.mllib.regression.IsotonicRegressionModel

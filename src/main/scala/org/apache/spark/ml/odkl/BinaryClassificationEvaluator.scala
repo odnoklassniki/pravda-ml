@@ -16,7 +16,7 @@ import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.{DoubleType, StringType, StructType}
-import org.apache.spark.sql.{DataFrame, Row}
+import org.apache.spark.sql.{DataFrame, Dataset, Row}
 
 /**
   * Simple evaluator based on the mllib.BinaryClassificationMetrics.
@@ -28,9 +28,9 @@ class BinaryClassificationEvaluator extends Evaluator[BinaryClassificationEvalua
 
   setDefault(numBins, 100)
 
-  override def transform(dataset: DataFrame): DataFrame = {
+  override def transform(dataset: Dataset[_]): DataFrame = {
 
-    val predictions: RDD[(Double, Double)] = dataset.select($(predictionCol), $(labelCol)).map {
+    val predictions: RDD[(Double, Double)] = dataset.select($(predictionCol), $(labelCol)).rdd.map {
       case Row(score: Double, label: Double) => (score, label)
     }
 

@@ -5,9 +5,9 @@ import org.apache.commons.math3.distribution.NormalDistribution
 import org.apache.commons.math3.exception.util.LocalizedFormats
 import org.apache.commons.math3.exception.{NotPositiveException, NotStrictlyPositiveException, NumberIsTooLargeException, OutOfRangeException}
 import org.apache.commons.math3.util.FastMath
-import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}
+import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction, UserDefinedFunction}
 import org.apache.spark.sql.types._
-import org.apache.spark.sql.{Row, SQLContext, UserDefinedFunction}
+import org.apache.spark.sql.{Row, SQLContext}
 
 import scala.annotation.tailrec
 import scala.reflect.ClassTag

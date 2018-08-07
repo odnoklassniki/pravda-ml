@@ -20,8 +20,9 @@ import org.apache.spark.ml.param.shared.{HasFeaturesCol, HasLabelCol, HasPredict
 import org.apache.spark.ml.param.{Param, ParamMap, StringArrayParam}
 import org.apache.spark.ml.util.{DefaultParamsReader, Identifiable, MLReadable, MLReader}
 import org.apache.spark.ml.{PipelineStage, PredictionModel, Transformer}
-import org.apache.spark.mllib.linalg._
+import org.apache.spark.ml.linalg._
 import org.apache.spark.sql._
+import org.apache.spark.sql.expressions.UserDefinedFunction
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.{DoubleType, Metadata, StructField, StructType}
 import org.apache.spark.util.collection.CompactBuffer
@@ -200,12 +201,12 @@ object CombinedModel extends MLReadable[PipelineStage] {
 
     override def copy(extra: ParamMap) = copyValues(new PerTypeModelLearner[M](nested.copy(extra)), extra)
 
-    override def createForks(dataset: DataFrame): Seq[(String, DataFrame)] = {
+    protected override def createForks(dataset: Dataset[_]): Seq[(String, DataFrame)] = {
       val types = dataset.select($(typeColumn)).distinct().collect().map(_.get(0).toString).toSeq.sorted
 
       logInfo(s"Got types: $types")
 
-      types.map(t => t -> dataset.filter(dataset($(typeColumn)) === t))
+      types.map(t => t -> dataset.toDF.filter(dataset($(typeColumn)) === t))
     }
 
     protected def mergeModels(sqlContext: SQLContext, models: Seq[(String, M)]): SelectingModel[M] = {
@@ -244,7 +245,7 @@ object CombinedModel extends MLReadable[PipelineStage] {
 
     def setPredictionCol(value: String) : this.type = set(predictionCol, value)
 
-    override def createForks(dataset: DataFrame): Seq[(String, DataFrame)] = {
+    protected override def createForks(dataset: Dataset[_]): Seq[(String, DataFrame)] = {
       val classesField = dataset.schema($(classesColumn))
 
       if (classesField.dataType.isInstanceOf[VectorUDT]) {
@@ -269,7 +270,7 @@ object CombinedModel extends MLReadable[PipelineStage] {
 
         result
       } else {
-        val classes = dataset.select($(classesColumn)).flatMap {
+        val classes = dataset.select($(classesColumn)).rdd.flatMap {
           case Row(multiple: Seq[Any]) => multiple.map(_.toString)
           case Row(single: Any) => Seq(single.toString)
         }.distinct().collect().toSeq.sorted
@@ -436,11 +437,11 @@ abstract class CombinedModel[M <: ModelWithSummary[M], C <: CombinedModel[M, C]]
     */
   protected def indirectTransform(dataset: DataFrame): DataFrame
 
-  override def transform(dataset: DataFrame): DataFrame = {
-    directTransform(dataset).map {
+  override def transform(dataset: Dataset[_]): DataFrame = {
+    directTransform(dataset.toDF).map {
       func: Column =>
         dataset.withColumn($(predictionCol), func.as($(predictionCol), createPredictionMetadata()))
-    }.getOrElse(indirectTransform(dataset))
+    }.getOrElse(indirectTransform(dataset.toDF))
   }
 
   override protected def create(): C = throw new NotImplementedError()

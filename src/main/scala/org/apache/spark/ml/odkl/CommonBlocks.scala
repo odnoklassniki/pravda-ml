@@ -51,3 +51,15 @@ trait HasFeaturesSignificance {
   val n: String = "n"
   val significance: String = "significance"
 }
+
+trait HasLossHistory {
+  val lossHistory = new Block("lossHistory")
+
+  // Required
+  val iteration : String = "iteration"
+  val loss: String = "loss"
+
+  // Optional
+  val label: String = "label"
+  val testLoss: String = "testLoss"
+}

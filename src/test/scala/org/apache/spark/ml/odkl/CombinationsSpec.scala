@@ -8,7 +8,7 @@ import org.apache.commons.io.FileUtils
 import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.odkl.PartitionedRankingEvaluator._
 import org.apache.spark.ml.param.ParamMap
-import org.apache.spark.mllib.linalg.Vector
+import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.sql.functions
 import org.scalatest.FlatSpec
 
@@ -234,8 +234,8 @@ class CombinationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     model.summary.blocks.size should be(2)
 
-    val foldsInWeighs = model.summary.blocks(weights).select("foldNum").distinct().map(_.getInt(0)).collect().sorted
-    val foldsInMetrics = model.summary.blocks(metrics).select("foldNum").distinct().map(_.getInt(0)).collect().sorted
+    val foldsInWeighs = model.summary.blocks(weights).select("foldNum").distinct().rdd.map(_.getInt(0)).collect().sorted
+    val foldsInMetrics = model.summary.blocks(metrics).select("foldNum").distinct().rdd.map(_.getInt(0)).collect().sorted
 
     foldsInWeighs should be(Array(-1, 0, 1))
     foldsInMetrics should be(Array(-1, 0, 1))
@@ -310,13 +310,13 @@ class CombinationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val weights = typeWhenClass.summary.blocks(this.weights)
 
-    val types = weights.select("type").distinct().map(_.getString(0)).collect().sorted
+    val types = weights.select("type").distinct().rdd.map(_.getString(0)).collect().sorted
     types should be(Seq("Direct", "Inverse"))
 
-    val classes = weights.select("classes").distinct().map(_.getString(0)).collect().sorted
+    val classes = weights.select("classes").distinct().rdd.map(_.getString(0)).collect().sorted
     classes should be(Seq("Negative", "Positive"))
 
-    val combinations = weights.select("type", "classes").distinct().map(x => x.getString(0) -> x.getString(1)).collect().sorted
+    val combinations = weights.select("type", "classes").distinct().rdd.map(x => x.getString(0) -> x.getString(1)).collect().sorted
     combinations should be(Seq(
       "Direct" -> "Negative",
       "Direct" -> "Positive",
@@ -360,13 +360,13 @@ class CombinationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
 
     val weights = reReadModel.summary.blocks(this.weights)
 
-    val types = weights.select("type").distinct().map(_.getString(0)).collect().sorted
+    val types = weights.select("type").distinct().rdd.map(_.getString(0)).collect().sorted
     types should be(Seq("Direct", "Inverse"))
 
-    val classes = weights.select("classes").distinct().map(_.getString(0)).collect().sorted
+    val classes = weights.select("classes").distinct().rdd.map(_.getString(0)).collect().sorted
     classes should be(Seq("Negative", "Positive"))
 
-    val combinations = weights.select("type", "classes").distinct().map(x => x.getString(0) -> x.getString(1)).collect().sorted
+    val combinations = weights.select("type", "classes").distinct().rdd.map(x => x.getString(0) -> x.getString(1)).collect().sorted
     combinations should be(Seq(
       "Direct" -> "Negative",
       "Direct" -> "Positive",

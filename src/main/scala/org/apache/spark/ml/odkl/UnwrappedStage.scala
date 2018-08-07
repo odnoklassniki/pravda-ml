@@ -14,7 +14,6 @@ package org.apache.spark.ml.odkl
 import java.util.concurrent.ThreadLocalRandom
 
 import org.apache.hadoop.fs.{FileSystem, Path}
-import org.apache.spark.Logging
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.param.shared.HasSeed
@@ -23,7 +22,7 @@ import org.apache.spark.ml.{Estimator, Model, Transformer}
 import org.apache.spark.sql.catalyst.expressions.Literal
 import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{Column, DataFrame, Row, functions}
+import org.apache.spark.sql._
 import org.apache.spark.storage.StorageLevel
 
 import scala.collection.mutable
@@ -35,7 +34,7 @@ import scala.collection.mutable
   *
   * This interface defines the logic of model transformation.
   */
-trait ModelTransformer[M <: ModelWithSummary[M], T <: ModelTransformer[M, T]] extends Model[T] with Logging {
+trait ModelTransformer[M <: ModelWithSummary[M], T <: ModelTransformer[M, T]] extends Model[T] {
   def transformModel(model: M, originalData: DataFrame): M
 
   def copy(extra: ParamMap): T = defaultCopy(extra)
@@ -80,7 +79,7 @@ class UnwrappedStage[M <: ModelWithSummary[M], T <: ModelTransformer[M, T]]
   def this(estimator: Estimator[M], transformer: T) =
     this(estimator, new UnwrappedStage.NoTrainEstimator[M, T](transformer))
 
-  override def fit(dataset: DataFrame): M = {
+  override def fit(dataset: Dataset[_]): M = {
 
     val transformer = transformerTrainer.fit(dataset)
 
@@ -100,9 +99,9 @@ class UnwrappedStage[M <: ModelWithSummary[M], T <: ModelTransformer[M, T]]
     try {
       val model: M = estimator.fit(mayBeCached)
 
-      transformer.transformModel(model, dataset)
+      transformer.transformModel(model, dataset.toDF)
     } finally {
-      transformer.release(originalData = dataset, transformedData = transformed)
+      transformer.release(originalData = dataset.toDF, transformedData = transformed)
       if ($(cacheTransformed)) {
         mayBeCached.unpersist()
       }
@@ -322,7 +321,7 @@ object UnwrappedStage extends Serializable {
 
     def this(transformer: T) = this(Identifiable.randomUID("noTrainEstimator"), transformer)
 
-    override def fit(dataset: DataFrame): T = transformer
+    override def fit(dataset: Dataset[_]): T = transformer
 
     override def copy(extra: ParamMap): Estimator[T]
     = copyValues(new NoTrainEstimator[M, T](transformer))
@@ -339,7 +338,7 @@ object UnwrappedStage extends Serializable {
     override val uid: String)
     extends ModelTransformer[M, T] with DefaultParamsWritable {
 
-    override def transform(dataset: DataFrame): DataFrame = dataset
+    override def transform(dataset: Dataset[_]): DataFrame = dataset.toDF
 
     @DeveloperApi
     override def transformSchema(schema: StructType): StructType = schema
@@ -359,7 +358,7 @@ object UnwrappedStage extends Serializable {
     def this(dataTransformer: Transformer, modelTransformer: T) =
       this(Identifiable.randomUID("predefinedTransfomrer"), dataTransformer)
 
-    override def transform(dataset: DataFrame): DataFrame = dataTransformer.transform(dataset)
+    override def transform(dataset: Dataset[_]): DataFrame = dataTransformer.transform(dataset)
 
     @DeveloperApi
     override def transformSchema(schema: StructType): StructType = dataTransformer.transformSchema(schema)
@@ -387,7 +386,7 @@ object UnwrappedStage extends Serializable {
   class IdentityDataTransformer(override val uid: String) extends Transformer {
     def this() = this(Identifiable.randomUID("identityDataTransformer"))
 
-    override def transform(dataset: DataFrame): DataFrame = dataset
+    override def transform(dataset: Dataset[_]): DataFrame = dataset.toDF
 
     override def copy(extra: ParamMap): Transformer = defaultCopy(extra)
 
@@ -406,7 +405,7 @@ object UnwrappedStage extends Serializable {
 
     def setNumPartitions(value: Int): this.type = set(numPartitions, value)
 
-    override def transform(dataset: DataFrame): DataFrame = {
+    override def transform(dataset: Dataset[_]): DataFrame = {
       val partitioned = if (isDefined(partitionBy) && !$(partitionBy).isEmpty) {
         if (isDefined(numPartitions)) {
           dataset.repartition($(numPartitions), $(partitionBy).map(dataset(_)): _*)
@@ -419,11 +418,11 @@ object UnwrappedStage extends Serializable {
         dataset
       }
 
-      if (isDefined(sortBy) && !$(sortBy).isEmpty) {
+      (if (isDefined(sortBy) && !$(sortBy).isEmpty) {
         partitioned.sortWithinPartitions($(sortBy).map(partitioned(_)): _*)
       } else {
         partitioned
-      }
+      }).toDF
     }
 
     override def copy(extra: ParamMap): Transformer = defaultCopy(extra)
@@ -446,15 +445,15 @@ object UnwrappedStage extends Serializable {
 
     def setColumnsToKeep(columns: Seq[String]) = set(columnsToKeep, columns.toArray)
 
-    override def transform(dataset: DataFrame): DataFrame = {
-      if (isDefined(columnsToKeep) && !$(columnsToKeep).isEmpty) {
+    override def transform(dataset: Dataset[_]): DataFrame = {
+      (if (isDefined(columnsToKeep) && !$(columnsToKeep).isEmpty) {
         dataset.select($(columnsToKeep).map(dataset(_)): _*)
       } else if (isDefined(columnsToRemove) && !$(columnsToRemove).isEmpty) {
         val toFilter = $(columnsToRemove).toSet
-        $(columnsToRemove).foldLeft(dataset)((data, string) => data.drop(string))
+        $(columnsToRemove).foldLeft(dataset.toDF)((data, string) => data.drop(string))
       } else {
         dataset
-      }
+      }).toDF
     }
 
     override def copy(extra: ParamMap): Transformer = defaultCopy(extra)
@@ -495,10 +494,10 @@ object UnwrappedStage extends Serializable {
     override def release(originalData: DataFrame, transformedData: DataFrame): Unit =
       if ($(cacheRdd)) originalData.rdd.unpersist() else transformedData.unpersist()
 
-    override def transform(dataset: DataFrame): DataFrame = {
+    override def transform(dataset: Dataset[_]): DataFrame = {
       val result = if ($(cacheRdd)) {
         dataset.sqlContext.createDataFrame(
-          dataset.rdd.cache(),
+          dataset.toDF.rdd.cache(),
           dataset.schema
         )
       }
@@ -510,7 +509,7 @@ object UnwrappedStage extends Serializable {
         result.count()
       }
 
-      result
+      result.toDF
     }
 
     @DeveloperApi
@@ -555,7 +554,7 @@ object UnwrappedStage extends Serializable {
     }
 
 
-    override def transform(dataset: DataFrame): DataFrame = {
+    override def transform(dataset: Dataset[_]): DataFrame = {
       val myPath: String = s"${$(tempPath)}/$uid/"
       // Make sure we clean up on exit
       FileSystem.get(dataset.sqlContext.sparkContext.hadoopConfiguration).deleteOnExit(new Path(myPath))
@@ -580,7 +579,7 @@ object UnwrappedStage extends Serializable {
     * Collects all summary blocks and materializes them as into a single partition.
     */
   class CollectSummaryTransformer[M <: ModelWithSummary[M]](override val uid: String)
-    extends ModelOnlyTransformer[M, CollectSummaryTransformer[M]](uid) with Logging {
+    extends ModelOnlyTransformer[M, CollectSummaryTransformer[M]](uid) {
 
     def this() = this(Identifiable.randomUID("summaryCollector"))
 
@@ -627,7 +626,7 @@ object UnwrappedStage extends Serializable {
 
     def this() = this(Identifiable.randomUID("dynamicPartitioningEstimator"))
 
-    override def fit(dataset: DataFrame): IdentityModelTransformer[M] = new IdentityModelTransformer[M](
+    override def fit(dataset: Dataset[_]): IdentityModelTransformer[M] = new IdentityModelTransformer[M](
       new PartitioningTransformer()
         .setPartitionBy($(partitionBy): _*)
         .setSortByColumns($(sortBy): _*)
@@ -653,7 +652,7 @@ object UnwrappedStage extends Serializable {
 
     def this(nested: Estimator[_]) = this(Identifiable.randomUID("dynamicPartitioningEstimator"), nested)
 
-    override def fit(dataset: DataFrame): IdentityModelTransformer[M] = new IdentityModelTransformer[M](
+    override def fit(dataset: Dataset[_]): IdentityModelTransformer[M] = new IdentityModelTransformer[M](
       nested.fit(dataset).asInstanceOf[Transformer]
     )
 
@@ -700,7 +699,7 @@ object UnwrappedStage extends Serializable {
 
     def this() = this(Identifiable.randomUID("dynamicDownsamplerEstimator"))
 
-    override def fit(dataset: DataFrame): SamplingTransformer =
+    override def fit(dataset: Dataset[_]): SamplingTransformer =
       new SamplingTransformer()
         .setPercentage(
           Math.min(
@@ -730,8 +729,8 @@ object UnwrappedStage extends Serializable {
 
     )
 
-    override def transform(dataset: DataFrame): DataFrame = {
-      if ($(percentage) >= 1.0) {
+    override def transform(dataset: Dataset[_]): DataFrame = {
+      (if ($(percentage) >= 1.0) {
         dataset
       } else if ($(safePositive)){
         val lColumn = $(labelColumn)
@@ -749,7 +748,7 @@ object UnwrappedStage extends Serializable {
         val localPercentage = $(percentage)
         val random = functions.udf[Boolean](() => ThreadLocalRandom.current().nextDouble() < localPercentage)
         dataset.where(random())
-      }
+      }).toDF
     }
 
     override def copy(extra: ParamMap): SamplingTransformer = defaultCopy(extra)
@@ -787,7 +786,7 @@ object UnwrappedStage extends Serializable {
 
     def setDescending(value: Boolean): this.type = set(descending, value)
 
-    override def fit(dataset: DataFrame): OrderedCut = {
+    override def fit(dataset: Dataset[_]): OrderedCut = {
       val group: Column = functions.struct($(groupByColumns).map(dataset(_)): _*)
       val sort: Column = dataset($(sortByColumn))
       val expected: Long = $(expectedRecords)
@@ -800,7 +799,7 @@ object UnwrappedStage extends Serializable {
         .count()
         .repartition(functions.col(groupColumnName))
         .sortWithinPartitions(functions.col(groupColumnName), if ($(descending)) functions.col(sortColumnName).desc else functions.col(sortColumnName))
-        .mapPartitions(rows => {
+        .rdd.mapPartitions(rows => {
           val map = new mutable.HashMap[Any, (Any, Long)]()
 
           for (row <- rows) {
@@ -859,7 +858,7 @@ object UnwrappedStage extends Serializable {
 
     def setBounds(value: Array[(Any, Any)]): this.type = set(bounds, value)
 
-    override def transform(dataset: DataFrame): DataFrame = {
+    override def transform(dataset: Dataset[_]): DataFrame = {
 
       val group: Column = functions.struct($(groupByColumns).map(dataset(_)): _*)
       val sort: Column = dataset($(sortByColumn))
@@ -872,7 +871,7 @@ object UnwrappedStage extends Serializable {
             group === key && (if ($(descending)) sort >= bound else sort <= bound)
           })
           .reduce(_ || _)
-      )
+      ).toDF
     }
 
     override def copy(extra: ParamMap): OrderedCut = defaultCopy(extra)

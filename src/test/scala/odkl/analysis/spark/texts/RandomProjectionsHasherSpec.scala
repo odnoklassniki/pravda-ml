@@ -2,7 +2,8 @@ package odkl.analysis.spark.texts
 
 import odkl.analysis.spark.TestEnv
 import org.apache.spark.ml.odkl.texts.RandomProjectionsHasher
-import org.apache.spark.mllib.linalg.{Vector, VectorUDT, Vectors}
+import org.apache.spark.ml.linalg.{Vector, VectorUDT, Vectors}
+import org.apache.spark.ml.odkl.MatrixUtils
 import org.apache.spark.sql.Row
 import org.apache.spark.sql.types.StructType
 import org.scalatest.FlatSpec
@@ -19,7 +20,7 @@ class RandomProjectionsHasherSpec extends FlatSpec with TestEnv with org.scalate
     val vector2 = Vectors.sparse(vectorsSize, Array(5, 6, 7), Array(1.0, 1.0, 0.0))
 
     val vectorsSchema = new StructType()
-      .add("data", new VectorUDT)
+      .add("data", MatrixUtils.vectorUDT)
 
     val data = sqlc.createDataFrame(
       sc.parallelize(Seq(Seq(vector1), Seq(vector2)))

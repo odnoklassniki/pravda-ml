@@ -68,7 +68,7 @@ class ColumnsExtractor(override val uid: String) extends Transformer with Defaul
     set(columnMetadata, $(columnMetadata) + (column -> metadata))
   }
 
-  override def transform(dataset: DataFrame): DataFrame = select(dataset)
+  override def transform(dataset: Dataset[_]): DataFrame = select(dataset.toDF)
 
   override def copy(extra: ParamMap): this.type = defaultCopy(extra)
 

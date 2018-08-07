@@ -4,9 +4,9 @@ import odkl.analysis.spark.util.IteratorUtils
 import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.{DefaultParamsWritable, Identifiable}
-import org.apache.spark.mllib.linalg.{Vector, Vectors}
+import org.apache.spark.ml.linalg.{Vector, Vectors}
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, Row}
+import org.apache.spark.sql.{DataFrame, Dataset, Row}
 
 
 /**
@@ -69,7 +69,7 @@ class ExponentialVectorDiscountTransformer(override val uid: String)
     *   Iterate through partition and aggregate it
     * 4) Map RDD back to dataFrame
     */
-  override def transform(dataset: DataFrame) = {
+  override def transform(dataset: Dataset[_]) = {
     val dummyVector =  {
       Vectors.sparse($(vectorsSize), Seq(0 -> $(timeNow).toDouble))
     }
@@ -77,6 +77,7 @@ class ExponentialVectorDiscountTransformer(override val uid: String)
     val resultRDD = dataset
       .repartition($(numPartitions), $(groupByColumns).map(c => dataset.col(c)): _*)
       .sortWithinPartitions($(groupByColumns).map(dataset.col) :+ dataset.col($(timestampColumn)).asc: _*)
+      .toDF.rdd
       .mapPartitions(it => {
         val mapped: Iterator[(Seq[Any], (Long, Vector))] = it
           .map(row => $(groupByColumns).toSeq.map(row.getAs[Any]) ->
@@ -147,8 +148,8 @@ class ExponentialVectorDiscountTransformer(override val uid: String)
     * @return result vector
     */
   def discount(vector1: Vector, vector2: Vector, base:Double, scale:Double, timeNow:Long): Vector = {
-    val ans = (vector1.toBreeze * Math.pow(base, (timeNow - vector1(0)) / scale)) +
-      (vector2.toBreeze * Math.pow(base, (timeNow - vector2(0)) / scale))
+    val ans = (vector1.asBreeze * Math.pow(base, (timeNow - vector1(0)) / scale)) +
+      (vector2.asBreeze * Math.pow(base, (timeNow - vector2(0)) / scale))
 
     ans(0) = timeNow //update time
     Vectors.fromBreeze(ans).compressed
