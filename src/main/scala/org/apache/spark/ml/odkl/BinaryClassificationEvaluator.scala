@@ -12,6 +12,7 @@ package org.apache.spark.ml.odkl
 
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.param.{Param, ParamMap}
+import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.odkl.SparkSqlUtils
@@ -21,7 +22,9 @@ import org.apache.spark.sql.{DataFrame, Dataset, Row}
 /**
   * Simple evaluator based on the mllib.BinaryClassificationMetrics.
   */
-class BinaryClassificationEvaluator extends Evaluator[BinaryClassificationEvaluator] {
+class BinaryClassificationEvaluator(override val uid: String) extends Evaluator[BinaryClassificationEvaluator](uid) {
+
+  def this() = this(Identifiable.randomUID("binaryClassificationEvaluator"))
 
   final val numBins: Param[Int] = new Param[Int](
     this, "numBins", "How many points to add to nested curves (recall/precision or roc)")

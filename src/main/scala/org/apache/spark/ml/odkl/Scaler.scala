@@ -192,6 +192,8 @@ object Scaler extends Serializable {
 
     @DeveloperApi
     override def transformSchema(schema: StructType): StructType = schema
+
+    override def copy(extra: ParamMap): Unscaler[M] = copyValues(new Unscaler[M](scaler, modelTransformer), extra)
   }
 
 }

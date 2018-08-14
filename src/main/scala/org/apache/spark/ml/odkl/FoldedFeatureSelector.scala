@@ -108,8 +108,6 @@ abstract class FoldedFeatureSelector[SelectingModel <: ModelWithSummary[Selectin
     ).collect())
   }
 
-  override def copy(extra: ParamMap): this.type = defaultCopy(extra)
-
   override def transformSchema(schema: StructType): StructType = schema
 }
 
@@ -124,6 +122,10 @@ extends FoldedFeatureSelector[SelectingModel, PipelinedFeatureSelector] (nested,
     = this(nested, Identifiable.randomUID("pipelinedFoldedSelector"))
 
   protected def createModel() : PipelinedFeatureSelector = new PipelinedFeatureSelector()
+
+  override def copy(extra: ParamMap): PipelinedFoldedFeatureSelector[SelectingModel] = copyValues(
+    new PipelinedFoldedFeatureSelector[SelectingModel](nested.copy(extra)), extra
+  )
 }
 
 case class WeightsStatRecord(index: Int, name: String, descriminant: String, average: Double, significance: Double, isRelevant: Boolean) {
@@ -289,6 +291,10 @@ object FoldedFeatureSelector extends Serializable with Logging {
 
     def this(nested: SummarizableEstimator[SelectingModel])
     = this(nested, Identifiable.randomUID("linearUnwrapperFoldedSelector"))
+
+
+    override def copy(extra: ParamMap): LinearModelFoldedFeatureSelector[SelectingModel,ResultModel] = copyValues(new LinearModelFoldedFeatureSelector[SelectingModel,ResultModel](
+      nested.copy(extra)), extra)
 
     protected def createModel() : LinearModelUnwrappedFeatureSelector[ResultModel] = new LinearModelUnwrappedFeatureSelector[ResultModel]()
   }

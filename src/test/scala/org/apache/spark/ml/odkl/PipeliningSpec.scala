@@ -53,11 +53,11 @@ class PipeliningSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
                 Scaler.scale(Interceptor.intercept(new LogisticRegressionLBFSG())),
                 new TrainTestEvaluator(new BinaryClassificationEvaluator()),
                 numFolds = 2,
-                parallel = true
+                numThreads = 4
               )
             ).setClassesMap("Negative" -> negative).setClassesWeights(negative -> -1.0))
         ))
-    ).setTrainParallel(true)
+    ).setNumThreads(4)
   )).fit(rawDataForPipeline)
 
   lazy val pair = {

@@ -50,13 +50,14 @@ class AutoAssembler(override val uid: String) extends Estimator[PipelineModel]
 
     val nominalizers: Array[Transformer] = if (nominal.length > 0) {
 
-      val mayBeExploded = nominal.foldLeft(dataset.toDF)((data, field) =>
-        if (field.dataType.isInstanceOf[ArrayType])
-          data.withColumn(field.name, functions.explode(data(field.name)))
-        else data)
-
-      val expressions = nominal.map(x => SQLOperations.collectAsSet(StringType)(mayBeExploded(x.name)).as(x.name))
-      val values = mayBeExploded.groupBy().agg(expressions.head, expressions.drop(1) : _*).collect()
+      val expressions = nominal.map(x => {
+        if (x.dataType.isInstanceOf[ArrayType]) {
+          SQLOperations.mergeSets(StringType)(dataset(x.name)).as(x.name)
+        } else {
+          SQLOperations.collectAsSet(StringType)(dataset(x.name)).as(x.name)
+        }
+      })
+      val values = dataset.groupBy().agg(expressions.head, expressions.drop(1) : _*).collect()
 
       require(!values.isEmpty, s"Could not extract nominal values from empty dataset at $uid")
       

@@ -32,7 +32,16 @@ trait SQLOperations {
     case FloatType => new SQLOperations.CollectAsSet[Float](dataType)
     case DoubleType => new SQLOperations.CollectAsSet[Double](dataType)
     case StringType => new SQLOperations.CollectAsSet[String](dataType)
-    case _ => new SQLOperations.CollectAsList[Any](dataType)
+    case _ => throw new UnsupportedOperationException("Collect set supported only for int, long, float, double and string")
+  }
+
+  def mergeSets(dataType: DataType): UserDefinedAggregateFunction = dataType match {
+    case IntegerType => new SQLOperations.MergeSets[Int](dataType)
+    case LongType => new SQLOperations.MergeSets[Long](dataType)
+    case FloatType => new SQLOperations.MergeSets[Float](dataType)
+    case DoubleType => new SQLOperations.MergeSets[Double](dataType)
+    case StringType => new SQLOperations.MergeSets[String](dataType)
+    case _ => throw new UnsupportedOperationException("Merge sets supported only for int, long, float, double and string")
   }
 
   /**
@@ -182,6 +191,22 @@ object SQLOperations extends SQLOperations {
       }
 
       binarySearch(0, a.length - 1)
+    }
+  }
+
+  class MergeSets[T: ClassTag](itemType: DataType)(implicit ordering: Ordering[T]) extends CollectAsSet[T](itemType) {
+
+    override def inputSchema: StructType = new StructType()
+      .add("item", ArrayType(itemType))
+
+
+    override def update(buffer: MutableAggregationBuffer, input: Row): Unit = {
+      val prevItems = buffer.getAs[Seq[T]](0)
+      val newItems = input.getAs[Seq[T]](0)
+      if (newItems != null && newItems.nonEmpty) {
+        val res = appendItems(prevItems, newItems)
+        buffer.update(0, res)
+      }
     }
   }
 
