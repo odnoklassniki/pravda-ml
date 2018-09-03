@@ -96,10 +96,10 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
 
     summary.count should be(4)
 
-    summary.where("index = 0").select(significance).rdd.map(_.getDouble(0)).first() should be < 15.0
-    summary.where("index = 1").select(significance).rdd.map(_.getDouble(0)).first() should be < 15.0
-    summary.where("index = 2").select(significance).rdd.map(_.getDouble(0)).first() should be > 15.0
-    summary.where("index = 3").select(significance).rdd.map(_.getDouble(0)).first() should be > 15.0
+    summary.where("index = 0").select(significance).rdd.map(_.getDouble(0)).first() should be < 14.0
+    summary.where("index = 1").select(significance).rdd.map(_.getDouble(0)).first() should be < 14.0
+    summary.where("index = 2").select(significance).rdd.map(_.getDouble(0)).first() should be > 14.0
+    summary.where("index = 3").select(significance).rdd.map(_.getDouble(0)).first() should be > 14.0
 
 
     val foundModel = Vectors.dense(

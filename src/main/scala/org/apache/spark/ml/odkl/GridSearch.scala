@@ -42,6 +42,10 @@ class GridSearch[ModelIn <: ModelWithSummary[ModelIn]]
   val estimatorParamMaps: Param[Array[ParamMap]] =
     new Param(this, "estimatorParamMaps", "All the configurations to test in grid search.")
 
+  val paramNames: Param[Map[Param[_], String]] = new Param[Map[Param[_], String]](
+    this, "paramsFriendlyNames", "Names of the parameters to use in column names to store configs"
+  )
+
   val metricsBlock = new Param[String](this, "metricsBlock", "Name of the block with metrics to get results from.")
 
   val metricsExpression = new Param[String](this, "metricsExpression",
@@ -66,6 +70,8 @@ class GridSearch[ModelIn <: ModelWithSummary[ModelIn]]
   def getEstimatorParamMaps: Array[ParamMap] = $(estimatorParamMaps)
 
   def setEstimatorParamMaps(value: Array[ParamMap]): this.type = set(estimatorParamMaps, value)
+
+  def setParamNames(value: (Param[_], String)*): this.type = set(paramNames, value.toMap)
 
   def getMetricsBlock: String = $(metricsBlock)
 
@@ -148,7 +154,7 @@ class GridSearch[ModelIn <: ModelWithSummary[ModelIn]]
             case _ => StringType
           }
 
-          StructField(x.toString(), dataType, true)
+          StructField(get(paramNames).map(_.getOrElse(x, x.toString())).getOrElse(x.toString()), dataType, true)
         }))
 
     def extractParams(params: ParamMap) = {
@@ -211,6 +217,8 @@ class StableOrderParamGridBuilder {
 
   private val paramGrid = mutable.ArrayBuffer[(Param[_], Iterable[_])]()
   private val addedParams = mutable.Set.empty[Param[_]]
+
+  private val filters = mutable.ArrayBuffer[ParamMap => Boolean]()
 
 
   /**
@@ -283,6 +291,16 @@ class StableOrderParamGridBuilder {
   }
 
   /**
+    * Used to suppress certain tree branches from search. Configuration must satisfy all the filters in order
+    * to be included.
+    * @param filter  Functions taking the whole configuration and telling if it is valid (true) or not (false)
+    */
+  def addFilter(filter: ParamMap => Boolean) : this.type  = {
+    filters += filter
+    this
+  }
+
+  /**
     * Builds and returns all combinations of parameters specified by the param grid.
     */
   @Since("1.2.0")
@@ -294,6 +312,6 @@ class StableOrderParamGridBuilder {
       }
       paramMaps = newParamMaps.toArray
     }
-    paramMaps
+    paramMaps.filter(x => filters.view.indexWhere(f => !f(x)) < 0)
   }
 }

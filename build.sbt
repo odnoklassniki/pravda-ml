@@ -34,8 +34,8 @@ libraryDependencies ++= {
 }
 
 libraryDependencies ++= Seq(
-  "ml.dmlc" % "xgboost4j" % "0.72",
-  "ml.dmlc" % "xgboost4j-spark" % "0.72"
+  "ml.dmlc" % "xgboost4j" % "0.80",
+  "ml.dmlc" % "xgboost4j-spark" % "0.80"
 )
 
 

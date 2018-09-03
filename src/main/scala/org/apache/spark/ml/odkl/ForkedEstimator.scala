@@ -148,8 +148,8 @@ ModelOut <: ModelWithSummary[ModelOut]]
     }
   }
 
-  private def fitForkInContext(dataset: Dataset[_], currentContext: Map[String, String], partialData: (ForeKeyType, DataFrame)) = {
-    ForkedEstimator.forkingContext.set(currentContext ++ Map(uid -> partialData._1.toString))
+  private def fitForkInContext(dataset: Dataset[_], currentContext: Seq[String], partialData: (ForeKeyType, DataFrame)) = {
+    ForkedEstimator.forkingContext.set(currentContext ++ Seq(partialData._1.toString))
     try {
       fitFork(nested, dataset, partialData)
     } finally {
@@ -169,8 +169,7 @@ ModelOut <: ModelWithSummary[ModelOut]]
 
     val context = ForkedEstimator.forkingContext.get()
     val pathForModel = get(pathForTempModels).map(_ +
-      (if(context.nonEmpty) context.values.toArray.sorted.mkString("/context=","_","") else "") +
-      s"/key=${partialData._1.toString}")
+      context.toArray.mkString("/context=","_",""))
 
     if (pathForModel.isDefined) {
 
@@ -216,8 +215,8 @@ ModelOut <: ModelWithSummary[ModelOut]]
 object ForkedEstimator extends Serializable {
   private var taskSupport: Option[TaskSupport] = None
 
-  private val forkingContext: ThreadLocal[Map[String,String]] = ThreadLocal.withInitial(new Supplier[Map[String, String]] {
-    override def get(): Map[String, String] = Map[String,String]()
+  private val forkingContext: ThreadLocal[Seq[String]] = ThreadLocal.withInitial(new Supplier[Seq[String]] {
+    override def get(): Seq[String] = Seq[String]()
   })
 
   def getTaskSupport = taskSupport.getOrElse(scala.collection.parallel.defaultTaskSupport)

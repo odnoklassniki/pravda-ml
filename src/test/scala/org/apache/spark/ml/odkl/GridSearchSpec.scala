@@ -30,7 +30,7 @@ class GridSearchSpec extends FlatSpec with TestEnv with org.scalatest.Matchers w
 
   "Summary " should " add a model stat" in {
     val configurations = selectedModel.summary(Block("configurations"))
-    configurations.count() should be(3 * 2)
+    configurations.count() should be(3 * 2 - 1)
 
     configurations.schema.size should be (5)
 
@@ -38,8 +38,8 @@ class GridSearchSpec extends FlatSpec with TestEnv with org.scalatest.Matchers w
     configurations.schema(1).name should be("resultingMetric")
     configurations.schema(2).name should be("error")
 
-    configurations.schema(3).name should endWith("elasticNetParam")
-    configurations.schema(4).name should endWith("regParam")
+    configurations.schema(3).name should be("ElasticNet")
+    configurations.schema(4).name should be("RegParam")
   }
 
   "Summary " should " add configuration index to metrics" in {
@@ -101,13 +101,19 @@ object GridSearchSpec extends WithTestData {
       numFolds = 3,
       numThreads = 4)
 
-    val paramGrid = new ParamGridBuilder()
+    val paramGrid = new StableOrderParamGridBuilder()
       .addGrid(nested.regParam, Array(0.1, 0.01, 0.0))
       .addGrid(nested.elasticNetParam, Array(0.1, 0.0))
+      .addFilter(x => x(nested.regParam) > 0 || x(nested.elasticNetParam) == 0)
 
     val estimator = UnwrappedStage.cacheAndMaterialize(new GridSearch(evaluated)
       .setEstimatorParamMaps(paramGrid.build())
-      .setMetricsExpression("SELECT AVG(value) FROM __THIS__ WHERE metric = 'auc' AND NOT isTest"))
+      .setMetricsExpression("SELECT AVG(value) FROM __THIS__ WHERE metric = 'auc' AND NOT isTest")
+      .setParamNames(
+        nested.regParam -> "RegParam",
+        nested.elasticNetParam -> "ElasticNet"
+      ))
+
 
     estimator.fit(withIrrelevant)
   }
