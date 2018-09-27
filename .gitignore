@@ -1,4 +1,5 @@
 *.class
 *.log
 .idea/libraries/*
+.idea/*
 target/*
