@@ -43,7 +43,7 @@ class NullToDefaultReplacer(override val uid: String) extends Transformer
             case _: BooleanType => functions.coalesce(dataset(field.name), functions.lit($(defaultValues).getOrElse(field.name, "false")).cast(field.dataType))
             case _: NumericType => functions.coalesce(dataset(field.name), functions.lit($(defaultValues).getOrElse(field.name, "0")).cast(field.dataType))
             case _: VectorUDT =>
-              val dataVector: Vector = dataset.filter(dataset(field).isNotNull).select(field.name).first.getAs[Vector](0)
+              val dataVector: Vector = dataset.filter(dataset(field.name).isNotNull).select(field.name).first.getAs[Vector](0)
               val defaultVector = dataVector match {
                 case _: SparseVector => Vectors.zeros(dataVector.size).toSparse
                 case _: DenseVector => Vectors.zeros(dataVector.size)
