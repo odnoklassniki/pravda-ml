@@ -330,8 +330,8 @@ class LinearModelsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
     val weightIndex = weightsFrame.schema.fieldIndex("weight")
     val weigths = weightsFrame.rdd.map(r => r.getInt(0) -> r.getDouble(weightIndex)).collect().toMap
 
-    weigths(0) should be(model.getCoefficients(0))
-    weigths(1) should be(model.getCoefficients(1))
+    weigths(0) should be(model.getCoefficients(0) +- 1e-10)
+    weigths(1) should be(model.getCoefficients(1) +- 1e-10)
     weigths(-1) should be(model.getIntercept)
 
     val names = weightsFrame.rdd.map(r => r.getInt(0) -> r.getString(1)).collect().toMap

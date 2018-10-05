@@ -358,7 +358,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
       addIntercept(multiClassData("features")).as("features", new AttributeGroup("features", 3).toMetadata()))
 
     val trainedForMatrix: Map[String, Vector] = new LogisticMatrixDSVRGD()
-      .setRegParam(0.035).setElasticNetParam(1.0).setTol(1e-8).setLocalMinibatchSize(2)
+      .setRegParam(0.038).setElasticNetParam(1.0).setTol(1e-8).setLocalMinibatchSize(2)
       .fit(withIntercept)
       .nested.mapValues(_.getCoefficients)
 

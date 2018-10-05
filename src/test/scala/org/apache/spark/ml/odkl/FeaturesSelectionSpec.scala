@@ -26,7 +26,7 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
 
     val estimator = new LogisticRegressionLBFSG().setRegParam(0.01)
 
-    val model = FoldedFeatureSelector.select(
+    val model = SignificantFeatureSelector.select(
       estimator = estimator,
       selector = Evaluator.crossValidate(
         estimator = estimator.copy(ParamMap(estimator.elasticNetParam -> 1.0)),
@@ -49,7 +49,7 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
 
     val estimator = new LogisticRegressionLBFSG().setRegParam(0.01)
 
-    val model = FoldedFeatureSelector.select(
+    val model = SignificantFeatureSelector.select(
       estimator = estimator,
       selector = Evaluator.crossValidate(
         estimator = estimator.copy(ParamMap(estimator.elasticNetParam -> 1.0)),
@@ -70,7 +70,7 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
     Math.abs(rawModel.getCoefficients(0)) should be > 0.0
   }
 
-  lazy val linearModel: LogisticRegressionModel = FoldedFeatureSelector.select(
+  lazy val linearModel: LogisticRegressionModel = SignificantFeatureSelector.select(
     estimator = new LogisticRegressionLBFSG().setRegParam(0.01),
     selector = Evaluator.crossValidate(
       estimator = new LogisticRegressionLBFSG().setRegParam(0.01).setElasticNetParam(1.0),
@@ -103,14 +103,14 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
 
 
     val foundModel = Vectors.dense(
-      summary.where("index = 2").select(avg).rdd.map(_.getDouble(0)).first(),
-      summary.where("index = 3").select(avg).rdd.map(_.getDouble(0)).first()
+      summary.where("index = 2").select(average).rdd.map(_.getDouble(0)).first(),
+      summary.where("index = 3").select(average).rdd.map(_.getDouble(0)).first()
     )
     val deviation: Double = cosineDistance(hiddenModel, foundModel)
 
     Math.abs(deviation) should be <= 0.01
 
-    summary.schema.fieldNames should be(Array(feature_index, feature_name, avg, std, n, significance))
+    summary.schema.fieldNames should be(Array(feature_index, feature_name, average, stdDev, count, significance))
   }
 
   "Model " should " predict classes" in {

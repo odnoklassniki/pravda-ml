@@ -145,7 +145,7 @@ abstract class LinearRegressor[M <: LinearModel[M], O <: Optimizer, T <: LinearR
 
 
       //val initials = Vectors.zeros(numFeatures)
-      val initials: Vector = FoldedFeatureSelector.tryGetInitials(features).getOrElse(Vectors.zeros(numFeatures))
+      val initials: Vector = SignificantFeatureSelector.tryGetInitials(features).getOrElse(Vectors.zeros(numFeatures))
 
       val optimizer: O = createOptimizer()
       val coefficients: mllib.linalg.Vector = optimizer.optimize(operationalData, mllib.linalg.Vectors.fromML(initials))

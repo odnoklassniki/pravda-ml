@@ -46,9 +46,9 @@ trait HasFeaturesSignificance {
 
   val feature_index: String = "index"
   val feature_name: String = "name"
-  val avg: String = "avg"
-  val std: String = "std"
-  val n: String = "n"
+  val average: String = "average"
+  val stdDev: String = "stdDev"
+  val count : String = "count"
   val significance: String = "significance"
 }
 
