@@ -254,22 +254,22 @@ abstract class GenericFeatureSelector[M <: ModelWithSummary[M]] extends ModelWit
   }
 
   def convertMetadata(relevant: Array[Int], field: StructField): Metadata = {
-    val builder = new MetadataBuilder()
+    val builder = if (field.metadata != null) {
+      val nestedBuilder = new MetadataBuilder()
+
+      nestedBuilder.withMetadata(AttributeGroup.fromStructField(field).attributes
+        .map(x => new AttributeGroup(field.name, relevant.zipWithIndex.map(ij => x(ij._1).withIndex(ij._2))))
+        .getOrElse(new AttributeGroup(field.name, relevant.length))
+        .toMetadata(field.metadata))
+    } else {
+      new MetadataBuilder()
+    }
 
     if(isDefined(weightsStat)) {
       builder.putMetadataArray(SignificantFeatureSelector.WEIGHTS_STAT, $(weightsStat).stats.map(_.toMetadata))
     }
 
-    if (field.metadata != null) {
-      builder.withMetadata(field.metadata)
-
-      AttributeGroup.fromStructField(field).attributes
-        .map(x => new AttributeGroup(field.name, relevant.zipWithIndex.map(ij => x(ij._1).withIndex(ij._2))))
-        .getOrElse(new AttributeGroup(field.name, relevant.length))
-        .toMetadata(builder.build())
-    } else {
-      builder.build()
-    }
+    builder.build()
   }
 
   override def transformSchema(schema: StructType): StructType = StructType(schema.map(f =>

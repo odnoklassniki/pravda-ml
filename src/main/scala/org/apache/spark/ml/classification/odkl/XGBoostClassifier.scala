@@ -4,6 +4,7 @@ import java.io.{File, FileWriter}
 
 import ml.dmlc.xgboost4j.scala.spark.{OkXGBoostClassifierParams, TrackerConf, XGBoostUtils, XGBoostClassificationModel => DMLCModel, XGBoostClassifier => DMLCEstimator}
 import ml.dmlc.xgboost4j.scala.{EvalTrait, ObjectiveTrait}
+import odkl.analysis.spark.util.Logging
 import org.apache.commons.io.FileUtils
 import org.apache.spark.ml.PredictorParams
 import org.apache.spark.ml.attribute.{AttributeGroup, BinaryAttribute, NominalAttribute}
@@ -12,8 +13,9 @@ import org.apache.spark.ml.odkl.ModelWithSummary.{Block, WithSummaryReader, With
 import org.apache.spark.ml.odkl._
 import org.apache.spark.ml.param.{BooleanParam, ParamMap}
 import org.apache.spark.ml.util._
-import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, Dataset}
+import org.apache.spark.ml.linalg.Vector
+import org.apache.spark.sql.types.{DoubleType, StructType}
+import org.apache.spark.sql.{DataFrame, Dataset, functions}
 
 /**
   * Light weight wrapper for DMLC xgboost4j-spark. Optimizes defaults and provides rich summary
@@ -30,6 +32,7 @@ class XGBoostClassifier(override val uid: String)
   val addSignificance = new BooleanParam(this, "addSignificance",
     "Whenever to add feature significance block to model summary.")
 
+
   def setAddSignificance(value: Boolean): this.type = set(addSignificance, value)
 
   def setAddRawTrees(value: Boolean): this.type = set(addRawTrees, value)
@@ -38,7 +41,9 @@ class XGBoostClassifier(override val uid: String)
     addRawTrees -> true,
     addSignificance -> true,
     missing -> 0.0f,
-    trackerConf -> new TrackerConf(30000, "scala"))
+    trackerConf -> new TrackerConf(30000, "scala"),
+    densifyInput -> true,
+    predictAsDouble -> true)
 
   def this() =
     this(
@@ -160,13 +165,22 @@ class XGBoostClassifier(override val uid: String)
   }
 
   override def fit(dataset: Dataset[_]): XGClassificationModelWrapper = {
+
+    val data = if ($(densifyInput)) {
+      val densify = functions.udf((x: Vector) => x.toDense)
+      dataset.withColumn($(featuresCol), densify(dataset($(featuresCol))))
+    } else {
+      logWarning("Automatic densification is turned off, be aware of different sparsity treatment problem!")
+      dataset
+    }
+
     val model = try {
-      new XGClassificationModelWrapper(trainInternal(dataset))
+      new XGClassificationModelWrapper(trainInternal(data))
     } catch {
       case ex: Exception =>
         // Yes, it might happen so that fist training attempt fail due to racing condition
         logError("First boosting attempt failed, retrying. " + ex.getMessage)
-        new XGClassificationModelWrapper(trainInternal(dataset))
+        new XGClassificationModelWrapper(trainInternal(data))
     }
 
     // OK, we got the model, enrich the summary
@@ -244,17 +258,32 @@ class XGBoostClassifier(override val uid: String)
       }
     }
 
-    model.copy(blocks).setParent(this)
+   copyValues(model.copy(blocks).setParent(this))
   }
 
   override def transformSchema(schema: StructType): StructType =
     copyValues(new DMLCEstimator(Map[String, Any]())).transformSchema(schema)
 }
 
-object XGBoostClassifier extends DefaultParamsReadable[XGBoostClassifier]
+object XGBoostClassifier extends DefaultParamsReadable[XGBoostClassifier] with Logging {
+  def densify(dataset: Dataset[_], params: OkXGBoostClassifierParams) : Dataset[_] = {
+    if (params.getDensifyInput) {
+      val densify = functions.udf((x: Vector) => x.toDense)
+      val col = params.getFeaturesCol
+      val metadata = dataset.schema(col).metadata
+
+      dataset.withColumn(
+        col,
+        densify(dataset(col)).as(col, metadata))
+    } else {
+      logWarning("Automatic densification is turned off, be aware of different sparsity treatment problem!")
+      dataset
+    }
+  }
+}
 
 class XGClassificationModelWrapper(private var _dlmc: DMLCModel, override val uid: String) extends ModelWithSummary[XGClassificationModelWrapper]
-  with PredictorParams {
+  with PredictorParams with OkXGBoostClassifierParams {
 
   def dlmc: DMLCModel = this._dlmc
 
@@ -267,7 +296,17 @@ class XGClassificationModelWrapper(private var _dlmc: DMLCModel, override val ui
 
   override protected def create(): XGClassificationModelWrapper = new XGClassificationModelWrapper(dlmc.copy(ParamMap()))
 
-  override def transform(dataset: Dataset[_]): DataFrame = dlmc.transform(dataset)
+  override def transform(dataset: Dataset[_]): DataFrame = {
+    val data = XGBoostClassifier.densify(dataset, this)
+
+    val result = dlmc.transform(data)
+
+    if($(predictAsDouble)) {
+      result.withColumn($(predictionCol), result($(predictionCol)).cast(DoubleType))
+    } else {
+      result
+    }
+  }
 
   override def transformSchema(schema: StructType): StructType = dlmc.transformSchema(schema)
 

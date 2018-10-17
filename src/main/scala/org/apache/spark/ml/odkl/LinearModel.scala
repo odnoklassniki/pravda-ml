@@ -142,10 +142,10 @@ abstract class LinearRegressor[M <: LinearModel[M], O <: Optimizer, T <: LinearR
         operationalData.take(1).head._2.size
       }
 
-
-
       //val initials = Vectors.zeros(numFeatures)
       val initials: Vector = SignificantFeatureSelector.tryGetInitials(features).getOrElse(Vectors.zeros(numFeatures))
+
+      require(numFeatures == initials.size, "Got different sizes for initial weights and numFeatures")
 
       val optimizer: O = createOptimizer()
       val coefficients: mllib.linalg.Vector = optimizer.optimize(operationalData, mllib.linalg.Vectors.fromML(initials))

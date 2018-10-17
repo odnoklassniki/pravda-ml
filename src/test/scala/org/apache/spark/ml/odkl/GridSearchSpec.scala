@@ -108,7 +108,7 @@ object GridSearchSpec extends WithTestData {
 
     val estimator = UnwrappedStage.cacheAndMaterialize(new GridSearch(evaluated)
       .setEstimatorParamMaps(paramGrid.build())
-      .setMetricsExpression("SELECT AVG(value) FROM __THIS__ WHERE metric = 'auc' AND NOT isTest")
+      .setMetricsExpression("SELECT AVG(value) FROM __THIS__ WHERE metric = 'auc' AND isTest")
       .setParamNames(
         nested.regParam -> "RegParam",
         nested.elasticNetParam -> "ElasticNet"
