@@ -34,14 +34,14 @@ libraryDependencies ++= {
 }
 
 libraryDependencies ++= Seq(
-  "ml.dmlc" % "xgboost4j" % "0.72",
-  "ml.dmlc" % "xgboost4j-spark" % "0.72"
+  "ml.dmlc" % "xgboost4j" % "0.80",
+  "ml.dmlc" % "xgboost4j-spark" % "0.80"
 )
 
 
 organization := "ru.odnoklassniki"
 
-version := "0.2.1-spark2.2-SNAPSHOT"
+version := "0.3.0-SNAPSHOT"
 
 scalaVersion := "2.11.8"
 

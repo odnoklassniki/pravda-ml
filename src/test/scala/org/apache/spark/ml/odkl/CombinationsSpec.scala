@@ -33,7 +33,7 @@ class CombinationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers
     .fit(matrixData)
 
   lazy val typeWhenClass = CombinedModel.perType(
-    CombinedModel.linearCombination(new LogisticRegressionLBFSG()).setTrainParallel(true)).setTrainParallel(true)
+    CombinedModel.linearCombination(new LogisticRegressionLBFSG()).setNumThreads(4)).setNumThreads(4)
     .fit(withTypeAndClass)
 
   lazy val scaled = CombinedModel.perType(

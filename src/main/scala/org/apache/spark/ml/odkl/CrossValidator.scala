@@ -19,6 +19,8 @@ import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.{IntegerType, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SQLContext, functions}
 
+import scala.util.Try
+
 /**
   * Used to train and evaluate model in folds.
   *
@@ -66,9 +68,10 @@ class CrossValidator[M <: ModelWithSummary[M]]
     numFoldsValue
   }
 
-  override protected def mergeModels(sqlContext: SQLContext, models: Seq[(Int, M)]): M = {
-    val wholeModel: M = if ($(addGlobal)) models.find(_._1 == -1).get._2 else models.find(_._1 == 0).get._2
-    val foldModels = models.filter(_._1 >= 0)
+  override protected def mergeModels(sqlContext: SQLContext, models: Seq[(Int, Try[M])]): M = {
+    val trueModels = models.map(x => x._1 -> x._2.get)
+    val wholeModel: M = if ($(addGlobal)) trueModels.find(_._1 == -1).get._2 else trueModels.find(_._1 == 0).get._2
+    val foldModels = trueModels.map(x => x._1 -> x._2).filter(_._1 >= 0)
 
 
 
@@ -115,7 +118,7 @@ object CrossValidator extends DefaultParamsReadable[CrossValidator[_]] with Seri
       dataset.withColumn($(numFoldsColumn), partition(functions.struct(columns: _*)))
     }
 
-    override def copy(extra: ParamMap): Transformer = copyValues(new FoldsAssigner(), extra)
+    override def copy(extra: ParamMap): Transformer = defaultCopy(extra)
 
     @DeveloperApi
     override def transformSchema(schema: StructType): StructType = schema.add($(numFoldsColumn), IntegerType, nullable = false)

@@ -27,6 +27,8 @@ import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.{DoubleType, Metadata, StructField, StructType}
 import org.apache.spark.util.collection.CompactBuffer
 
+import scala.util.Try
+
 
 object CombinedModel extends MLReadable[PipelineStage] {
 
@@ -36,7 +38,7 @@ object CombinedModel extends MLReadable[PipelineStage] {
     *
     * @param estimator  Estimator for training the nested models.
     * @param typeColumn Column where the type label stored.
-    * @param parallel   Whenever to train types in parallel.
+    * @param numThreads Number of concurent types training.
     * @param cacheForks Whenever to cache forks before iterating
     * @tparam M Type of the model to train.
     * @return Selector model (given instance type applies ONE of the models)
@@ -45,10 +47,10 @@ object CombinedModel extends MLReadable[PipelineStage] {
   (
     estimator: SummarizableEstimator[M],
     typeColumn: String = "type",
-    parallel: Boolean = false,
+    numThreads: Int = 1,
     cacheForks: Boolean = false): PerTypeModelLearner[M] = {
     new PerTypeModelLearner[M](estimator)
-      .setTrainParallel(parallel)
+      .setNumThreads(numThreads)
       .setTypeColumn(typeColumn)
       .setCacheForks(cacheForks)
   }
@@ -61,7 +63,7 @@ object CombinedModel extends MLReadable[PipelineStage] {
     * @param classesColumn   Column where the classes are recorded.
     * @param classesToIgnore Which classes not to include into result.
     * @param classesMap      Mapping for merging/renaming classes.
-    * @param parallel        Whenever to train classes in parallel.
+    * @param numThreads      Number of concurrent types training.
     * @param cacheForks      Whenever to cache forks before iterating
     * @tparam M Type of the model to train.
     * @return Linear combination model (given an instance coputes prediction of all the models and combines them linary
@@ -73,13 +75,13 @@ object CombinedModel extends MLReadable[PipelineStage] {
     classesColumn: String = "classes",
     classesToIgnore: Seq[String] = Seq(),
     classesMap: Map[String, String] = Map(),
-    parallel: Boolean = false,
+    numThreads: Int = 1,
     cacheForks: Boolean = false): LinearCombinationModelLearner[M] = {
     new LinearCombinationModelLearner[M](estimator)
       .setClassesToIgnore(classesToIgnore: _*)
       .setClassesMap(classesMap.toSeq: _*)
       .setClassesColumn(classesColumn)
-      .setTrainParallel(parallel)
+      .setNumThreads(numThreads)
       .setCacheForks(cacheForks)
   }
 
@@ -91,7 +93,7 @@ object CombinedModel extends MLReadable[PipelineStage] {
     * @param classesColumn   Column where the classes are recorded.
     * @param classesToIgnore Which classes not to include into result.
     * @param classesMap      Mapping for merging/renaming classes.
-    * @param parallel        Whenever to train classes in parallel.
+    * @param numThreads      Number of concurrent class training.
     * @param cacheForks      Whenever to cache forks before iterating
     * @tparam M Type of the model to train.
     * @return Linear combination model (given an instance coputes prediction of all the models and combines them linary
@@ -103,13 +105,13 @@ object CombinedModel extends MLReadable[PipelineStage] {
     classesColumn: String = "classes",
     classesToIgnore: Seq[String] = Seq(),
     classesMap: Map[String, String] = Map(),
-    parallel: Boolean = false,
+    numThreads: Int = 1,
     cacheForks: Boolean = false): MultiClassModelLearner[M] = {
     new MultiClassModelLearner[M](estimator)
       .setClassesToIgnore(classesToIgnore: _*)
       .setClassesMap(classesMap.toSeq: _*)
       .setClassesColumn(classesColumn)
-      .setTrainParallel(parallel)
+      .setNumThreads(numThreads)
       .setCacheForks(cacheForks)
   }
 
@@ -209,8 +211,8 @@ object CombinedModel extends MLReadable[PipelineStage] {
       types.map(t => t -> dataset.toDF.filter(dataset($(typeColumn)) === t))
     }
 
-    protected def mergeModels(sqlContext: SQLContext, models: Seq[(String, M)]): SelectingModel[M] = {
-      val result = new SelectingModel[M](models.toMap, $(typeColumn))
+    protected def mergeModels(sqlContext: SQLContext, models: Seq[(String, Try[M])]): SelectingModel[M] = {
+      val result = new SelectingModel[M](models.map(x => x._1 -> x._2.get).toMap, $(typeColumn))
       result.set(result.predictionCol, $(predictionCol))
     }
   }
@@ -311,9 +313,9 @@ object CombinedModel extends MLReadable[PipelineStage] {
 
     override def copy(extra: ParamMap): MultiClassModelLearner[M] = copyValues(new MultiClassModelLearner[M](nested.copy(extra)), extra)
 
-    protected def mergeModels(sqlContext: SQLContext, models: Seq[(String, M)]): MultiClassCombinationModel[M] = {
+    protected def mergeModels(sqlContext: SQLContext, models: Seq[(String, Try[M])]): MultiClassCombinationModel[M] = {
       val result: MultiClassCombinationModel[M] =
-        new MultiClassCombinationModel[M](models.toMap)
+        new MultiClassCombinationModel[M](models.map(x => x._1 -> x._2.get).toMap)
 
       result
         .set(result.classes, models.map(_._1).toArray)
@@ -336,9 +338,9 @@ object CombinedModel extends MLReadable[PipelineStage] {
     override def copy(extra: ParamMap): SummarizableEstimator[LinearCombinationModel[M]] =
       copyValues(new LinearCombinationModelLearner[M](nested.copy(extra)), extra)
 
-    override protected def mergeModels(sqlContext: SQLContext, models: Seq[(String, M)]): LinearCombinationModel[M] = {
+    override protected def mergeModels(sqlContext: SQLContext, models: Seq[(String, Try[M])]): LinearCombinationModel[M] = {
       val result: LinearCombinationModel[M] =
-        new LinearCombinationModel[M](models.toMap)
+        new LinearCombinationModel[M](models.map(x => x._1 -> x._2.get).toMap)
 
       result
         .set(result.classes, models.map(_._1).toArray)

@@ -212,9 +212,9 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
     val weightIndex = weightsFrame.schema.fieldIndex("weight")
     val weigths = weightsFrame.rdd.map(r => r.getInt(0) -> r.getDouble(weightIndex)).collect().toMap
 
-    weigths(0) should be(model.getCoefficients(0))
-    weigths(1) should be(model.getCoefficients(1))
-    weigths(-1) should be(model.getIntercept)
+    weigths(0) should be(model.getCoefficients(0) +- 1e-10)
+    weigths(1) should be(model.getCoefficients(1) +- 1e-10)
+    weigths(-1) should be(model.getIntercept +- 1e-10)
 
     val names = weightsFrame.rdd.map(r => r.getInt(0) -> r.getString(1)).collect().toMap
 
@@ -345,7 +345,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
       Math.abs(v(1)) should be > 0.0
       Math.abs(v(2)) should be > 0.0
 
-      cosineDistance(Vectors.dense(v.toArray.drop(1)), hiddenModels(pair._1)) should be <= 0.001
+      cosineDistance(Vectors.dense(v.toArray.drop(1)), hiddenModels(pair._1)) should be <= 0.0012
     })
   }
 
@@ -358,7 +358,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
       addIntercept(multiClassData("features")).as("features", new AttributeGroup("features", 3).toMetadata()))
 
     val trainedForMatrix: Map[String, Vector] = new LogisticMatrixDSVRGD()
-      .setRegParam(0.035).setElasticNetParam(1.0).setTol(1e-8).setLocalMinibatchSize(2)
+      .setRegParam(0.038).setElasticNetParam(1.0).setTol(1e-8).setLocalMinibatchSize(2)
       .fit(withIntercept)
       .nested.mapValues(_.getCoefficients)
 
@@ -374,7 +374,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
       Math.abs(v(1)) should be > 0.0
       Math.abs(v(2)) should be <= 0.0
 
-      cosineDistance(Vectors.dense(v.toArray.dropRight(1)), hiddenModels(pair._1)) should be <= 0.001
+      cosineDistance(Vectors.dense(v.toArray.dropRight(1)), hiddenModels(pair._1)) should be <= 0.0012
     })
   }
 

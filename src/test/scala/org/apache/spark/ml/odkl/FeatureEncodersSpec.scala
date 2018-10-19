@@ -9,7 +9,8 @@ import org.apache.commons.io.FileUtils
 import org.apache.spark.ml.attribute.{Attribute, AttributeGroup, BinaryAttribute, NumericAttribute}
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.{Pipeline, PipelineModel, PipelineStage}
-import org.apache.spark.ml.linalg.{Vector, Vectors}
+import org.apache.spark.ml.linalg.{DenseVector, Vector, Vectors}
+import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{DataFrame, Row, functions}
 import org.scalatest.FlatSpec
 
@@ -164,6 +165,33 @@ class FeatureEncodersSpec extends FlatSpec with TestEnv with org.scalatest.Match
     attributes(2) should be(NumericAttribute.defaultAttr.withName("vector_v1").withIndex(2))
     attributes(3) should be(NumericAttribute.defaultAttr.withName("vector_v2").withIndex(3))
     attributes(4) should be(BinaryAttribute.defaultAttr.withName("boolean").withIndex(4))
+  }
+
+  "AutoAssembler" should " be correct with string and array empty columns" in {
+    import sqlc.implicits._
+
+    val rdd: RDD[(Seq[String], Int, String)] = sc.parallelize(
+      Seq((Seq.empty[String], 1, "subtype1"),
+        (Seq.empty[String], 2, "subtype2"),
+          (Seq("type3", "type2"), 3, "subtype1")))
+
+
+    val dataframe = rdd
+      .toDF("nominal1", "numeric2", "nominal3")
+      .select("nominal3", "numeric2", "nominal1")
+
+
+    val assembler = new AutoAssembler()
+      .setColumnsToInclude(Seq("numeric2", "nominal3","nominal1"): _*)
+      .setOutputCol("features")
+
+    val transformed = assembler.fit(dataframe).transform(dataframe)
+    
+    val collected = transformed.collect()
+
+    val firstVector = collected(0).getAs[Vector]("features")
+
+    assertResult(5)(firstVector.size)
   }
 
   "MultiNominalExtractor " should " set values for single" in {

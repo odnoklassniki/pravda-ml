@@ -4,6 +4,7 @@ import java.io.File
 
 import odkl.analysis.spark.TestEnv
 import org.apache.commons.io.FileUtils
+import org.apache.spark.ml.classification.odkl.{XGBoostClassifier, XGClassificationModelWrapper}
 import org.apache.spark.ml.linalg.{BLAS, Vectors}
 import org.apache.spark.ml.odkl.ModelWithSummary.Block
 import org.apache.spark.ml.odkl.WithTestData._
@@ -19,11 +20,11 @@ import org.scalatest.FlatSpec
   */
 class XGBoostSpec extends FlatSpec with TestEnv with org.scalatest.Matchers with WithTestData
   with HasLossHistory with HasFeaturesSignificance {
-  @transient lazy val model: XGBoostModel = XGBoostSpec._model
+  @transient lazy val model: XGClassificationModelWrapper = XGBoostSpec._model
 
   @transient lazy val data: DataFrame = XGBoostSpec._treeData
 
-  lazy val reReadModel: XGBoostModel = XGBoostSpec._reReadModel
+  lazy val reReadModel: XGClassificationModelWrapper = XGBoostSpec._reReadModel
 
   lazy val pipelineModel: PipelineModel = XGBoostSpec._pipelineModel
 
@@ -136,15 +137,15 @@ object XGBoostSpec extends WithTestData {
     .setOutputCol("features").transform(_rawTreeData).cache()
 
 
-  @transient lazy val _model: XGBoostModel = {
+  @transient lazy val _model: XGClassificationModelWrapper = {
 
-    val estimator: XGBoostEstimator = createEstimator()
+    val estimator: XGBoostClassifier = createEstimator()
 
     estimator.fit(_treeData)
   }
 
-  private def createEstimator(): XGBoostEstimator = {
-    new XGBoostEstimator()
+  private def createEstimator(): XGBoostClassifier = {
+    new XGBoostClassifier()
       .setLambda(0.0)
       .setObjective("binary:logistic")
       .setEta(0.01f)
@@ -154,12 +155,12 @@ object XGBoostSpec extends WithTestData {
 
   @transient lazy val _pipelineModel: PipelineModel = {
 
-    val estimator: XGBoostEstimator = createEstimator()
+    val estimator: XGBoostClassifier = createEstimator()
 
     roundTrip(roundTrip(new Pipeline().setStages(Array(estimator)), Pipeline).fit(_treeData), PipelineModel)
   }
 
-  @transient lazy val _reReadModel: XGBoostModel = roundTrip(_model, XGBoostModel)
+  @transient lazy val _reReadModel: XGClassificationModelWrapper = roundTrip(_model, XGClassificationModelWrapper)
 
   def roundTrip[M <: MLWritable with Identifiable](data: M, reader: MLReadable[M]): M = {
     val directory = new File(FileUtils.getTempDirectory, data.uid)

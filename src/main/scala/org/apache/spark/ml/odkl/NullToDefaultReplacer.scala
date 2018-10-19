@@ -13,6 +13,7 @@ package org.apache.spark.ml.odkl
 
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.Transformer
+import org.apache.spark.ml.linalg.{DenseVector, SparseVector, VectorUDT, Vectors, Vector}
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
 import org.apache.spark.sql.types.{BooleanType, NumericType, StructType}
@@ -40,6 +41,13 @@ class NullToDefaultReplacer(override val uid: String) extends Transformer
           val column = field.dataType match {
             case _: BooleanType => functions.coalesce(dataset(field.name), functions.lit($(defaultValues).getOrElse(field.name, "false")).cast(field.dataType))
             case _: NumericType => functions.coalesce(dataset(field.name), functions.lit($(defaultValues).getOrElse(field.name, "0")).cast(field.dataType))
+            case _: VectorUDT =>
+              val dataVector: Vector = dataset.filter(dataset(field.name).isNotNull).select(field.name).first.getAs[Vector](0)
+              val defaultVector = dataVector match {
+                case _: SparseVector => Vectors.zeros(dataVector.size).toSparse
+                case _: DenseVector => Vectors.zeros(dataVector.size)
+              }
+              functions.coalesce(dataset(field.name), functions.lit(defaultVector).cast(field.dataType))
             case _ => dataset(field.name)
           }
           if (field.metadata != null) {

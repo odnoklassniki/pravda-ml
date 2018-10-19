@@ -1,40 +1,37 @@
-package org.apache.spark.ml.odkl
+package org.apache.spark.ml.classification.odkl
 
 import java.io.{File, FileWriter}
 
-import ml.dmlc.xgboost4j.scala.spark.params.{BoosterParams, GeneralParams, LearningTaskParams}
-import ml.dmlc.xgboost4j.scala.spark.{TrackerConf, XGBoostEstimator => DMLCEstimator, XGBoostModel => DMLCModel}
+import ml.dmlc.xgboost4j.scala.spark.{OkXGBoostClassifierParams, TrackerConf, XGBoostUtils, XGBoostClassificationModel => DMLCModel, XGBoostClassifier => DMLCEstimator}
 import ml.dmlc.xgboost4j.scala.{EvalTrait, ObjectiveTrait}
 import org.apache.commons.io.FileUtils
 import org.apache.spark.ml.PredictorParams
 import org.apache.spark.ml.attribute.{AttributeGroup, BinaryAttribute, NominalAttribute}
+import org.apache.spark.ml.classification.ProbabilisticClassifierParams
+import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.ml.odkl.ModelWithSummary.{Block, WithSummaryReader, WithSummaryWriter}
-import org.apache.spark.ml.param.{BooleanParam, Param, ParamMap}
+import org.apache.spark.ml.odkl._
+import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.util._
-import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, Dataset}
+import org.apache.spark.sql.types.{DoubleType, StructType}
+import org.apache.spark.sql.{DataFrame, Dataset, functions}
 
 /**
   * Light weight wrapper for DMLC xgboost4j-spark. Optimizes defaults and provides rich summary
   * extraction.
   */
-class XGBoostEstimator(override val uid: String)
-  extends SummarizableEstimator[XGBoostModel]
-    with LearningTaskParams with GeneralParams with BoosterParams with PredictorParams
+class XGBoostClassifier(override val uid: String)
+  extends SummarizableEstimator[XGClassificationModelWrapper]
+    with OkXGBoostClassifierParams with ProbabilisticClassifierParams
     with HasLossHistory with HasFeaturesSignificance with DefaultParamsWritable {
 
-  val addRawTrees = new BooleanParam(this, "addRawTrees",
-    "Whenever to add raw trees block to model summary.")
-
-  val addSignificance = new BooleanParam(this, "addSignificance",
-    "Whenever to add feature significance block to model summary.")
-
-  def setAddSignificance(value: Boolean): this.type = set(addSignificance, value)
-
-  def setAddRawTrees(value: Boolean): this.type = set(addRawTrees, value)
-
-  setDefault(addRawTrees -> true, addSignificance -> true,
-    trackerConf -> new TrackerConf(30000, "scala"))
+  setDefault(
+    addRawTrees -> true,
+    addSignificance -> true,
+    missing -> 0.0f,
+    trackerConf -> new TrackerConf(30000, "scala"),
+    densifyInput -> true,
+    predictAsDouble -> true)
 
   def this() =
     this(
@@ -42,46 +39,23 @@ class XGBoostEstimator(override val uid: String)
       //set(trackerConf, if (dlmc.isSet(dlmc.trackerConf)) dlmc.get(dlmc.trackerConf).get else new TrackerConf(30000, "scala")) ,
       Identifiable.randomUID("xgboostEstimatorWrapper"))
 
-  def setFeatureCol(value: String): this.type = set(featuresCol, value)
-
-  def setLabelCol(value: String): this.type = set(labelCol, value)
-
-  def setPredictionCol(value: String): this.type = set(predictionCol, value)
-
-  def setUseExternalMemory(value: Boolean): this.type = set(useExternalMemory, value)
-
-  def setTrackerConf(workerConnectionTimeout: Long, trackerImpl: String): this.type = set(trackerConf, new TrackerConf(workerConnectionTimeout, trackerImpl))
-
-  def setTrainTestRation(value: Double): this.type = set(trainTestRatio, value)
-
-  def setNumClasses(value: Int): this.type = set(numClasses, value)
-
-  def setObjective(value: String): this.type = set(objective, value)
-
-  def setBaseScore(value: Double): this.type = set(baseScore, value)
-
-  def setEvalMetric(value: String): this.type = set(evalMetric, value)
-
-  def setGroupData(value: Seq[Int]*): this.type = set(groupData, value)
+  // Taken from dlmc
+  def setWeightCol(value: String): this.type = set(weightCol, value)
 
   def setBaseMarginCol(value: String): this.type = set(baseMarginCol, value)
 
-  def setWeightCol(value: String): this.type = set(weightCol, value)
+  def setNumClass(value: Int): this.type = set(numClass, value)
 
-  def setNumEarlyStoppingRounds(value: Int): this.type = set(numEarlyStoppingRounds, value)
+  // setters for general params
+  def setNumRound(value: Int): this.type = set(numRound, value)
 
+  def setNumWorkers(value: Int): this.type = set(numWorkers, value)
 
-  def setNumRounds(value: Int): this.type = set(round, value)
+  def setNthread(value: Int): this.type = set(nthread, value)
 
-  def setNumWorkers(value: Int): this.type = set(nWorkers, value)
+  def setUseExternalMemory(value: Boolean): this.type = set(useExternalMemory, value)
 
-  def setNumThreadsPerTask(value: Int): this.type = set(numThreadPerTask, value)
-
-  def setSilent(value: Boolean): this.type = set(silent, if (value) 1 else 0)
-
-  def setCustomObjective(value: ObjectiveTrait): this.type = set(customObj, value)
-
-  def setCustomEvaluation(value: EvalTrait): this.type = set(customEval, value)
+  def setSilent(value: Int): this.type = set(silent, value)
 
   def setMissing(value: Float): this.type = set(missing, value)
 
@@ -93,8 +67,6 @@ class XGBoostEstimator(override val uid: String)
 
   def setSeed(value: Long): this.type = set(seed, value)
 
-  def setBoosterType(value: String): this.type = set(boosterType, value)
-
   def setEta(value: Double): this.type = set(eta, value)
 
   def setGamma(value: Double): this.type = set(gamma, value)
@@ -105,11 +77,11 @@ class XGBoostEstimator(override val uid: String)
 
   def setMaxDeltaStep(value: Double): this.type = set(maxDeltaStep, value)
 
-  def setSubSample(value: Double): this.type = set(subSample, value)
+  def setSubsample(value: Double): this.type = set(subsample, value)
 
-  def setColSampleByTree(value: Double): this.type = set(colSampleByTree, value)
+  def setColsampleBytree(value: Double): this.type = set(colsampleBytree, value)
 
-  def setColSampleByLevel(value: Double): this.type = set(colSampleByLevel, value)
+  def setColsampleBylevel(value: Double): this.type = set(colsampleBylevel, value)
 
   def setLambda(value: Double): this.type = set(lambda, value)
 
@@ -117,9 +89,9 @@ class XGBoostEstimator(override val uid: String)
 
   def setTreeMethod(value: String): this.type = set(treeMethod, value)
 
-  def setGrowthPolicy(value: String): this.type = set(growthPolicty, value)
+  def setGrowPolicy(value: String): this.type = set(growPolicy, value)
 
-  def setMaxBeens(value: Int): this.type = set(maxBins, value)
+  def setMaxBins(value: Int): this.type = set(maxBins, value)
 
   def setSketchEps(value: Double): this.type = set(sketchEps, value)
 
@@ -135,27 +107,68 @@ class XGBoostEstimator(override val uid: String)
 
   def setLambdaBias(value: Double): this.type = set(lambdaBias, value)
 
-  override def copy(extra: ParamMap): SummarizableEstimator[XGBoostModel] = defaultCopy(extra)
+  // setters for learning params
+  def setObjective(value: String): this.type = set(objective, value)
+
+  def setBaseScore(value: Double): this.type = set(baseScore, value)
+
+  def setEvalMetric(value: String): this.type = set(evalMetric, value)
+
+  def setTrainTestRatio(value: Double): this.type = set(trainTestRatio, value)
+
+  def setNumEarlyStoppingRounds(value: Int): this.type = set(numEarlyStoppingRounds, value)
+
+  def setCustomObj(value: ObjectiveTrait): this.type = set(customObj, value)
+
+  def setCustomEval(value: EvalTrait): this.type = set(customEval, value)
+
+  // Added by OK
+
+  def setFeatureCol(value: String): this.type = set(featuresCol, value)
+
+  def setLabelCol(value: String): this.type = set(labelCol, value)
+
+  def setPredictionCol(value: String): this.type = set(predictionCol, value)
+
+  def setTrackerConf(workerConnectionTimeout: Long, trackerImpl: String): this.type = set(trackerConf, new TrackerConf(workerConnectionTimeout, trackerImpl))
+
+  def setTrainTestRation(value: Double): this.type = set(trainTestRatio, value)
+
+  def setNumRounds(value: Int): this.type = set(numRound, value)
+
+  def setSilent(value: Boolean): this.type = set(silent, if (value) 1 else 0)
+
+  def setCustomObjective(value: ObjectiveTrait): this.type = set(customObj, value)
+
+  def setCustomEvaluation(value: EvalTrait): this.type = set(customEval, value)
+
+  def setMaxBeens(value: Int): this.type = set(maxBins, value)
+
+
+  override def copy(extra: ParamMap): SummarizableEstimator[XGClassificationModelWrapper] = defaultCopy(extra)
 
   private def trainInternal(dataset: Dataset[_]): DMLCModel = {
-    val estimator = copyValues(new DMLCEstimator(Map[String, Any]()))
-
-    // This trick is used to support estimator re-read and reset empty group to null
-    if (isSet(groupData) && $(groupData) != null && $(groupData).isEmpty) {
-      estimator.set(estimator.groupData, null)
-    }
-
+    val estimator = copyValues(new DMLCEstimator())
     estimator.fit(dataset)
   }
 
-  override def fit(dataset: Dataset[_]): XGBoostModel = {
+  override def fit(dataset: Dataset[_]): XGClassificationModelWrapper = {
+
+    val data = if ($(densifyInput)) {
+      val densify = functions.udf((x: Vector) => x.toDense)
+      dataset.withColumn($(featuresCol), densify(dataset($(featuresCol))))
+    } else {
+      logWarning("Automatic densification is turned off, be aware of different sparsity treatment problem!")
+      dataset
+    }
+
     val model = try {
-      new XGBoostModel(trainInternal(dataset))
+      new XGClassificationModelWrapper(trainInternal(data))
     } catch {
       case ex: Exception =>
         // Yes, it might happen so that fist training attempt fail due to racing condition
         logError("First boosting attempt failed, retrying. " + ex.getMessage)
-        new XGBoostModel(trainInternal(dataset))
+        new XGClassificationModelWrapper(trainInternal(data))
     }
 
     // OK, we got the model, enrich the summary
@@ -212,7 +225,7 @@ class XGBoostEstimator(override val uid: String)
         // Features significance block
         if ($(addSignificance)) {
           blocks += featuresSignificance -> {
-            val dlmcSign = model.dlmc.booster.getFeatureScore(fmap)
+            val dlmcSign = XGBoostUtils.getBooster(model.dlmc).getFeatureScore(fmap)
 
             val sig = featureMap
               .map(_.map(x => (x._1, x._2, dlmcSign.get(x._2).map(_.doubleValue()).getOrElse(Double.NaN))))
@@ -225,7 +238,7 @@ class XGBoostEstimator(override val uid: String)
         // Raw trees block
         if ($(addRawTrees)) {
           blocks += Block("rawTrees") -> sc
-            .parallelize(model.dlmc.booster.getModelDump(fmap).zipWithIndex.map(_.swap), 1)
+            .parallelize(XGBoostUtils.getBooster(model.dlmc).getModelDump(fmap).zipWithIndex.map(_.swap), 1)
             .toDF("index", "treeData")
         }
       } finally {
@@ -233,15 +246,17 @@ class XGBoostEstimator(override val uid: String)
       }
     }
 
-    model.copy(blocks).setParent(this)
+   copyValues(model.copy(blocks).setParent(this))
   }
 
   override def transformSchema(schema: StructType): StructType =
     copyValues(new DMLCEstimator(Map[String, Any]())).transformSchema(schema)
 }
 
-class XGBoostModel(private var _dlmc: DMLCModel, override val uid: String) extends ModelWithSummary[XGBoostModel]
-  with PredictorParams {
+object XGBoostClassifier extends DefaultParamsReadable[XGBoostClassifier]
+
+class XGClassificationModelWrapper(private var _dlmc: DMLCModel, override val uid: String) extends ModelWithSummary[XGClassificationModelWrapper]
+  with PredictorParams with OkXGBoostClassifierParams {
 
   def dlmc: DMLCModel = this._dlmc
 
@@ -252,13 +267,23 @@ class XGBoostModel(private var _dlmc: DMLCModel, override val uid: String) exten
 
   def this(dlmc: DMLCModel) = this(dlmc, Identifiable.randomUID("xgboostModelWrapper"))
 
-  override protected def create(): XGBoostModel = new XGBoostModel(dlmc.copy(ParamMap()))
+  override protected def create(): XGClassificationModelWrapper = new XGClassificationModelWrapper(dlmc.copy(ParamMap()))
 
-  override def transform(dataset: Dataset[_]): DataFrame = dlmc.transform(dataset)
+  override def transform(dataset: Dataset[_]): DataFrame = {
+    val data = densifyIfNeeded(dataset)
+
+    val result = dlmc.transform(data)
+
+    if($(predictAsDouble)) {
+      result.withColumn($(predictionCol), result($(predictionCol)).cast(DoubleType))
+    } else {
+      result
+    }
+  }
 
   override def transformSchema(schema: StructType): StructType = dlmc.transformSchema(schema)
 
-  override def write: WithSummaryWriter[XGBoostModel] = new ModelWithSummary.WithSummaryWriter[XGBoostModel](this) {
+  override def write: WithSummaryWriter[XGClassificationModelWrapper] = new ModelWithSummary.WithSummaryWriter[XGClassificationModelWrapper](this) {
     protected override def saveImpl(path: String): Unit = {
       super.saveImpl(path)
       dlmc.write.save(s"$path/dlmc")
@@ -266,13 +291,13 @@ class XGBoostModel(private var _dlmc: DMLCModel, override val uid: String) exten
   }
 }
 
-object XGBoostEstimator extends DefaultParamsReadable[XGBoostEstimator]
 
-object XGBoostModel extends MLReadable[XGBoostModel] {
-  override def read: MLReader[XGBoostModel] = new WithSummaryReader[XGBoostModel]() {
-    override def load(path: String): XGBoostModel = {
+
+object XGClassificationModelWrapper extends MLReadable[XGClassificationModelWrapper] {
+  override def read: MLReader[XGClassificationModelWrapper] = new WithSummaryReader[XGClassificationModelWrapper]() {
+    override def load(path: String): XGClassificationModelWrapper = {
       super.load(path) match {
-        case original: XGBoostModel =>
+        case original: XGClassificationModelWrapper =>
           original._dlmc = DefaultParamsReader.loadParamsInstance(s"$path/dlmc", sc).asInstanceOf[DMLCModel]
           original
       }
