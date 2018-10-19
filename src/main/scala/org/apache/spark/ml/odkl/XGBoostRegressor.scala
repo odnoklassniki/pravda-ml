@@ -1,16 +1,14 @@
-package org.apache.spark.ml.classification.odkl
+package org.apache.spark.ml.odkl
 
 import java.io.{File, FileWriter}
 
-import ml.dmlc.xgboost4j.scala.spark.{OkXGBoostClassifierParams, TrackerConf, XGBoostUtils, XGBoostClassificationModel => DMLCModel, XGBoostClassifier => DMLCEstimator}
+import ml.dmlc.xgboost4j.scala.spark.{OkXGBoostRegressorParams, TrackerConf, XGBoostUtils, XGBoostRegressionModel => DMLCModel, XGBoostRegressor => DMLCEstimator}
 import ml.dmlc.xgboost4j.scala.{EvalTrait, ObjectiveTrait}
 import org.apache.commons.io.FileUtils
 import org.apache.spark.ml.PredictorParams
 import org.apache.spark.ml.attribute.{AttributeGroup, BinaryAttribute, NominalAttribute}
-import org.apache.spark.ml.classification.ProbabilisticClassifierParams
 import org.apache.spark.ml.linalg.Vector
 import org.apache.spark.ml.odkl.ModelWithSummary.{Block, WithSummaryReader, WithSummaryWriter}
-import org.apache.spark.ml.odkl._
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.util._
 import org.apache.spark.sql.types.{DoubleType, StructType}
@@ -20,9 +18,9 @@ import org.apache.spark.sql.{DataFrame, Dataset, functions}
   * Light weight wrapper for DMLC xgboost4j-spark. Optimizes defaults and provides rich summary
   * extraction.
   */
-class XGBoostClassifier(override val uid: String)
-  extends SummarizableEstimator[XGClassificationModelWrapper]
-    with OkXGBoostClassifierParams with ProbabilisticClassifierParams
+class XGBoostRegressor(override val uid: String)
+  extends SummarizableEstimator[XGRegressionModelWrapper]
+    with OkXGBoostRegressorParams
     with HasLossHistory with HasFeaturesSignificance with DefaultParamsWritable {
 
   setDefault(
@@ -44,7 +42,6 @@ class XGBoostClassifier(override val uid: String)
 
   def setBaseMarginCol(value: String): this.type = set(baseMarginCol, value)
 
-  def setNumClass(value: Int): this.type = set(numClass, value)
 
   // setters for general params
   def setNumRound(value: Int): this.type = set(numRound, value)
@@ -126,8 +123,6 @@ class XGBoostClassifier(override val uid: String)
 
   def setFeatureCol(value: String): this.type = set(featuresCol, value)
 
-  def setLabelCol(value: String): this.type = set(labelCol, value)
-
   def setPredictionCol(value: String): this.type = set(predictionCol, value)
 
   def setTrackerConf(workerConnectionTimeout: Long, trackerImpl: String): this.type = set(trackerConf, new TrackerConf(workerConnectionTimeout, trackerImpl))
@@ -145,14 +140,14 @@ class XGBoostClassifier(override val uid: String)
   def setMaxBeens(value: Int): this.type = set(maxBins, value)
 
 
-  override def copy(extra: ParamMap): SummarizableEstimator[XGClassificationModelWrapper] = defaultCopy(extra)
+  override def copy(extra: ParamMap): SummarizableEstimator[XGRegressionModelWrapper] = defaultCopy(extra)
 
   private def trainInternal(dataset: Dataset[_]): DMLCModel = {
     val estimator = copyValues(new DMLCEstimator())
     estimator.fit(dataset)
   }
 
-  override def fit(dataset: Dataset[_]): XGClassificationModelWrapper = {
+  override def fit(dataset: Dataset[_]): XGRegressionModelWrapper = {
 
     val data = if ($(densifyInput)) {
       val densify = functions.udf((x: Vector) => x.toDense)
@@ -163,12 +158,12 @@ class XGBoostClassifier(override val uid: String)
     }
 
     val model = try {
-      new XGClassificationModelWrapper(trainInternal(data))
+      new XGRegressionModelWrapper(trainInternal(data))
     } catch {
       case ex: Exception =>
         // Yes, it might happen so that fist training attempt fail due to racing condition
         logError("First boosting attempt failed, retrying. " + ex.getMessage)
-        new XGClassificationModelWrapper(trainInternal(data))
+        new XGRegressionModelWrapper(trainInternal(data))
     }
 
     // OK, we got the model, enrich the summary
@@ -253,10 +248,10 @@ class XGBoostClassifier(override val uid: String)
     copyValues(new DMLCEstimator(Map[String, Any]())).transformSchema(schema)
 }
 
-object XGBoostClassifier extends DefaultParamsReadable[XGBoostClassifier]
+object XGBoostRegressor extends DefaultParamsReadable[XGBoostRegressor]
 
-class XGClassificationModelWrapper(private var _dlmc: DMLCModel, override val uid: String) extends ModelWithSummary[XGClassificationModelWrapper]
-  with PredictorParams with OkXGBoostClassifierParams {
+class XGRegressionModelWrapper(private var _dlmc: DMLCModel, override val uid: String) extends ModelWithSummary[XGRegressionModelWrapper]
+  with PredictorParams with OkXGBoostRegressorParams {
 
   def dlmc: DMLCModel = this._dlmc
 
@@ -267,7 +262,7 @@ class XGClassificationModelWrapper(private var _dlmc: DMLCModel, override val ui
 
   def this(dlmc: DMLCModel) = this(dlmc, Identifiable.randomUID("xgboostModelWrapper"))
 
-  override protected def create(): XGClassificationModelWrapper = new XGClassificationModelWrapper(dlmc.copy(ParamMap()))
+  override protected def create(): XGRegressionModelWrapper = new XGRegressionModelWrapper(dlmc.copy(ParamMap()))
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     val data = densifyIfNeeded(dataset)
@@ -283,7 +278,7 @@ class XGClassificationModelWrapper(private var _dlmc: DMLCModel, override val ui
 
   override def transformSchema(schema: StructType): StructType = dlmc.transformSchema(schema)
 
-  override def write: WithSummaryWriter[XGClassificationModelWrapper] = new ModelWithSummary.WithSummaryWriter[XGClassificationModelWrapper](this) {
+  override def write: WithSummaryWriter[XGRegressionModelWrapper] = new ModelWithSummary.WithSummaryWriter[XGRegressionModelWrapper](this) {
     protected override def saveImpl(path: String): Unit = {
       super.saveImpl(path)
       dlmc.write.save(s"$path/dlmc")
@@ -292,12 +287,11 @@ class XGClassificationModelWrapper(private var _dlmc: DMLCModel, override val ui
 }
 
 
-
-object XGClassificationModelWrapper extends MLReadable[XGClassificationModelWrapper] {
-  override def read: MLReader[XGClassificationModelWrapper] = new WithSummaryReader[XGClassificationModelWrapper]() {
-    override def load(path: String): XGClassificationModelWrapper = {
+object XGRegressionModelWrapper extends MLReadable[XGRegressionModelWrapper] {
+  override def read: MLReader[XGRegressionModelWrapper] = new WithSummaryReader[XGRegressionModelWrapper]() {
+    override def load(path: String): XGRegressionModelWrapper = {
       super.load(path) match {
-        case original: XGClassificationModelWrapper =>
+        case original: XGRegressionModelWrapper =>
           original._dlmc = DefaultParamsReader.loadParamsInstance(s"$path/dlmc", sc).asInstanceOf[DMLCModel]
           original
       }

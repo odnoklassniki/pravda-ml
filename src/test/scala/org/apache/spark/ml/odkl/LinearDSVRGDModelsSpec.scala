@@ -374,7 +374,7 @@ class LinearDSVRGDModelsSpec extends FlatSpec with TestEnv with org.scalatest.Ma
       Math.abs(v(1)) should be > 0.0
       Math.abs(v(2)) should be <= 0.0
 
-      cosineDistance(Vectors.dense(v.toArray.dropRight(1)), hiddenModels(pair._1)) should be <= 0.001
+      cosineDistance(Vectors.dense(v.toArray.dropRight(1)), hiddenModels(pair._1)) should be <= 0.0012
     })
   }
 
