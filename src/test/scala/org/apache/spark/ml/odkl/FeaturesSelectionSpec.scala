@@ -9,6 +9,7 @@ import org.apache.spark.ml.odkl.Evaluator.{EmptyEvaluator, TrainTestEvaluator}
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.ml.linalg.{Vector, Vectors}
+import org.apache.spark.ml.odkl.hyperopt.{GridSearch, StableOrderParamGridBuilder}
 import org.apache.spark.sql.functions
 import org.scalatest.FlatSpec
 

@@ -60,7 +60,6 @@ object Evaluator extends Serializable {
     * @param evaluator  Evaluator for creating a metric.
     * @param numFolds   Number of folds for validation (defeult 10)
     * @param numThreads Number of parallel folds training.
-    * @param cacheForks Whenever to cache forks before iterating
     * @return Estimator which returns a model fit by the nested predictor on the entire dataset with summary blocks
     *         extended with numFolds column.
     */
@@ -70,7 +69,6 @@ object Evaluator extends Serializable {
     evaluator: E,
     numFolds: Int = 10,
     numThreads: Int = 1,
-    cacheForks: Boolean = false,
     prefix: String = "",
     addGlobal: Boolean = true):
   SummarizableEstimator[M]
@@ -79,7 +77,7 @@ object Evaluator extends Serializable {
     assigner.set(assigner.numFoldsColumn, prefix + assigner.getOrDefault(assigner.numFoldsColumn))
 
     addFolds(
-      validateInFolds(estimator, evaluator, numFolds, numThreads, cacheForks, prefix, addGlobal),
+      validateInFolds(estimator, evaluator, numFolds, numThreads, prefix, addGlobal),
       assigner)
   }
 
@@ -93,7 +91,6 @@ object Evaluator extends Serializable {
     * @param evaluator  Evaluator for creating a metric.
     * @param numFolds   Number of folds for validation (defeult 10)
     * @param numThreads Number of threads to run validation.
-    * @param cacheForks Whenever to cache forks before iterating
     * @return Estimator which returns a model fit by the nested predictor on the entire dataset with summary blocks
     *         extended with numFolds column.
     */
@@ -103,7 +100,6 @@ object Evaluator extends Serializable {
     evaluator: E,
     numFolds: Int = 10,
     numThreads: Int = 1,
-    cacheForks: Boolean = false,
     prefix: String = "",
     addGlobal: Boolean = true):
   CrossValidator[M]
@@ -125,7 +121,6 @@ object Evaluator extends Serializable {
     validator
       .set(validator.numFolds, numFolds)
       .set(validator.numThreads, numThreads)
-      .setCacheForks(cacheForks)
   }
 
   /**

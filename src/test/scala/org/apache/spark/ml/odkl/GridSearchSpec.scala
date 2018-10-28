@@ -9,6 +9,7 @@ import org.apache.spark.ml.odkl.Evaluator.TrainTestEvaluator
 import org.apache.spark.ml.odkl.ModelWithSummary.Block
 import org.apache.spark.ml.tuning.ParamGridBuilder
 import org.apache.spark.ml.linalg.{Vector, Vectors}
+import org.apache.spark.ml.odkl.hyperopt.{GridSearch, StableOrderParamGridBuilder}
 import org.apache.spark.sql.functions
 import org.scalatest.FlatSpec
 
