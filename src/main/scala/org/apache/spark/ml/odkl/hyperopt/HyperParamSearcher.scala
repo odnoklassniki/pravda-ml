@@ -13,28 +13,29 @@ trait HyperParamSearcher {
 }
 
 trait HyperParamSearcherFactory {
-  def create(domains: Seq[ParamDomain[_]]) : HyperParamSearcher
+  def create(domains: Seq[ParamDomain[_]], seed: Long) : HyperParamSearcher
 }
 
 object HyperParamSearcher {
   lazy val RANDOM = new HyperParamSearcherFactory {
-    override def create(domains: Seq[ParamDomain[_]]): HyperParamSearcher =
-      new RandomSearcher(domains)
+    override def create(domains: Seq[ParamDomain[_]], seed: Long): HyperParamSearcher =
+      new RandomSearcher(domains, seed)
   }
 
   lazy val GAUSSIAN_PROCESS = new HyperParamSearcherFactory {
-    override def create(domains: Seq[ParamDomain[_]]): HyperParamSearcher =
-      new GaussianProcessSearcher(domains)
+    override def create(domains: Seq[ParamDomain[_]], seed: Long): HyperParamSearcher =
+      new GaussianProcessSearcher(domains, seed)
   }
 }
 
-class RandomSearcher(domains: Seq[ParamDomain[_]]) extends RandomSearch[Double](
+class RandomSearcher(domains: Seq[ParamDomain[_]], seed: Long) extends RandomSearch[Double](
   domains.size, new EvaluationFunction[Double] {
     override def apply(hyperParameters: DenseVector[Double]): (Double, Double) = ???
     override def convertObservations(observations: Seq[Double]): Seq[(DenseVector[Double], Double)] = ???
     override def vectorizeParams(result: Double): DenseVector[Double] = ???
     override def getEvaluationValue(result: Double): Double = ???
-  }
+  },
+  seed = seed
 ) with HyperParamSearcher {
 
   override def sampleInitialParams(): DenseVector[Double] = drawCandidates(1)(0, ::).t
@@ -45,13 +46,14 @@ class RandomSearcher(domains: Seq[ParamDomain[_]]) extends RandomSearch[Double](
     super.next(observation, -value)
 }
 
-class GaussianProcessSearcher(domains: Seq[ParamDomain[_]]) extends GaussianProcessSearch[Double](
+class GaussianProcessSearcher(domains: Seq[ParamDomain[_]], seed: Long) extends GaussianProcessSearch[Double](
   domains.size, new EvaluationFunction[Double] {
     override def apply(hyperParameters: DenseVector[Double]): (Double, Double) = ???
     override def convertObservations(observations: Seq[Double]): Seq[(DenseVector[Double], Double)] = ???
     override def vectorizeParams(result: Double): DenseVector[Double] = ???
     override def getEvaluationValue(result: Double): Double = ???
-  }
+  },
+  seed = seed
 ) with HyperParamSearcher {
 
   override def sampleInitialParams(): DenseVector[Double] = drawCandidates(1)(0, ::).t

@@ -64,6 +64,21 @@ trait HyperoptParams {
   }
 
   protected def extractBestModel[ModelIn <: ModelWithSummary[ModelIn]](sqlContext: SQLContext, failedModels: Seq[(ParamMap, Try[ModelIn])], rankedModels: Seq[(ParamMap, ModelIn, Double)]): ModelIn = {
+    val configurationBlock: DataFrame = createConfigurationsBlock(sqlContext, failedModels, rankedModels)
+
+    // Now get the best model and enrich its summary
+    val bestModel = rankedModels.head._2
+
+    val nestedBlocks: Map[Block, DataFrame] = bestModel.summary.blocks.keys.map(
+      block => block -> rankedModels.zipWithIndex.map(
+        x => x._1._2.summary(block).withColumn($(configurationIndexColumn), functions.lit(x._2))
+      ).reduce(_ union _)).toMap ++ Map(configurations -> configurationBlock)
+
+
+    bestModel.copy(nestedBlocks)
+  }
+
+  protected def createConfigurationsBlock[ModelIn <: ModelWithSummary[ModelIn]](sqlContext: SQLContext, failedModels: Seq[(ParamMap, Try[ModelIn])], rankedModels: Seq[(ParamMap, ModelIn, Double)]): DataFrame = {
     // Extract parameters to build config for
     val keys: Seq[Param[_]] = rankedModels.head._1.toSeq.map(_.param.asInstanceOf[Param[Any]]).sortBy(_.name)
 
@@ -114,17 +129,6 @@ trait HyperoptParams {
     val configurationBlock = sqlContext.createDataFrame(
       sqlContext.sparkContext.parallelize(rows, 1),
       schema)
-
-
-    // Now get the best model and enrich its summary
-    val bestModel = rankedModels.head._2
-
-    val nestedBlocks: Map[Block, DataFrame] = bestModel.summary.blocks.keys.map(
-      block => block -> rankedModels.zipWithIndex.map(
-        x => x._1._2.summary(block).withColumn($(configurationIndexColumn), functions.lit(x._2))
-      ).reduce(_ union _)).toMap ++ Map(configurations -> configurationBlock)
-
-
-    bestModel.copy(nestedBlocks)
+    configurationBlock
   }
 }

@@ -1,8 +1,9 @@
 package org.apache.spark.ml.odkl
 
-import breeze.linalg
+import java.nio.file.Files
+
 import odkl.analysis.spark.TestEnv
-import org.apache.spark.ml.linalg.Vectors
+import org.apache.commons.io.FileUtils
 import org.apache.spark.ml.odkl.Evaluator.TrainTestEvaluator
 import org.apache.spark.ml.odkl.ModelWithSummary.Block
 import org.apache.spark.ml.odkl.hyperopt._
@@ -16,7 +17,7 @@ class StochasticSearchSpec extends FlatSpec with TestEnv with org.scalatest.Matc
   private lazy val selectedModel = StochasticSearchSpec._selectedModel
   private lazy val gaussianModel = StochasticSearchSpec._gaussianModel  
 
-  "Domain " should " should support reduce" in {
+  "Domain " should " should support reduce" in  {
     val configurations = selectedModel.summary(Block("configurations"))
 
     val vals = configurations.select("ElasticNet").rdd.map(_.getDouble(0)).collect.sorted
@@ -38,9 +39,10 @@ class StochasticSearchSpec extends FlatSpec with TestEnv with org.scalatest.Matc
     vals.last should be <= 2.0
   }
 
-  "Summary " should " add a model stat" in {
+  "Summary " should " add a model stat" in  {
     val configurations = selectedModel.summary(Block("configurations"))
-    configurations.count() should be(10)
+    configurations.count() should be > 6L
+    configurations.count() should be <= 20L
 
     configurations.schema.size should be(5)
 
@@ -54,31 +56,33 @@ class StochasticSearchSpec extends FlatSpec with TestEnv with org.scalatest.Matc
     configurations.show(20, false)
   }
 
-  "Summary " should " add configuration index to metrics" in {
+  "Summary " should " add configuration index to metrics" in  {
     val data = selectedModel.summary(metrics)
 
     data.schema.fieldNames.toSet should contain("configurationIndex")
   }
 
-  "Summary " should " add configuration index to weights" in {
+  "Summary " should " add configuration index to weights" in  {
     val data = selectedModel.summary(weights)
 
     data.schema.fieldNames.toSet should contain("configurationIndex")
   }
 
-  "Best model " should " should have sound performance " in {
+  "Best model " should " should have sound performance " in  {
     val configurations = selectedModel.summary(Block("configurations"))
+
+    configurations.show(100, false)
 
     configurations.select("resultingMetric").rdd.map(_.getDouble(0)).collect().head should be >= 0.99
   }
 
-  "Best model " should " have index 0" in {
+  "Best model " should " have index 0" in  {
     val configurations = selectedModel.summary(Block("configurations"))
 
     configurations.where("configurationIndex = 0").rdd.first().getDouble(1) should be(configurations.rdd.map(_.getDouble(1)).collect.max)
   }
 
-  "Best model " should " have proper weights" in {
+  "Best model " should " have proper weights" in  {
     val data = selectedModel.summary(weights)
 
     val bestWeights = data
@@ -91,7 +95,7 @@ class StochasticSearchSpec extends FlatSpec with TestEnv with org.scalatest.Matc
     selectedModel.getCoefficients.toArray should be(bestWeights)
   }
   
-  "Gaussian Process " should " find better config " in {
+  "Gaussian Process " should " find better config " in  {
 
     val random = selectedModel
       .summary(Block("configurations"))
@@ -107,8 +111,10 @@ class StochasticSearchSpec extends FlatSpec with TestEnv with org.scalatest.Matc
       .collect()
       .sorted
 
-    selectedModel.summary(Block("configurations")).show(10, false)
+    selectedModel.summary(Block("configurations")).show(100, false)
     gaussianModel.summary(Block("configurations")).show(100, false)
+
+    gaussian.last should be > 0.999
 
     gaussian.takeRight(3).sum should be >= random.takeRight(3).sum
   }
@@ -119,7 +125,7 @@ object StochasticSearchSpec extends WithTestData {
 
   lazy val _gaussianModel = fitModel(HyperParamSearcher.GAUSSIAN_PROCESS)
 
-  private def fitModel(mode: HyperParamSearcherFactory, numIters: Int = 10) = {
+  private def fitModel(mode: HyperParamSearcherFactory, numIters: Int = 20) = {
     val nested = new LogisticRegressionLBFSG()
 
 
@@ -129,6 +135,7 @@ object StochasticSearchSpec extends WithTestData {
       numFolds = 3,
       numThreads = 4)
 
+    val tmpPath = Files.createTempDirectory("models")
 
     val estimator = UnwrappedStage.cacheAndMaterialize(new StochasticHyperopt(evaluated)
       .setParamDomains(
@@ -137,15 +144,24 @@ object StochasticSearchSpec extends WithTestData {
       .setMaxIter(numIters)
       .setNanReplacement(0)
       .setSearchMode(mode)
+      .setMaxNoImproveIters(6)
+      .setTol(0.0005)
+      .setTopKForTolerance(4)
+      .setEpsilonGreedy(0.1)
+      .setPathForTempModels(tmpPath.toString)
       .setMetricsExpression("SELECT AVG(value) FROM __THIS__ WHERE metric = 'auc' AND isTest")
       .setParamNames(
         nested.regParam -> "RegParam",
         nested.elasticNetParam -> "ElasticNet"
       )
-      .setNumThreads(4)
+      .setNumThreads(2)
     )
 
-    estimator.fit(FeaturesSelectionSpec._withBoth)
+    try {
+      estimator.fit(FeaturesSelectionSpec._withBoth)
+    } finally {
+      FileUtils.deleteDirectory(tmpPath.toFile)
+    }
   }
 }
 
