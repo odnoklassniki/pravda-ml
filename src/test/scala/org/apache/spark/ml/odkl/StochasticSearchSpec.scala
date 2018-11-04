@@ -121,13 +121,14 @@ class StochasticSearchSpec extends FlatSpec with TestEnv with org.scalatest.Matc
 }
 
 object StochasticSearchSpec extends WithTestData {
-  lazy val _selectedModel = fitModel(HyperParamSearcher.RANDOM)
+  lazy val (_selectedModel, _selectedPath) = fitModel(HyperParamSearcher.RANDOM)
 
-  lazy val _gaussianModel = fitModel(HyperParamSearcher.GAUSSIAN_PROCESS)
+  lazy val (_gaussianModel, _gaussianPath) = fitModel(
+    HyperParamSearcher.GAUSSIAN_PROCESS,
+    priorPath = Some(_selectedPath + "/configurations"))
 
-  private def fitModel(mode: HyperParamSearcherFactory, numIters: Int = 20) = {
+  private def fitModel(mode: HyperParamSearcherFactory, numIters: Int = 20, priorPath : Option[String] = None) : (LogisticRegressionModel, String) = {
     val nested = new LogisticRegressionLBFSG()
-
 
     val evaluated = Evaluator.crossValidate(
       nested,
@@ -137,7 +138,7 @@ object StochasticSearchSpec extends WithTestData {
 
     val tmpPath = Files.createTempDirectory("models")
 
-    val estimator = UnwrappedStage.cacheAndMaterialize(new StochasticHyperopt(evaluated)
+    val estimator = new StochasticHyperopt(evaluated)
       .setParamDomains(
         ParamDomainPair(nested.regParam, new DoubleRangeDomain(0, 2)),
         ParamDomainPair(nested.elasticNetParam, new DoubleRangeDomain(0, 0.5)))
@@ -155,10 +156,18 @@ object StochasticSearchSpec extends WithTestData {
         nested.elasticNetParam -> "ElasticNet"
       )
       .setNumThreads(2)
-    )
 
     try {
-      estimator.fit(FeaturesSelectionSpec._withBoth)
+      val model = UnwrappedStage.cacheAndMaterialize(
+        priorPath.map(estimator.setPriorsPath).getOrElse(estimator)
+      )
+        .fit(FeaturesSelectionSpec._withBoth)
+      val resultPath = Files.createTempDirectory("result")
+      model.write.overwrite().save(resultPath.toString)
+
+      FileUtils.forceDeleteOnExit(resultPath.toFile)
+
+      (model, resultPath.toString)
     } finally {
       FileUtils.deleteDirectory(tmpPath.toFile)
     }

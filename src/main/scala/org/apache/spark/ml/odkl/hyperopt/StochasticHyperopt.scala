@@ -66,18 +66,32 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
     "How to search for parameters. See HyperParamSearcher for supported modes. Default is random.")
 
   val maxNoImproveIters = new IntParam(this, "maxNoImproveIters",
-    "How many iterations without improvement is allowed.")
+    "How many iterations without improvement is allowed.", (i: Int) => i > 0)
 
   val topKForTolerance = new IntParam(this, "topKForTolerance",
-    "How many top models to take when checking for convergence.")
+    "How many top models to take when checking for convergence.", (i: Int) => i > 0)
 
   val epsilonGreedy = new DoubleParam(this, "epsilonGreedy",
-    "Probability to sample uniform vector instead of guided search.")
+    "Probability to sample uniform vector instead of guided search.", (v : Double) => v >= 0 && v <= 1)
 
+  val priorsPath = new Param[String](this, "priorsPath",
+    "Path to configurations to use for priors initialization. Typically this is a path " +
+      "to the configurations summary block of the previously trained similar model.")
+
+  val priorsContextFilter = new Param[String](this, "priorsContextFilter",
+    "In case if models are trained in the scope of complex training DAG you might need " +
+      "to specify filter for the relevant config, eg. \"type = '%s$0' AND class = '%s$1'\" when " +
+      "trained in the type/class tree.")
+
+  val priorsToSample = new IntParam(this, "priorsPercentage", "Using all the " +
+    "available priors might significantly degrade the perfomance if landscape changed, thus it is recommended" +
+    "to sample only limited amount of historical config as priors.", (i: Int) => i > 0)
 
   setDefault(
     searchMode -> HyperParamSearcher.RANDOM,
-    seed -> System.nanoTime())
+    seed -> System.nanoTime(),
+    priorsToSample -> 20
+  )
 
   def setParamDomains(pairs: ParamDomainPair[_]*) : this.type = set(paramDomains, pairs)
 
@@ -94,6 +108,12 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
   def setEpsilonGreedy(value: Double) : this.type = set(epsilonGreedy, value)
 
   def setSeed(value: Long) : this.type = set(seed, value)
+
+  def setPriorsPath(value: String) : this.type = set(priorsPath, value)
+
+  def setPriorsContextFilter(value: String) : this.type = set(priorsContextFilter, value)
+
+  def setPriorsToSample(value: Int) : this.type = set(priorsToSample, value)
 
   override def fit(dataset: Dataset[_]): ModelIn = {
     if (isDefined(pathForTempModels) && !isSet(seed)) {
@@ -139,122 +159,152 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
 
   override def copy(extra: ParamMap): SummarizableEstimator[ModelIn] = new StochasticHyperopt[ModelIn](nested.copy(extra))
 
+  def loadPriors(sqlContext: SQLContext)(path: String) : Seq[(Double, ParamMap)] = {
+    val priorConfigs = sqlContext.read.parquet(path)
+
+    val priors = get(priorsContextFilter)
+      .map(x => priorConfigs.where(x.format(getCurrentContext: _*)))
+      .getOrElse(priorConfigs)
+      .collect()
+      .map(extracConfig)
+
+    val result: Seq[(Double, ParamMap)] = scala.util.Random.shuffle(priors
+      .iterator)
+      .take($(priorsToSample))
+      .toSeq
+
+    logInfo(s"Loaded priors: ${result.mkString(", ")}")
+
+    result
+  }
+
   override protected def createForkSource(dataset: Dataset[_]): ForkSource[ModelIn, ConfigNumber, ModelIn]
-  = new ForkSource[ModelIn, ConfigNumber, ModelIn] {
+  = {
+    val priorConfigs : Option[Seq[(Double,ParamMap)]] = get(priorsPath).map(loadPriors(dataset.sqlContext))
 
-    val random = new Random($(seed))
-    val guide : HyperParamSearcher = $(searchMode).create($(paramDomains).map(_.domain), $(seed))
+    new ForkSource[ModelIn, ConfigNumber, ModelIn] {
+      val random = new Random($(seed))
 
-    def vectorToParams(vector : DenseVector[Double]) : ParamMap = {
-      ParamMap($(paramDomains).zipWithIndex.map(x => x._1.toParamPair(vector(x._2))) :_*)
-    }
-
-    def paramsToVector(params : ParamMap) : DenseVector[Double] ={
-      DenseVector($(paramDomains).map(x => x.toDouble(params)).toArray)
-    }
-
-    val sequenceGenerator = new AtomicInteger()
-
-    val convergenceFlag = new AtomicBoolean(false)
-
-    override def nextFork(): Option[(ConfigNumber, DataFrame)] = {
-      val index = sequenceGenerator.getAndIncrement()
-      if (!isConverged(index))
-      {
-        guide.synchronized(
-          Some(ConfigNumber(index, vectorToParams(guide.sampleInitialParams())) -> dataset.toDF))
-      } else {
-        None
+      def vectorToParams(vector: DenseVector[Double]): ParamMap = {
+        ParamMap($(paramDomains).zipWithIndex.map(x => x._1.toParamPair(vector(x._2))): _*)
       }
-    }
 
-    private val results = mutable.ArrayBuffer[(ConfigNumber,Try[ModelIn], Double)]()
-
-    override def consumeFork(key: ConfigNumber, modelTry: Try[ModelIn]): Option[(ConfigNumber, DataFrame)] = {
-
-      val tuple = modelTry.map(model => {
-        if (isDefined(pathForTempModels)) {
-          val row = model.summary(configurations).collect().head
+      def paramsToVector(params: ParamMap): DenseVector[Double] = {
+        DenseVector($(paramDomains).map(x => x.toDouble(params)).toArray)
+      }
 
 
-          val evaluation = row.getAs[Number]($(resultingMetricColumn)).doubleValue()
+      val guide: HyperParamSearcher = $(searchMode).create(
+        $(paramDomains).map(_.domain),
+        $(seed),
+        priorConfigs.map(_.map(x => x._1 -> paramsToVector(x._2))))
 
-          val restoredParams: Seq[ParamPair[_]] = $(paramDomains).map(x => {
-            val columnName: String = get(paramNames).flatMap(_.get(x.param))
-              .getOrElse({
-                logWarning(s"Failed to find column name for param ${x.param}, restoration might not work properly")
-                row.schema.fieldNames.find(_.endsWith(x.param.name)).get
-              })
+      val sequenceGenerator = new AtomicInteger()
 
-            x.toPairFromRow(row, columnName)
-          })
+      val convergenceFlag = new AtomicBoolean(false)
 
-          logInfo(s"At $uid got evaluation $evaluation for confg $params")
-          (ConfigNumber(key.number, ParamMap(restoredParams :_*)), Try(model), evaluation)
+      override def nextFork(): Option[(ConfigNumber, DataFrame)] = {
+        val index = sequenceGenerator.getAndIncrement()
+        if (!isConverged(index)) {
+          guide.synchronized(
+            Some(ConfigNumber(index, vectorToParams(guide.sampleInitialParams())) -> dataset.toDF))
         } else {
-          val (params, extractedModel, evaluation) = extractParamsAndQuality(key.config, model)
-          (ConfigNumber(key.number, params), Try(extractedModel), evaluation)
+          None
         }
-      }).getOrElse((key, modelTry, Double.NaN))
-
-      results.synchronized(results += tuple)
-
-      val index = sequenceGenerator.getAndIncrement()
-      if (!isConverged(index))
-      {
-        guide.synchronized(
-          Some({
-            val sample = guide.sampleNextParams(paramsToVector(tuple._1.config), if (tuple._3.isNaN) $(nanReplacement) else tuple._3)
-            ConfigNumber(index, vectorToParams(
-            if(!isDefined(epsilonGreedy) || random.nextDouble() > $(epsilonGreedy)) sample else guide.sampleInitialParams())) -> dataset.toDF
-          }))
-      } else {
-        convergenceFlag.set(true)
-        None
-      }
-    }
-
-    override def createResult(): ModelIn = {
-      val accumulated = results.result()
-
-      extractBestModel(dataset.sqlContext,
-        accumulated.filter(_._2.isFailure).map(x => x._1.config -> x._2),
-        accumulated.filter(_._2.isSuccess).map(x => (x._1.config, x._2.get, x._3)).sortBy(-_._3))
-    }
-
-    private def isConverged(index: Int): Boolean = {
-      if (convergenceFlag.get()) {
-        logDebug("Convergence detected by another thread")
-        return true
       }
 
-      if(index > $(maxIter)) {
-        logInfo(s"Search converged at $uid due to max iterations limit ${$(maxIter)}")
-        return true
-      }
+      private val results = mutable.ArrayBuffer[(ConfigNumber, Try[ModelIn], Double)]()
 
-      if (isDefined(maxNoImproveIters) || isDefined(topKForTolerance)) {
-        val evaluations = results.synchronized(results.view.map(x => x._1.number -> x._3).toArray).sortBy(x => -x._2)
-        if (evaluations.nonEmpty) {
-          val bestConfig = evaluations.head._1
+      override def consumeFork(key: ConfigNumber, modelTry: Try[ModelIn]): Option[(ConfigNumber, DataFrame)] = {
 
-          if (isDefined(maxNoImproveIters) && evaluations.view.map(_._1).max > bestConfig + $(maxNoImproveIters)) {
-            logInfo(s"Search converged at $uid due to max iterations without improvement limit ${$(maxNoImproveIters)}, best config found at index $bestConfig")
-            return true
+        val tuple = modelTry.map(model => {
+          if (isDefined(pathForTempModels)) {
+            val row = model.summary(configurations).collect().head
+
+            val (evaluation: Double, restoredParams: ParamMap) = extracConfig(row)
+
+            (ConfigNumber(key.number, restoredParams), Try(model), evaluation)
+          } else {
+            val (params, extractedModel, evaluation) = extractParamsAndQuality(key.config, model)
+            (ConfigNumber(key.number, params), Try(extractedModel), evaluation)
           }
+        }).getOrElse((key, modelTry, Double.NaN))
 
-          if (isDefined(topKForTolerance) && evaluations.size >= $(topKForTolerance)) {
-            val bestModels = evaluations.view.map(_._2).take($(topKForTolerance))
-            if (bestModels.head - bestModels.last < $(tol)) {
-              logInfo(s"Search converged at $uid due to too small improvement among top ${$(topKForTolerance)} models ${bestModels.head - bestModels.last}")
+        logInfo(s"At $uid got evaluation ${tuple._3} for confg ${tuple._1.config}")
+
+        results.synchronized(results += tuple)
+
+        val index = sequenceGenerator.getAndIncrement()
+        if (!isConverged(index)) {
+          guide.synchronized(
+            Some({
+              val sample = guide.sampleNextParams(paramsToVector(tuple._1.config), if (tuple._3.isNaN) $(nanReplacement) else tuple._3)
+              ConfigNumber(index, vectorToParams(
+                if (!isDefined(epsilonGreedy) || random.nextDouble() > $(epsilonGreedy)) sample else guide.sampleInitialParams())) -> dataset.toDF
+            }))
+        } else {
+          convergenceFlag.set(true)
+          None
+        }
+      }
+
+      override def createResult(): ModelIn = {
+        val accumulated = results.result()
+
+        extractBestModel(dataset.sqlContext,
+          accumulated.filter(_._2.isFailure).map(x => x._1.config -> x._2),
+          accumulated.filter(_._2.isSuccess).map(x => (x._1.config, x._2.get, x._3)).sortBy(-_._3))
+      }
+
+      private def isConverged(index: Int): Boolean = {
+        if (convergenceFlag.get()) {
+          logDebug("Convergence detected by another thread")
+          return true
+        }
+
+        if (index > $(maxIter)) {
+          logInfo(s"Search converged at $uid due to max iterations limit ${$(maxIter)}")
+          return true
+        }
+
+        if (isDefined(maxNoImproveIters) || isDefined(topKForTolerance)) {
+          val evaluations = results.synchronized(results.view.map(x => x._1.number -> x._3).toArray).sortBy(x => -x._2)
+          if (evaluations.nonEmpty) {
+            val bestConfig = evaluations.head._1
+
+            if (isDefined(maxNoImproveIters) && evaluations.view.map(_._1).max > bestConfig + $(maxNoImproveIters)) {
+              logInfo(s"Search converged at $uid due to max iterations without improvement limit ${$(maxNoImproveIters)}, best config found at index $bestConfig")
               return true
+            }
+
+            if (isDefined(topKForTolerance) && evaluations.size >= $(topKForTolerance)) {
+              val bestModels = evaluations.view.map(_._2).take($(topKForTolerance))
+              if (bestModels.head - bestModels.last < $(tol)) {
+                logInfo(s"Search converged at $uid due to too small improvement among top ${$(topKForTolerance)} models ${bestModels.head - bestModels.last}")
+                return true
+              }
             }
           }
         }
-      }
 
-      false
+        false
+      }
     }
+  }
+
+  private def extracConfig(row: Row) = {
+    val evaluation = row.getAs[Number]($(resultingMetricColumn)).doubleValue()
+
+    val restoredParams = ParamMap($(paramDomains).map(x => {
+      val columnName: String = get(paramNames).flatMap(_.get(x.param))
+        .getOrElse({
+          logWarning(s"Failed to find column name for param ${x.param}, restoration might not work properly")
+          row.schema.fieldNames.find(_.endsWith(x.param.name)).get
+        })
+
+      x.toPairFromRow(row, columnName)
+    }): _*)
+    (evaluation, restoredParams)
   }
 
   /**

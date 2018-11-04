@@ -87,7 +87,8 @@ class GaussianProcessSearch[T](
 
         // Finding the overall bestEval
         val currentMean = mean(evals)
-        val overallBestEval = Math.min(priorBestEval, bestEval - currentMean)
+        // ODKL Patch: Scale priors to mean
+        val overallBestEval = Math.min(priorBestEval - currentMean, bestEval - currentMean)
 
         // Expected improvement transformation
         val transformation = new ExpectedImprovement(overallBestEval)
@@ -103,7 +104,8 @@ class GaussianProcessSearch[T](
         val (overallPoints, overallEvals) = (priorObservedPoints, priorObservedEvals) match {
           case (Some(priorPoints), Some(priorEvals)) => (
             DenseMatrix.vertcat(points, priorPoints),
-            DenseVector.vertcat(evals - currentMean, priorEvals))
+            // ODKL Patch: Scale priors to mean
+            DenseVector.vertcat(evals - currentMean, priorEvals - currentMean))
           case _ =>
             (points, evals - currentMean)
         }

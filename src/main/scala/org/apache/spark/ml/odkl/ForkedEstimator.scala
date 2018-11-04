@@ -220,6 +220,8 @@ ModelOut <: ModelWithSummary[ModelOut]]
 
     override def createResult(): ModelOut = mergeModels(dataset.sqlContext, results.result())
   }
+
+  protected def getCurrentContext: Seq[String] = ForkedEstimator.forkingContext.get()
 }
 
 /**
