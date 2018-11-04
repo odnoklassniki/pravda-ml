@@ -11,17 +11,6 @@ import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.{Failure, Try}
 
-case class ConfigHolder(number: Int, config: ParamMap) {
-  override def toString: String = {
-    // This part is stable and does not depend on UIDs of parents, which can cause collisions.
-    val encoded = config.toSeq.map(x => x.param.name + "=" + x.value.toString).sorted.toString()
-
-    // Ordered number of config (when used with StableOrderParamGridBuilder) and hash of config values
-    // should provide reliable and stable name.
-    number.toString + "_" + MD5Hash.digest(encoded).toString
-  }
-}
-
 /**
   * Provides ability to search through multiple configurations in parallel mode, collecting all the stat
   * and metrics.
@@ -32,7 +21,7 @@ case class ConfigHolder(number: Int, config: ParamMap) {
 class GridSearch[ModelIn <: ModelWithSummary[ModelIn]]
 (
   nested: SummarizableEstimator[ModelIn],
-  override val uid: String) extends ForkedEstimator[ModelIn, ConfigHolder, ModelIn](nested, uid) with HyperoptParams {
+  override val uid: String) extends ForkedEstimator[ModelIn, ConfigHolder, ModelIn](nested, uid) with HyperparametersOptimizer[ModelIn] {
 
   def this(nested: SummarizableEstimator[ModelIn]) = this(nested, Identifiable.randomUID("gridSearch"))
 
@@ -77,7 +66,7 @@ class GridSearch[ModelIn <: ModelWithSummary[ModelIn]]
     extractBestModel(sqlContext, models.filter(_._2.isFailure).map(x => x._1.config -> x._2), rankedModels).setParent(this)
   }
 
-  override def copy(extra: ParamMap): SummarizableEstimator[ModelIn] = new GridSearch[ModelIn](nested.copy(extra))
+  override def copy(extra: ParamMap): GridSearch[ModelIn] = copyValues(new GridSearch[ModelIn](nested.copy(extra)), extra)
 
   override def fitFork(estimator: SummarizableEstimator[ModelIn], wholeData: Dataset[_], partialData: (ConfigHolder, DataFrame)): (ConfigHolder, Try[ModelIn]) =
     try {
@@ -87,6 +76,28 @@ class GridSearch[ModelIn <: ModelWithSummary[ModelIn]]
       // Make sure errors in estimator copying are reported as model training failure.
       case NonFatal(e) => (partialData._1, failFast(partialData._1, Failure(e)))
     }
+
+  private def copyParamPair[T](original: ParamPair[T], value : Any) : ParamPair[T] = {
+    ParamPair(original.param, value.asInstanceOf[T])
+  }
+
+  override protected def extractConfig(row: Row): (Double, ParamMap) = {
+    val evaluation = row.getAs[Number]($(resultingMetricColumn)).doubleValue()
+
+    val pairs = $(estimatorParamMaps).head.toSeq.map(x => {
+      val columnName: String = get(paramNames).flatMap(_.get(x.param))
+        .getOrElse({
+          logWarning(s"Failed to find column name for param ${x.param}, restoration might not work properly")
+          row.schema.fieldNames.find(_.endsWith(x.param.name)).get
+        })
+
+      copyParamPair(x, row.get(row.schema.fieldIndex(columnName)))
+    })
+
+    val restoredParams = ParamMap(pairs : _*)
+    
+    (evaluation, restoredParams)
+  }
 }
 
 /**
@@ -194,5 +205,16 @@ class StableOrderParamGridBuilder {
       paramMaps = newParamMaps.toArray
     }
     paramMaps.filter(x => filters.view.indexWhere(f => !f(x)) < 0)
+  }
+}
+
+case class ConfigHolder(number: Int, config: ParamMap) {
+  override def toString: String = {
+    // This part is stable and does not depend on UIDs of parents, which can cause collisions.
+    val encoded = config.toSeq.map(x => x.param.name + "=" + x.value.toString).sorted.toString()
+
+    // Ordered number of config (when used with StableOrderParamGridBuilder) and hash of config values
+    // should provide reliable and stable name.
+    number.toString + "_" + MD5Hash.digest(encoded).toString
   }
 }

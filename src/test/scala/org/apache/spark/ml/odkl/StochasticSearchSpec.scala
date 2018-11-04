@@ -121,13 +121,13 @@ class StochasticSearchSpec extends FlatSpec with TestEnv with org.scalatest.Matc
 }
 
 object StochasticSearchSpec extends WithTestData {
-  lazy val (_selectedModel, _selectedPath) = fitModel(HyperParamSearcher.RANDOM)
+  lazy val (_selectedModel, _selectedPath) = fitModel(BayesianParamOptimizer.RANDOM)
 
   lazy val (_gaussianModel, _gaussianPath) = fitModel(
-    HyperParamSearcher.GAUSSIAN_PROCESS,
+    BayesianParamOptimizer.GAUSSIAN_PROCESS,
     priorPath = Some(_selectedPath + "/configurations"))
 
-  private def fitModel(mode: HyperParamSearcherFactory, numIters: Int = 20, priorPath : Option[String] = None) : (LogisticRegressionModel, String) = {
+  private def fitModel(mode: BayesianParamOptimizerFactory, numIters: Int = 20, priorPath : Option[String] = None) : (LogisticRegressionModel, String) = {
     val nested = new LogisticRegressionLBFSG()
 
     val evaluated = Evaluator.crossValidate(

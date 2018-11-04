@@ -1,6 +1,6 @@
 package org.apache.spark.ml.odkl.hyperopt
 
-import org.apache.spark.ml.odkl.ModelWithSummary
+import org.apache.spark.ml.odkl.{ModelWithSummary, SummarizableEstimator}
 import org.apache.spark.ml.odkl.ModelWithSummary.Block
 import org.apache.spark.ml.param._
 import org.apache.spark.sql.types._
@@ -8,10 +8,11 @@ import org.apache.spark.sql.{DataFrame, Row, SQLContext, functions}
 
 import scala.util.Try
 
-trait HyperoptParams {
-  this: Params =>
+/**
+  * Common trait to all the hyper-parameter optimizers.
+  */
+trait HyperparametersOptimizer[M <: ModelWithSummary[M]] extends SummarizableEstimator[M] with HasConfigurations {
 
-  val configurations: Block = Block("configurations")
   val paramNames: Param[Map[Param[_], String]] = new Param[Map[Param[_], String]](
     this, "paramsFriendlyNames", "Names of the parameters to use in column names to store configs"
   )
@@ -34,6 +35,9 @@ trait HyperoptParams {
 
   def setParamNames(value: (Param[_], String)*): this.type = set(paramNames, value.toMap)
 
+  def resolveParamName(param: Param[_]) : String =
+    get(paramNames).flatMap(_.get(param)).getOrElse(param.name)
+
   def getMetricsBlock: String = $(metricsBlock)
 
   def setMetricsBlock(value: String): this.type = set(metricsBlock, value)
@@ -50,7 +54,10 @@ trait HyperoptParams {
 
   def setResultingMetricColumn(value: String): this.type = set(resultingMetricColumn, value)
 
-  protected def extractParamsAndQuality[ModelIn <: ModelWithSummary[ModelIn]](params: ParamMap, model: ModelIn): (ParamMap, ModelIn, Double) = {
+  /**
+    * Extracts information of the resulting metrics from the trained model.
+    */
+  protected def extractParamsAndQuality(params: ParamMap, model: M): (ParamMap, M, Double) = {
     val metrics = model.summary.blocks(Block($(metricsBlock)))
 
     val tableName = model.uid + "_metrics"
@@ -63,7 +70,11 @@ trait HyperoptParams {
     (params, model, quality)
   }
 
-  protected def extractBestModel[ModelIn <: ModelWithSummary[ModelIn]](sqlContext: SQLContext, failedModels: Seq[(ParamMap, Try[ModelIn])], rankedModels: Seq[(ParamMap, ModelIn, Double)]): ModelIn = {
+  /**
+    * Given all the history of the optimization create the resulting model with the configurations
+    * summary block.
+    */
+  protected def extractBestModel(sqlContext: SQLContext, failedModels: Seq[(ParamMap, Try[M])], rankedModels: Seq[(ParamMap, M, Double)]): M = {
     val configurationBlock: DataFrame = createConfigurationsBlock(sqlContext, failedModels, rankedModels)
 
     // Now get the best model and enrich its summary
@@ -78,7 +89,10 @@ trait HyperoptParams {
     bestModel.copy(nestedBlocks)
   }
 
-  protected def createConfigurationsBlock[ModelIn <: ModelWithSummary[ModelIn]](sqlContext: SQLContext, failedModels: Seq[(ParamMap, Try[ModelIn])], rankedModels: Seq[(ParamMap, ModelIn, Double)]): DataFrame = {
+  /**
+    * Create summary block with investigated configurations.
+    */
+  protected def createConfigurationsBlock(sqlContext: SQLContext, failedModels: Seq[(ParamMap, Try[M])], rankedModels: Seq[(ParamMap, M, Double)]): DataFrame = {
     // Extract parameters to build config for
     val keys: Seq[Param[_]] = rankedModels.head._1.toSeq.map(_.param.asInstanceOf[Param[Any]]).sortBy(_.name)
 
@@ -131,4 +145,19 @@ trait HyperoptParams {
       schema)
     configurationBlock
   }
+
+
+  def extractConfig(model : M) : (Double, ParamMap) = {
+    val row = model.summary(configurations).collect().head
+
+    extractConfig(row)
+  }
+
+  /**
+    * In order to support correct restoration from the temporary model storage and grouped optimization
+    * we need a way to restore model configuration from its summary row of configurations block.
+    */
+  protected def extractConfig(row: Row): (Double, ParamMap)
+
+  override def copy(extra: ParamMap): HyperparametersOptimizer[M]
 }

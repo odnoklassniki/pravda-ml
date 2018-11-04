@@ -14,65 +14,38 @@ import scala.collection.mutable
 import scala.util.control.NonFatal
 import scala.util.{Failure, Try}
 
-trait ParamDomain[T] {
-  def toDouble(domain: T) : Double
-
-  def fromDouble(double: Double) : T
-}
-
-class DoubleRangeDomain(lower: Double, upper: Double) extends ParamDomain[Double] {
-  override def toDouble(domain: Double): Double = (domain - lower) / (upper - lower)
-
-  override def fromDouble(double: Double): Double = double * (upper - lower) + lower
-}
-
-class ExponentialDoubleRangeDomain(lower: Double, upper: Double, base : Double = Math.E)
-  extends DoubleRangeDomain(Math.pow(base, lower), Math.pow(base, upper)) {
-
-  private val baseLog = Math.log(base)
-
-  override def toDouble(domain: Double): Double = super.toDouble(Math.pow(base, domain))
-
-  override def fromDouble(double: Double): Double = Math.log(super.fromDouble(double)) / baseLog
-}
-
-case class ParamDomainPair[T](param: Param[T], domain: ParamDomain[T]) {
-  def toDouble(paramMap: ParamMap) : Double = domain.toDouble(paramMap.get(param).get)
-
-  def toParamPair(double: Double) : ParamPair[T] = ParamPair(param, domain.fromDouble(double))
-
-  def toPairFromRow(row : Row, column: String) : ParamPair[T] = ParamPair(param, row.getAs[T](column))
-}
-
-case class ConfigNumber(number: Int, config: ParamMap) {
-  override def toString: String = s"config_$number"
-}
-
+/**
+  * Searches for optimal parameters using Bayesian approach. Important difference of this searcher compared to
+  * other forked estimators is the need to get previous evaluation to know where to sample next params.
+  */
 class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
 (
   nested: SummarizableEstimator[ModelIn],
-  override val uid: String) extends ForkedEstimator[ModelIn, ConfigNumber, ModelIn](nested, uid) with HyperoptParams
+  override val uid: String) extends ForkedEstimator[ModelIn, ConfigNumber, ModelIn](nested, uid) with HyperparametersOptimizer[ModelIn]
   with HasMaxIter with HasTol with HasSeed {
 
   def this(nested: SummarizableEstimator[ModelIn]) = this(nested, Identifiable.randomUID("stochasticHyperopt"))
 
   val paramDomains = new Param[Seq[ParamDomainPair[_]]](this, "paramDomains",
-  "Domains of the parameters to optimize")
+  "Domains of the parameters to optimize. Used to map actual values to the [0,1] and back to interact with sampler.")
 
   val nanReplacement = new DoubleParam(this, "nanReplacement",
-  "Value to use as evaluation result in case if model evaluation failed.")
+  "Value to use as evaluation result in case if model evaluation failed. Should be 'bad enougth' to force" +
+    " sampler to avoid this region.")
 
-  val searchMode = new Param[HyperParamSearcherFactory](this, "searchMode",
-    "How to search for parameters. See HyperParamSearcher for supported modes. Default is random.")
+  val searchMode = new Param[BayesianParamOptimizerFactory](this, "searchMode",
+    "How to search for parameters. See BayesianParamOptimizer for supported modes. Default is random.")
 
   val maxNoImproveIters = new IntParam(this, "maxNoImproveIters",
-    "How many iterations without improvement is allowed.", (i: Int) => i > 0)
+    "After having this many iterations without improvement search is considered converged.", (i: Int) => i > 0)
 
   val topKForTolerance = new IntParam(this, "topKForTolerance",
-    "How many top models to take when checking for convergence.", (i: Int) => i > 0)
+    "If difference between best and worse evaluations among top K models is less then tolerance algorithm" +
+      " is considered converged. The K is set by this param.", (i: Int) => i > 0)
 
   val epsilonGreedy = new DoubleParam(this, "epsilonGreedy",
-    "Probability to sample uniform vector instead of guided search.", (v : Double) => v >= 0 && v <= 1)
+    "Probability to sample uniform vector instead of guided search. Used to avoid stucking in a local optimum",
+    (v : Double) => v >= 0 && v <= 1)
 
   val priorsPath = new Param[String](this, "priorsPath",
     "Path to configurations to use for priors initialization. Typically this is a path " +
@@ -84,11 +57,11 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
       "trained in the type/class tree.")
 
   val priorsToSample = new IntParam(this, "priorsPercentage", "Using all the " +
-    "available priors might significantly degrade the perfomance if landscape changed, thus it is recommended" +
+    "available priors might significantly degrade the performance if landscape changed, thus it is recommended " +
     "to sample only limited amount of historical config as priors.", (i: Int) => i > 0)
 
   setDefault(
-    searchMode -> HyperParamSearcher.RANDOM,
+    searchMode -> BayesianParamOptimizer.RANDOM,
     seed -> System.nanoTime(),
     priorsToSample -> 20
   )
@@ -99,7 +72,7 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
 
   def setNanReplacement(value: Double) : this.type = set(nanReplacement, value)
 
-  def setSearchMode(value: HyperParamSearcherFactory) : this.type = set(searchMode, value)
+  def setSearchMode(value: BayesianParamOptimizerFactory) : this.type = set(searchMode, value)
 
   def setTol(value: Double) : this.type = set(tol, value)
   def setMaxNoImproveIters(value: Int) : this.type = set(maxNoImproveIters, value)
@@ -157,33 +130,56 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
       case NonFatal(e) => (partialData._1, failFast(partialData._1, Failure(e)))
     }
 
-  override def copy(extra: ParamMap): SummarizableEstimator[ModelIn] = new StochasticHyperopt[ModelIn](nested.copy(extra))
+  override def copy(extra: ParamMap): StochasticHyperopt[ModelIn] = copyValues(
+    new StochasticHyperopt[ModelIn](nested.copy(extra)), extra)
 
-  def loadPriors(sqlContext: SQLContext)(path: String) : Seq[(Double, ParamMap)] = {
+  /**
+    * Loads and samples priors for the model.
+    */
+  private def loadPriors(sqlContext: SQLContext)(path: String) : Seq[(Double, ParamMap)] = {
     val priorConfigs = sqlContext.read.parquet(path)
 
     val priors = get(priorsContextFilter)
       .map(x => priorConfigs.where(x.format(getCurrentContext: _*)))
       .getOrElse(priorConfigs)
       .collect()
-      .map(extracConfig)
+      .map(extractConfig)
 
     val result: Seq[(Double, ParamMap)] = scala.util.Random.shuffle(priors
       .iterator)
       .take($(priorsToSample))
       .toSeq
 
-    logInfo(s"Loaded priors: ${result.mkString(", ")}")
+    logInfo(s"Loaded priors from path $path: ${result.mkString(", ")}")
 
     result
   }
 
   override protected def createForkSource(dataset: Dataset[_]): ForkSource[ModelIn, ConfigNumber, ModelIn]
   = {
+    // Priors is available
     val priorConfigs : Option[Seq[(Double,ParamMap)]] = get(priorsPath).map(loadPriors(dataset.sqlContext))
 
     new ForkSource[ModelIn, ConfigNumber, ModelIn] {
+      // The Bayesian optimizer to use
+      val guide: BayesianParamOptimizer = $(searchMode).create(
+        $(paramDomains).map(_.domain),
+        $(seed),
+        priorConfigs.map(_.map(x => x._1 -> paramsToVector(x._2))))
+
+      // Generates unique numbers for samples
+      val sequenceGenerator = new AtomicInteger()
+
+      // Used to indicate that one of threads detected convergence. If one of the threads detected convergence,
+      // others also exit even if their result changes the condition. This is important not to have part of the
+      // threads working while others exited.
+      val convergenceFlag = new AtomicBoolean(false)
+
+      // Used to control epsilon-greedy policy
       val random = new Random($(seed))
+
+      // Accumulates results of the evaluations.
+      private val results = mutable.ArrayBuffer[(ConfigNumber, Try[ModelIn], Double)]()
 
       def vectorToParams(vector: DenseVector[Double]): ParamMap = {
         ParamMap($(paramDomains).zipWithIndex.map(x => x._1.toParamPair(vector(x._2))): _*)
@@ -192,16 +188,6 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
       def paramsToVector(params: ParamMap): DenseVector[Double] = {
         DenseVector($(paramDomains).map(x => x.toDouble(params)).toArray)
       }
-
-
-      val guide: HyperParamSearcher = $(searchMode).create(
-        $(paramDomains).map(_.domain),
-        $(seed),
-        priorConfigs.map(_.map(x => x._1 -> paramsToVector(x._2))))
-
-      val sequenceGenerator = new AtomicInteger()
-
-      val convergenceFlag = new AtomicBoolean(false)
 
       override def nextFork(): Option[(ConfigNumber, DataFrame)] = {
         val index = sequenceGenerator.getAndIncrement()
@@ -213,15 +199,14 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
         }
       }
 
-      private val results = mutable.ArrayBuffer[(ConfigNumber, Try[ModelIn], Double)]()
-
       override def consumeFork(key: ConfigNumber, modelTry: Try[ModelIn]): Option[(ConfigNumber, DataFrame)] = {
-
+        // Try to restore the actual configuration and evaluation from the model. If fail recovery is enabled
+        // via pathForTempModels we can not rely on the parameters in the key and must check the summary info
         val tuple = modelTry.map(model => {
           if (isDefined(pathForTempModels)) {
             val row = model.summary(configurations).collect().head
 
-            val (evaluation: Double, restoredParams: ParamMap) = extracConfig(row)
+            val (evaluation: Double, restoredParams: ParamMap) = extractConfig(row)
 
             (ConfigNumber(key.number, restoredParams), Try(model), evaluation)
           } else {
@@ -236,10 +221,12 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
 
         val index = sequenceGenerator.getAndIncrement()
         if (!isConverged(index)) {
+          // If search is not converged, sample next params from the guide
           guide.synchronized(
             Some({
               val sample = guide.sampleNextParams(paramsToVector(tuple._1.config), if (tuple._3.isNaN) $(nanReplacement) else tuple._3)
               ConfigNumber(index, vectorToParams(
+                // Use sampled params if epsilon greedy not enabled otherwise challenge with random.
                 if (!isDefined(epsilonGreedy) || random.nextDouble() > $(epsilonGreedy)) sample else guide.sampleInitialParams())) -> dataset.toDF
             }))
         } else {
@@ -267,6 +254,7 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
           return true
         }
 
+        // Check for quality related convergence criterias if configured.
         if (isDefined(maxNoImproveIters) || isDefined(topKForTolerance)) {
           val evaluations = results.synchronized(results.view.map(x => x._1.number -> x._3).toArray).sortBy(x => -x._2)
           if (evaluations.nonEmpty) {
@@ -292,7 +280,10 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
     }
   }
 
-  private def extracConfig(row: Row) = {
+  /**
+    * Extract model configuration from the configurations data frame row.
+    */
+  override protected def extractConfig(row: Row): (Double, ParamMap) = {
     val evaluation = row.getAs[Number]($(resultingMetricColumn)).doubleValue()
 
     val restoredParams = ParamMap($(paramDomains).map(x => {
@@ -316,4 +307,8 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
     * Not used due to custom forks source
     */
   override protected def mergeModels(sqlContext: SQLContext, models: Seq[(ConfigNumber, Try[ModelIn])]): ModelIn = ???
+}
+
+case class ConfigNumber(number: Int, config: ParamMap) {
+  override def toString: String = s"config_$number"
 }
