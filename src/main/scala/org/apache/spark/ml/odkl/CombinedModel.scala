@@ -39,7 +39,6 @@ object CombinedModel extends MLReadable[PipelineStage] {
     * @param estimator  Estimator for training the nested models.
     * @param typeColumn Column where the type label stored.
     * @param numThreads Number of concurent types training.
-    * @param cacheForks Whenever to cache forks before iterating
     * @tparam M Type of the model to train.
     * @return Selector model (given instance type applies ONE of the models)
     */
@@ -47,12 +46,10 @@ object CombinedModel extends MLReadable[PipelineStage] {
   (
     estimator: SummarizableEstimator[M],
     typeColumn: String = "type",
-    numThreads: Int = 1,
-    cacheForks: Boolean = false): PerTypeModelLearner[M] = {
+    numThreads: Int = 1): PerTypeModelLearner[M] = {
     new PerTypeModelLearner[M](estimator)
       .setNumThreads(numThreads)
       .setTypeColumn(typeColumn)
-      .setCacheForks(cacheForks)
   }
 
   /**
@@ -64,7 +61,6 @@ object CombinedModel extends MLReadable[PipelineStage] {
     * @param classesToIgnore Which classes not to include into result.
     * @param classesMap      Mapping for merging/renaming classes.
     * @param numThreads      Number of concurrent types training.
-    * @param cacheForks      Whenever to cache forks before iterating
     * @tparam M Type of the model to train.
     * @return Linear combination model (given an instance coputes prediction of all the models and combines them linary
     *         with configured weights).
@@ -75,14 +71,12 @@ object CombinedModel extends MLReadable[PipelineStage] {
     classesColumn: String = "classes",
     classesToIgnore: Seq[String] = Seq(),
     classesMap: Map[String, String] = Map(),
-    numThreads: Int = 1,
-    cacheForks: Boolean = false): LinearCombinationModelLearner[M] = {
+    numThreads: Int = 1): LinearCombinationModelLearner[M] = {
     new LinearCombinationModelLearner[M](estimator)
       .setClassesToIgnore(classesToIgnore: _*)
       .setClassesMap(classesMap.toSeq: _*)
       .setClassesColumn(classesColumn)
       .setNumThreads(numThreads)
-      .setCacheForks(cacheForks)
   }
 
   /**
@@ -94,7 +88,6 @@ object CombinedModel extends MLReadable[PipelineStage] {
     * @param classesToIgnore Which classes not to include into result.
     * @param classesMap      Mapping for merging/renaming classes.
     * @param numThreads      Number of concurrent class training.
-    * @param cacheForks      Whenever to cache forks before iterating
     * @tparam M Type of the model to train.
     * @return Linear combination model (given an instance coputes prediction of all the models and combines them linary
     *         with configured weights).
@@ -105,14 +98,12 @@ object CombinedModel extends MLReadable[PipelineStage] {
     classesColumn: String = "classes",
     classesToIgnore: Seq[String] = Seq(),
     classesMap: Map[String, String] = Map(),
-    numThreads: Int = 1,
-    cacheForks: Boolean = false): MultiClassModelLearner[M] = {
+    numThreads: Int = 1): MultiClassModelLearner[M] = {
     new MultiClassModelLearner[M](estimator)
       .setClassesToIgnore(classesToIgnore: _*)
       .setClassesMap(classesMap.toSeq: _*)
       .setClassesColumn(classesColumn)
       .setNumThreads(numThreads)
-      .setCacheForks(cacheForks)
   }
 
 
