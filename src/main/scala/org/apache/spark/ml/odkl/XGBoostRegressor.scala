@@ -29,7 +29,9 @@ class XGBoostRegressor(override val uid: String)
     missing -> 0.0f,
     trackerConf -> new TrackerConf(30000, "scala"),
     densifyInput -> true,
-    predictAsDouble -> true)
+    predictAsDouble -> true,
+    objectiveType -> "regression")
+
 
   def this() =
     this(
@@ -106,6 +108,8 @@ class XGBoostRegressor(override val uid: String)
 
   // setters for learning params
   def setObjective(value: String): this.type = set(objective, value)
+
+  def setObjectiveType(value: String): this.type = set(objectiveType, value)
 
   def setBaseScore(value: Double): this.type = set(baseScore, value)
 

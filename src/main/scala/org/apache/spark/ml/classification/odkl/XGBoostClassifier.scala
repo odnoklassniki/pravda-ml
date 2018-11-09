@@ -31,7 +31,8 @@ class XGBoostClassifier(override val uid: String)
     missing -> 0.0f,
     trackerConf -> new TrackerConf(30000, "scala"),
     densifyInput -> true,
-    predictAsDouble -> true)
+    predictAsDouble -> true,
+    objectiveType -> "classification")
 
   def this() =
     this(
@@ -144,6 +145,7 @@ class XGBoostClassifier(override val uid: String)
 
   def setMaxBeens(value: Int): this.type = set(maxBins, value)
 
+  def setObjectiveType(value:String): this.type = set(objectiveType, value)
 
   override def copy(extra: ParamMap): SummarizableEstimator[XGClassificationModelWrapper] = defaultCopy(extra)
 
