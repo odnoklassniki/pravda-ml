@@ -41,7 +41,7 @@ libraryDependencies ++= Seq(
 
 organization := "ru.odnoklassniki"
 
-version := "0.4.0-SNAPSHOT"
+version := "0.5.0-SNAPSHOT"
 
 scalaVersion := "2.11.8"
 
@@ -88,4 +88,4 @@ publishTo := {
 
 credentials += Credentials(Path.userHome / ".sonatype" / "credentials.ini")
 
-//useGpg := true
+useGpg := true
