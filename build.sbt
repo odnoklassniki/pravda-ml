@@ -34,8 +34,8 @@ libraryDependencies ++= {
 }
 
 libraryDependencies ++= Seq(
-  "ml.dmlc" % "xgboost4j" % "0.80",
-  "ml.dmlc" % "xgboost4j-spark" % "0.80"
+  "ml.dmlc" % "xgboost4j" % "0.81",
+  "ml.dmlc" % "xgboost4j-spark" % "0.81"
 )
 
 
@@ -67,6 +67,7 @@ developers := List(
   ),
   Developer(
     id    = "EugenyMalyutin",
+
     name  = "Eugeny Malyutin",
     email = "eugeny.malyutin@corp.mail.ru",
     url   = url("https://github.com/WarlockTheGrait")
@@ -87,4 +88,4 @@ publishTo := {
 
 credentials += Credentials(Path.userHome / ".sonatype" / "credentials.ini")
 
-useGpg := true
+//useGpg := true
