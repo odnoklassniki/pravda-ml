@@ -53,7 +53,7 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
 
   val priorsContextFilter = new Param[String](this, "priorsContextFilter",
     "In case if models are trained in the scope of complex training DAG you might need " +
-      "to specify filter for the relevant config, eg. \"type = '%s$0' AND class = '%s$1'\" when " +
+      "to specify filter for the relevant config, eg. \"type = '%1$s' AND class = '%2$s'\" when " +
       "trained in the type/class tree.")
 
   val priorsToSample = new IntParam(this, "priorsPercentage", "Using all the " +
@@ -140,7 +140,11 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
     val priorConfigs = sqlContext.read.parquet(path)
 
     val priors = get(priorsContextFilter)
-      .map(x => priorConfigs.where(x.format(getCurrentContext: _*)))
+      .map(x => priorConfigs.where({
+        val filter = x.format(getCurrentContext: _*)
+        logInfo(s"Applying filter to priors $filter")
+        filter
+      }))
       .getOrElse(priorConfigs)
       .collect()
       .map(extractConfig)
