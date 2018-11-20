@@ -37,8 +37,6 @@ import scala.collection.mutable
 trait ModelTransformer[M <: ModelWithSummary[M], T <: ModelTransformer[M, T]] extends Model[T] {
   def transformModel(model: M, originalData: DataFrame): M
 
-  def copy(extra: ParamMap): T = defaultCopy(extra)
-
   def release(originalData: DataFrame, transformedData: DataFrame) = {}
 }
 
@@ -55,8 +53,8 @@ trait ModelTransformer[M <: ModelWithSummary[M], T <: ModelTransformer[M, T]] ex
   */
 class UnwrappedStage[M <: ModelWithSummary[M], T <: ModelTransformer[M, T]]
 (
-  estimator: Estimator[M],
-  transformerTrainer: Estimator[T],
+  val estimator: Estimator[M],
+  val transformerTrainer: Estimator[T],
   override val uid: String) extends SummarizableEstimator[M] {
 
   def cacheTransformed = new BooleanParam(
@@ -66,7 +64,7 @@ class UnwrappedStage[M <: ModelWithSummary[M], T <: ModelTransformer[M, T]]
   def materializeCached = new BooleanParam(
     this, "materializeCached", "Whenever to materialize cached data. If nested estimator is parallelizable it is " +
       "worth doing. Otherwise cached data might be materialized more than once.")
-
+  
   setDefault(cacheTransformed -> false, materializeCached -> false)
 
   def setCacheTransformed(value: Boolean = true): this.type = set(cacheTransformed, value)
@@ -110,7 +108,7 @@ class UnwrappedStage[M <: ModelWithSummary[M], T <: ModelTransformer[M, T]]
 
   override def copy(extra: ParamMap): SummarizableEstimator[M] = copyValues(new UnwrappedStage[M, T](
     estimator.copy(extra),
-    transformerTrainer.copy(extra)))
+    transformerTrainer.copy(extra)), extra)
 
   @DeveloperApi
   override def transformSchema(schema: StructType): StructType = transformerTrainer.transformSchema(schema)
@@ -286,6 +284,19 @@ object UnwrappedStage extends Serializable {
   }
 
   /**
+    * Saves summary blocks to parquet files add re-create dataframe. Usefull to reduce memory footprint
+    * for tasks with large summary (eg. cross-validation output).
+    *
+    * @param estimator Estimator to wrap summary blocks for.
+    * @param path Where to save parquet files
+    * @return Final model is the same, but summary blocks are written as one partition parquet files and re-created.
+    */
+  def collectSummaryToParquet[M <: ModelWithSummary[M]](estimator: SummarizableEstimator[M], path: String)
+  : UnwrappedStage[M, CollectSummaryToParquetTransformer[M]] = {
+    modelOnly(estimator, new CollectSummaryToParquetTransformer[M]().setPath(path))
+  }
+
+  /**
     * Adds a stage for sampling data from the dataset. Behavior is deterministic (iteration always produce
     * the same result) if withReplacement OR seed specified, otherwise the behavior is non-determenistic
     * and subsequent iterations migth see different samples.
@@ -324,7 +335,7 @@ object UnwrappedStage extends Serializable {
     override def fit(dataset: Dataset[_]): T = transformer
 
     override def copy(extra: ParamMap): Estimator[T]
-    = copyValues(new NoTrainEstimator[M, T](transformer))
+    = copyValues(new NoTrainEstimator[M, T](transformer.copy(extra)), extra)
 
     @DeveloperApi
     override def transformSchema(schema: StructType): StructType = schema
@@ -376,6 +387,12 @@ object UnwrappedStage extends Serializable {
     PredefinedDataTransformer[M, IdentityModelTransformer[M]](uid, dataTransformer) {
 
     def this(dataTransformer: Transformer) = this(Identifiable.randomUID("identityModelTransformer"), dataTransformer)
+
+
+    override def copy(extra: ParamMap): IdentityModelTransformer[M] = copyValues(
+      new IdentityModelTransformer[M](dataTransformer.copy(extra)),
+      extra
+    )
 
     override def transformModel(model: M, originalData: DataFrame): M = model
   }
@@ -514,6 +531,8 @@ object UnwrappedStage extends Serializable {
 
     @DeveloperApi
     override def transformSchema(schema: StructType): StructType = schema
+
+    override def copy(extra: ParamMap): CachingTransformer[M] = defaultCopy(extra)
   }
 
   /**
@@ -573,6 +592,8 @@ object UnwrappedStage extends Serializable {
 
     @DeveloperApi
     override def transformSchema(schema: StructType): StructType = schema
+
+    override def copy(extra: ParamMap): PersistingTransformer[M] = defaultCopy(extra)
   }
 
   /**
@@ -594,6 +615,37 @@ object UnwrappedStage extends Serializable {
           data.schema)
       }))
     }
+
+    override def copy(extra: ParamMap): CollectSummaryTransformer[M] = defaultCopy(extra)
+  }
+
+  /**
+    * Collects all summary blocks and materializes them as into a single partition.
+    * Then saves it to parquet in order not to waste memory.
+    */
+  class CollectSummaryToParquetTransformer[M <: ModelWithSummary[M]](override val uid: String)
+    extends ModelOnlyTransformer[M, CollectSummaryToParquetTransformer[M]](uid) {
+
+    val path = new Param[String](this, "path", "Where to save the parquet files")
+
+    def setPath(value: String): this.type = set(path, value)
+
+    def this() = this(Identifiable.randomUID("summaryPersister"))
+
+    override def transformModel(model: M, originalData: DataFrame): M = {
+      model.copy(model.summary.blocks.transform((key, data) => {
+
+        val pathToParquet = $(path) + s"/producer=$uid/model=${model.uid}/block=${key.name}"
+
+        logInfo(s"For $model persisting summary to $pathToParquet")
+
+        data.repartition(1).write.parquet(pathToParquet)
+
+        data.sqlContext.read.parquet(pathToParquet)
+      }))
+    }
+
+    override def copy(extra: ParamMap): CollectSummaryToParquetTransformer[M] = defaultCopy(extra)
   }
 
   /**
@@ -637,7 +689,7 @@ object UnwrappedStage extends Serializable {
     )
 
     override def copy(extra: ParamMap): DynamicPartitionerTrainer[M]
-    = copyValues(new DynamicPartitionerTrainer[M]())
+    = defaultCopy(extra)
 
     @DeveloperApi
     override def transformSchema(schema: StructType): StructType = schema
@@ -657,7 +709,7 @@ object UnwrappedStage extends Serializable {
     )
 
     override def copy(extra: ParamMap): DynamicDataTransformerTrainer[M]
-    = copyValues(new DynamicDataTransformerTrainer[M](nested.copy(extra)))
+    = copyValues(new DynamicDataTransformerTrainer[M](nested.copy(extra)), extra)
 
     @DeveloperApi
     override def transformSchema(schema: StructType): StructType = nested.transformSchema(schema)

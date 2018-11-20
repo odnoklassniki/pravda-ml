@@ -148,6 +148,8 @@ object Interceptor extends DefaultParamsReadable[Interceptor] with Serializable 
   {
 
     override def transformModel(model: M, originalData: DataFrame): M = Interceptor.transformModel(model)
+
+    override def copy(extra: ParamMap): Uninterceptor[M] = copyValues(new Uninterceptor[M](interceptor.copy(extra)), extra)
   }
 
   class UninterceptorComposite[M <: LinearModel[M], C <: CombinedModel[M,C]] (val interceptor: Interceptor)
@@ -155,5 +157,7 @@ object Interceptor extends DefaultParamsReadable[Interceptor] with Serializable 
      {
 
     override def transformModel(model: C, originalData: DataFrame): C = model.transformNested(Interceptor.transformModel)
-  }
+
+       override def copy(extra: ParamMap): UninterceptorComposite[M, C] = copyValues(new UninterceptorComposite[M,C](interceptor.copy(extra)), extra)
+     }
 }

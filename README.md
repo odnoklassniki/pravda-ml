@@ -14,6 +14,7 @@ in a form of DataFrame greatly simplifies analysis of the learning process and h
 improvements.
 * Improved model evaluation capabilities allowing for extra metrics, including non-scalar (eg. full ROC-curve),
 and statistical analysis of the metrics.
+* Bayesian hyperparameter optimization (based on Photon-ML https://github.com/linkedin/photon-ml)
 
 In addition to structural improvements there are few ML algorithms incorporated:
 * Language detection and preprocessing with a focus on ex-USSR languages.
@@ -21,6 +22,8 @@ In addition to structural improvements there are few ML algorithms incorporated:
 * Improved distributed implementation of variance reduced SGD.
 * Multi-label version of LBFGS with a matrix gradient.
 * Feature selection based on the stability of features importance in cross-validation.
+* Improved XGBoost integration (based on DLMC XGBoost for Spark https://xgboost.readthedocs.io/en/latest/jvm/xgboost4j_spark_tutorial.html)
+
 
 Slides available from JBreak 2018 demo: https://cloud.mail.ru/public/77xY/GKAfB3mjn
 

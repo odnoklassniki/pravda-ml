@@ -456,7 +456,7 @@ object MatrixLBFGS extends Logging with HasNetlibBlas {
     })
 
     val bound = if (regulaizeLast) numFeatures else numFeatures - 1
-    val regMax = Array.tabulate(numLabels) { j => (0 until bound).map(i => Math.abs(correlations(i, j))).max }
+    val regMax = if(bound > 0) Array.tabulate(numLabels) { j => (0 until bound).map(i => Math.abs(correlations(i, j))).max } else Array.fill(numLabels)(0.0)
 
     Vectors.dense(regMax)
   }

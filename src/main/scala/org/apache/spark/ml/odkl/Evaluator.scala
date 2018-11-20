@@ -27,10 +27,6 @@ import org.apache.spark.sql.{DataFrame, Dataset, Row, functions}
 abstract class Evaluator[S <: Evaluator[S]](override val uid: String)
   extends Transformer with HasLabelCol with HasPredictionCol{
 
-  def this() = this(Identifiable.randomUID("evaluator"))
-
-
-
   def copy(extra: ParamMap): S
 
 
@@ -63,8 +59,7 @@ object Evaluator extends Serializable {
     * @param estimator  Nested predictor for fitting the model.
     * @param evaluator  Evaluator for creating a metric.
     * @param numFolds   Number of folds for validation (defeult 10)
-    * @param parallel   Whenever to train and evaluate folds in parallel.
-    * @param cacheForks Whenever to cache forks before iterating
+    * @param numThreads Number of parallel folds training.
     * @return Estimator which returns a model fit by the nested predictor on the entire dataset with summary blocks
     *         extended with numFolds column.
     */
@@ -73,13 +68,17 @@ object Evaluator extends Serializable {
     estimator: SummarizableEstimator[M],
     evaluator: E,
     numFolds: Int = 10,
-    parallel: Boolean = false,
-    cacheForks: Boolean = false):
+    numThreads: Int = 1,
+    prefix: String = "",
+    addGlobal: Boolean = true):
   SummarizableEstimator[M]
   = {
+    val assigner = new FoldsAssigner().setNumFolds(numFolds)
+    assigner.set(assigner.numFoldsColumn, prefix + assigner.getOrDefault(assigner.numFoldsColumn))
+
     addFolds(
-      validateInFolds(estimator, evaluator, numFolds, parallel, cacheForks),
-      new FoldsAssigner().setNumFolds(numFolds))
+      validateInFolds(estimator, evaluator, numFolds, numThreads, prefix, addGlobal),
+      assigner)
   }
 
   /**
@@ -91,8 +90,7 @@ object Evaluator extends Serializable {
     * @param estimator  Nested predictor for fitting the model.
     * @param evaluator  Evaluator for creating a metric.
     * @param numFolds   Number of folds for validation (defeult 10)
-    * @param parallel   Whenever to train and evaluate folds in parallel.
-    * @param cacheForks Whenever to cache forks before iterating
+    * @param numThreads Number of threads to run validation.
     * @return Estimator which returns a model fit by the nested predictor on the entire dataset with summary blocks
     *         extended with numFolds column.
     */
@@ -101,20 +99,28 @@ object Evaluator extends Serializable {
     estimator: SummarizableEstimator[M],
     evaluator: E,
     numFolds: Int = 10,
-    parallel: Boolean = false,
-    cacheForks: Boolean = false):
+    numThreads: Int = 1,
+    prefix: String = "",
+    addGlobal: Boolean = true):
   CrossValidator[M]
   = {
-    val estimatorOnTrain = UnwrappedStage.dataOnly(estimator, new TrainOnlyFilter())
+    val filter = new TrainOnlyFilter()
+    val isTestColumn = prefix + filter.getOrDefault(filter.isTestColumn)
+    filter.set(filter.isTestColumn, isTestColumn)
 
-    val folder: FoldsAssigner = new FoldsAssigner()
+    val estimatorOnTrain = UnwrappedStage.dataOnly(estimator, filter)
+
     val validator: CrossValidator[M] = new CrossValidator[M](evaluate(
-      estimatorOnTrain, evaluator))
+      estimatorOnTrain, evaluator)).setAddGlobal(addGlobal)
+
+    val numFoldsColumn = prefix + validator.getOrDefault(validator.numFoldsColumn)
+    validator.set(validator.numFoldsColumn, numFoldsColumn)
+
+    validator.set(validator.isTestColumn, isTestColumn)
 
     validator
       .set(validator.numFolds, numFolds)
-      .set(validator.trainParallel, parallel)
-      .setCacheForks(cacheForks)
+      .set(validator.numThreads, numThreads)
   }
 
   /**
@@ -127,7 +133,7 @@ object Evaluator extends Serializable {
   def addFolds[M <: ModelWithSummary[M]]
   (
     estimator: SummarizableEstimator[M],
-    folder: FoldsAssigner = new FoldsAssigner()) = {
+    folder: FoldsAssigner = new FoldsAssigner()): UnwrappedStage[M, UnwrappedStage.IdentityModelTransformer[M]] = {
     UnwrappedStage.dataOnly(estimator, folder)
   }
 
@@ -147,7 +153,7 @@ object Evaluator extends Serializable {
       this(evaluator, Identifiable.randomUID("evaluatingEstimator"))
 
     override def copy(extra: ParamMap): EvaluatingTransformer[M, E] = {
-      copyValues(new EvaluatingTransformer[M, E](evaluator.copy(extra)))
+      copyValues(new EvaluatingTransformer[M, E](evaluator.copy(extra)), extra)
     }
 
     override def transformModel(model: M, originalData: DataFrame): M = {
@@ -164,7 +170,9 @@ object Evaluator extends Serializable {
     *
     * @param nested Nested evaluator to wrap around.
     */
-  class TrainTestEvaluator[N <: Evaluator[N]](val nested: N) extends Evaluator[TrainTestEvaluator[N]] with HasIsTestCol {
+  class TrainTestEvaluator[N <: Evaluator[N]](val nested: N, override val uid: String) extends Evaluator[TrainTestEvaluator[N]](uid) with HasIsTestCol {
+
+    def this(nested: N) = this(nested, Identifiable.randomUID("trainTestEvaluator"))
 
     override def copy(extra: ParamMap): TrainTestEvaluator[N] = {
       copyValues(new TrainTestEvaluator(nested.copy(extra)), extra)
@@ -197,16 +205,19 @@ object Evaluator extends Serializable {
       dataset.filter(dataset($(isTestColumn)) === false).toDF
     }
 
-    override def copy(extra: ParamMap): Transformer = copyValues(new TrainOnlyFilter(), extra)
+    override def copy(extra: ParamMap): Transformer = defaultCopy(extra)
 
     @DeveloperApi
     override def transformSchema(schema: StructType): StructType = schema
   }
 
-  class PostProcessingEvaluator[E <: Evaluator[E]](nested : E, postprocessing: Estimator[_ <: Transformer])
-    extends Evaluator[PostProcessingEvaluator[E]] {
+  class PostProcessingEvaluator[E <: Evaluator[E]](nested : E, postprocessing: Estimator[_ <: Transformer], override val uid: String)
+    extends Evaluator[PostProcessingEvaluator[E]](uid) {
+
+    def this(nested : E, postprocessing: Estimator[_ <: Transformer]) = this(nested, postprocessing, Identifiable.randomUID("postProcessingEvaluator"))
+
     override def copy(extra: ParamMap): PostProcessingEvaluator[E] = copyValues(
-      new PostProcessingEvaluator[E](nested.copy(extra), postprocessing.copy(extra)))
+      new PostProcessingEvaluator[E](nested.copy(extra), postprocessing.copy(extra)), extra)
 
     override def transform(dataset: Dataset[_]): DataFrame = {
       val evaluated: DataFrame = nested.transform(dataset)
@@ -220,7 +231,9 @@ object Evaluator extends Serializable {
   /**
     * Used in case when folding is needed, but not the evaluation
     */
-  class EmptyEvaluator extends Evaluator[EmptyEvaluator] {
+  class EmptyEvaluator(override val uid: String) extends Evaluator[EmptyEvaluator](uid) {
+
+    def this() = this(Identifiable.randomUID("emptyEvaluator"))
 
     override def transform(dataset: Dataset[_]): DataFrame =
       // Can not use empty data frame as it causes troubles on the later stages of processing.

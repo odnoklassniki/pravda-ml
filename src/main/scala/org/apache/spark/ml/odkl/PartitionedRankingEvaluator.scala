@@ -11,6 +11,7 @@ import org.apache.spark.ml.odkl.PartitionedRankingEvaluator.Metric
 import org.apache.spark.ml.param.shared.HasOutputCol
 import org.apache.spark.ml.param.{DoubleParam, Param, ParamMap, StringArrayParam}
 import org.apache.spark.ml.linalg.{Vector, VectorUDT, Vectors}
+import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.sql._
 import org.apache.spark.sql.expressions.{MutableAggregationBuffer, UserDefinedAggregateFunction}
 import org.apache.spark.sql.types._
@@ -24,7 +25,9 @@ import scala.collection.immutable
   * Can be used only for fine-grained grouping criteria. Supports mutli-label and multi-score cross evaluation
   * (computes metrics for each label-score combinations if provided with vectors instead of scalars).
   */
-class PartitionedRankingEvaluator extends Evaluator[PartitionedRankingEvaluator] with HasOutputCol with HasGroupByColumns {
+class PartitionedRankingEvaluator(override val uid: String) extends Evaluator[PartitionedRankingEvaluator](uid) with HasOutputCol with HasGroupByColumns {
+
+  def this() = this(Identifiable.randomUID("partitionedRankingEvaluator"))
 
   val modelThreshold = new DoubleParam(
     this, "modelThreshold", "Threshold for model score to consider item included or not.")
