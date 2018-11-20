@@ -22,6 +22,7 @@ import org.apache.spark.sql.{DataFrame, Dataset, Row}
 /**
   * Simple evaluator based on the mllib.BinaryClassificationMetrics.
   */
+
 class BinaryClassificationEvaluator(override val uid: String) extends Evaluator[BinaryClassificationEvaluator](uid) {
 
   def this() = this(Identifiable.randomUID("binaryClassificationEvaluator"))
