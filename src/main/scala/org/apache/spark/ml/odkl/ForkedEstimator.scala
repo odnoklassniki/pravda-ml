@@ -11,15 +11,21 @@ package org.apache.spark.ml.odkl
   * optionally executed in parallel.
   */
 
+import java.util.concurrent._
+import java.util.function.Supplier
+
 import org.apache.commons.lang3.StringUtils
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.annotation.DeveloperApi
-import org.apache.spark.ml.param.{Param, Params}
+import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.DefaultParamsReader
-import org.apache.spark.sql.{DataFrame, Dataset, SQLContext, functions}
 import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.{DataFrame, Dataset, SQLContext, functions}
 
+import scala.collection.mutable
 import scala.collection.parallel.TaskSupport
+import scala.util.control.NonFatal
+import scala.util.{Success, Try}
 
 /**
   * Utility used to split training into forks (per type, per class, per fold).
@@ -39,24 +45,25 @@ ModelOut <: ModelWithSummary[ModelOut]]
 )
   extends SummarizableEstimator[ModelOut] with ForkedModelParams {
 
-  final val trainParallel: Param[Boolean] = new Param[Boolean](
-    this, "trainParallel", "Whenever to train different parts in parallel")
-
-
-  final val cacheForks: Param[Boolean] = new Param[Boolean](
-    this, "cacheForks", "Useful to reduce IO when training in parallel. If set caches and materializes forks using a single job.")
+  final val numThreads = new IntParam(this, "numThreads", "How many threads to use for fitting forks.")
 
   final val pathForTempModels = new Param[String](
     this, "pathForTempModels", "Used for incremental training. Persist models when trained and skips training if valid model found.")
 
-  setDefault(trainParallel -> false, cacheForks -> false)
+  final val persistingKeyColumns = new StringArrayParam(this, "persistingKeyColumns",
+    "Used to persist resulting model with additional key columns in case if multiple forked estimator are nested")
 
-  def setTrainParallel(value: Boolean): this.type = set(trainParallel, value)
+  final val overwriteModels = new BooleanParam(this, "overwriteModels", "Whenever to allow overwriting models. If not enabled restoration " +
+    "after failure might fail for partly written model.")
 
-  def setCacheForks(value: Boolean): this.type = set(cacheForks, value)
+  setDefault(numThreads -> 1, overwriteModels -> false)
+
+  def setNumThreads(value: Int): this.type = set(numThreads, value)
 
   def setPathForTempModels(value: String): this.type =
     if (StringUtils.isNotBlank(value)) set(pathForTempModels, value) else clear(pathForTempModels)
+
+  def setOverwriteModels(value: Boolean) : this.type = set(overwriteModels, value)
 
   /**
     * Override this method and create forks to train from the data.
@@ -67,33 +74,61 @@ ModelOut <: ModelWithSummary[ModelOut]]
     * Given models trained for each fork create a combined model. This model is the
     * result of the estimator.
     */
-  protected def mergeModels(sqlContext: SQLContext, models: Seq[(ForeKeyType, ModelIn)]): ModelOut
+  protected def mergeModels(sqlContext: SQLContext, models: Seq[(ForeKeyType, Try[ModelIn])]): ModelOut
 
   override def fit(dataset: Dataset[_]): ModelOut = {
 
-    val forks: Seq[(ForeKeyType, DataFrame)] = createForks(dataset)
-
-    if ($(cacheForks)) {
-      forks.map(_._2.toDF.cache()).reduce((a, b) => a.union(b)).count()
-    }
+    val forksSource = createForkSource(dataset)
 
     try {
-      val mayBeParallel = if ($(trainParallel)) {
-        val par = forks.par
-        par.tasksupport = ForkedEstimator.getTaskSupport
-        par
-      } else forks
 
+      val currentContext = ForkedEstimator.forkingContext.get()
 
-      val models: Array[(ForeKeyType, ModelIn)] = mayBeParallel.map(partialData => try {
-        fitFork(nested, dataset, partialData)
-      } catch {
-        case e: Throwable =>
-          logError(s"Exception while handling fork ${partialData._1}", e)
-          throw e
-      }).toArray
+      def fitCycle(): Unit = {
+        var nextFork = forksSource.nextFork()
+        while (nextFork.isDefined) {
+          val (key, result) = fitForkInContext(dataset, currentContext, nextFork.get)
+          nextFork = forksSource.consumeFork(key, result)
+        }
+      }
 
-      val result = mergeModels(dataset.sqlContext, models).setParent(this)
+      val model  =
+        if ($(numThreads) <= 1) {
+
+          fitCycle()
+
+          forksSource.createResult()
+        }
+        else {
+          // We are not using default Scala .par feature due to lack of controll for number
+          // of running tasks and work stealing feature
+          val executor = new ThreadPoolExecutor(
+            $(numThreads),
+            $(numThreads),
+            1, TimeUnit.MINUTES,
+            new ArrayBlockingQueue[Runnable]($(numThreads)))
+
+          try {
+            val finishIndicator = new Semaphore($(numThreads))
+            finishIndicator.acquire($(numThreads))
+
+            Array.tabulate($(numThreads))(_ => new Runnable {
+              override def run(): Unit = try {
+                fitCycle()
+              } finally {
+                finishIndicator.release()
+              }
+            }).foreach(x => executor.submit(x))
+
+            finishIndicator.acquire($(numThreads))
+
+            forksSource.createResult()
+          } finally {
+            executor.shutdown()
+          }
+        }
+
+      val result = model.setParent(this)
 
       if (isDefined(propagatedKeyColumn) && result.isInstanceOf[ForkedModelParams]) {
         result.asInstanceOf[ForkedModelParams].setPropagatedKeyColumn($(propagatedKeyColumn))
@@ -107,38 +142,86 @@ ModelOut <: ModelWithSummary[ModelOut]]
 
       result
     } finally {
-      if ($(cacheForks)) {
-        forks.foreach(_._2.unpersist())
-      }
     }
   }
 
-  def fitFork(estimator: SummarizableEstimator[ModelIn], wholeData: Dataset[_], partialData: (ForeKeyType, DataFrame)): (ForeKeyType, ModelIn) = {
+  private def fitForkInContext(dataset: Dataset[_], currentContext: Seq[String], partialData: (ForeKeyType, DataFrame)) = {
+    ForkedEstimator.forkingContext.set(currentContext ++ Seq(partialData._1.toString))
+    try {
+      fitFork(nested, dataset, partialData)
+    } finally {
+      ForkedEstimator.forkingContext.set(currentContext)
+    }
+  }
+
+  protected def failFast(key: ForeKeyType, triedIn: Try[ModelIn]): Try[ModelIn] = {
+    if (triedIn.isFailure) {
+      logError(s"Fitting at $uid failed for $key due to ${triedIn.failed.get}")
+    }
+    triedIn.get; triedIn
+  }
+
+  def fitFork(estimator: SummarizableEstimator[ModelIn], wholeData: Dataset[_], partialData: (ForeKeyType, DataFrame)): (ForeKeyType, Try[ModelIn]) = {
     logInfo(s"Fitting at $uid for ${partialData._1}...")
 
-    if (isDefined(pathForTempModels)) {
-      val path: String = $(pathForTempModels) + s"/key=${partialData._1.toString}"
+    val context = ForkedEstimator.forkingContext.get()
+    val pathForModel = get(pathForTempModels).map(_ +
+      context.toArray.mkString("/context=","_",""))
 
-      if (FileSystem.get(wholeData.sqlContext.sparkContext.hadoopConfiguration).exists(new Path(path))) {
-        logInfo(s"At $uid model for ${partialData._1} found in pre-calculated folder $path, loading")
-        return (partialData._1, DefaultParamsReader.loadParamsInstance[ModelIn](path, wholeData.sqlContext.sparkContext))
+    if (pathForModel.isDefined) {
+
+      if (FileSystem.get(wholeData.sqlContext.sparkContext.hadoopConfiguration).exists(new Path(pathForModel.get))) {
+        logInfo(s"At $uid model for ${partialData._1} found in pre-calculated folder $pathForModel, loading")
+        try {
+          return (partialData._1, failFast(partialData._1,
+            Success(DefaultParamsReader.loadParamsInstance[ModelIn](pathForModel.get, wholeData.sqlContext.sparkContext))))
+        } catch {
+          case NonFatal(e) => logError(s"Failed to read model from $pathForModel, fitting again.")
+        }
       }
     }
 
-    val result: (ForeKeyType, ModelIn) = (
+    val result: (ForeKeyType, Try[ModelIn]) = (
       partialData._1,
-      estimator.fit(get(propagatedKeyColumn).map(x => partialData._2.withColumn(x, functions.lit(partialData._1))).getOrElse(partialData._2)))
-    logInfo(s"Fitting at $uid for ${partialData._1} DONE")
+      failFast(partialData._1, Try({
+        val model = estimator.fit(get(propagatedKeyColumn).map(x => partialData._2.withColumn(x, functions.lit(partialData._1))).getOrElse(partialData._2))
 
-    if (isDefined(pathForTempModels)) {
-      val path: String = $(pathForTempModels) + s"/key=${partialData._1.toString}"
-      result._2.write.save(path)
-    }
+        logInfo(s"Fitting at $uid for ${partialData._1} DONE")
+
+        if (pathForModel.isDefined) {
+          if ($(overwriteModels))
+            model.write.overwrite().save(pathForModel.get)
+          else
+            model.write.save(pathForModel.get)
+        }
+
+        model
+      })))
+
     result
   }
 
   @DeveloperApi
   override def transformSchema(schema: StructType): StructType = nested.transformSchema(schema)
+
+  protected def createForkSource(dataset: Dataset[_]) : ForkSource[ModelIn, ForeKeyType, ModelOut] = new ForkSource[ModelIn, ForeKeyType, ModelOut] {
+    private val forks: Iterator[(ForeKeyType, DataFrame)] = createForks(dataset).iterator
+
+    override def nextFork(): Option[(ForeKeyType, DataFrame)] = forks.synchronized(
+      if (forks.hasNext) Some(forks.next()) else None)
+
+    private val results = mutable.ArrayBuilder.make[(ForeKeyType,Try[ModelIn])]()
+
+    override def consumeFork(key: ForeKeyType, model: Try[ModelIn]): Option[(ForeKeyType, DataFrame)] = {
+      val tuple = (key, model)
+      results.synchronized(results += tuple)
+      nextFork()
+    }
+
+    override def createResult(): ModelOut = mergeModels(dataset.sqlContext, results.result())
+  }
+
+  protected def getCurrentContext: Seq[String] = ForkedEstimator.forkingContext.get()
 }
 
 /**
@@ -146,11 +229,21 @@ ModelOut <: ModelWithSummary[ModelOut]]
   * all forked estimators.
   */
 object ForkedEstimator extends Serializable {
-  private var taskSupport: Option[TaskSupport] = None
+  private val forkingContext: ThreadLocal[Seq[String]] = ThreadLocal.withInitial(new Supplier[Seq[String]] {
+    override def get(): Seq[String] = Seq[String]()
+  })
+}
 
-  def getTaskSupport = taskSupport.getOrElse(scala.collection.parallel.defaultTaskSupport)
+trait ForkSource[
+  ModelIn <: ModelWithSummary[ModelIn],
+  ForeKeyType,
+  ModelOut <: ModelWithSummary[ModelOut]] {
 
-  def setTaskSupport(support: TaskSupport) = taskSupport = Some(support)
+  def nextFork() : Option[(ForeKeyType, DataFrame)]
+
+  def consumeFork(key: ForeKeyType, model : Try[ModelIn]) : Option[(ForeKeyType, DataFrame)]
+
+  def createResult() : ModelOut
 }
 
 /**

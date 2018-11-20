@@ -13,9 +13,8 @@ package org.apache.spark.ml.odkl
 
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.Transformer
-import org.apache.spark.ml.attribute.AttributeGroup
-import org.apache.spark.ml.linalg.{VectorUDT, Vectors, Vector, SparseVector, DenseVector}
-import org.apache.spark.ml.param.{DoubleParam, IntParam, ParamMap}
+import org.apache.spark.ml.linalg.{DenseVector, SparseVector, VectorUDT, Vectors, Vector}
+import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
 import org.apache.spark.sql.types.{BooleanType, NumericType, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset, functions}

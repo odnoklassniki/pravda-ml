@@ -12,7 +12,7 @@ package org.apache.spark.ml.odkl
 
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.param.{Param, ParamMap}
-import org.apache.spark.ml.util.DefaultParamsWritable
+import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.odkl.SparkSqlUtils
@@ -22,15 +22,16 @@ import org.apache.spark.sql.{DataFrame, Dataset, Row}
 /**
   * Simple evaluator based on the mllib.BinaryClassificationMetrics.
   */
-class BinaryClassificationEvaluator extends Evaluator[BinaryClassificationEvaluator] with HasColumnsSets
-  with DefaultParamsWritable {
+class BinaryClassificationEvaluator(override val uid: String) extends Evaluator[BinaryClassificationEvaluator](uid) {
+
+  def this() = this(Identifiable.randomUID("binaryClassificationEvaluator"))
 
   val fmeasureThresholds: Param[Map[String, Double]] = JacksonParam.mapParam[Double](
     this, "defaultValues", "Default values to assign to columns")
 
-  def setFmeasureThresholds(value: Map[String,Double]): this.type = set(fmeasureThresholds, value)
-  def getFmeasureThresholds = $(fmeasureThresholds)
+  def setFmeasureThresholds(value: Map[String, Double]): this.type = set(fmeasureThresholds, value)
 
+  def getFmeasureThresholds = $(fmeasureThresholds)
 
   setDefault(fmeasureThresholds, Map[String, Double]("f1" -> 1.0))
 

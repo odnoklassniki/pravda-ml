@@ -140,30 +140,37 @@ object Scaler extends Serializable {
   private def transformModel[M <: LinearModel[M]](model: M, scaler: StandardScalerModel): M = {
     val nestedSummary: ModelSummary = model.summary
 
-    val coefficientsAndIntercept = if (scaler.withMean) {
+    val (coefficientsAndIntercept, delta) = if (scaler.withMean) {
       val noMeanModel = scaler.setWithMean(false)
 
       val newCoefficients = noMeanModel.transform(model.getCoefficients)
       val interceptDelta = BLAS.dot(newCoefficients, scaler.mean)
 
-      (newCoefficients, model.getIntercept - interceptDelta)
+      (newCoefficients, model.getIntercept - interceptDelta)  -> interceptDelta
 
     } else {
-      (scaler.transform(model.getCoefficients), model.getIntercept)
+      (scaler.transform(model.getCoefficients), model.getIntercept) -> 0.0
     }
 
     val summary = SparkSqlUtils.reflectionLock.synchronized(
       nestedSummary.transform(model.weights -> (data => {
-        val mean = functions.udf[Double, Int](i => if (i >= 0) scaler.mean(i) else 0.0)
+        val mean = functions.udf[Double, Int](i => if (i >= 0) scaler.mean(i) else 1.0)
         val std = functions.udf[Double, Int](i => if (i >= 0) scaler.std(i) else 0.0)
-        val weight = functions.udf[Double, Int](i => if (i >= 0) coefficientsAndIntercept._1(i) else coefficientsAndIntercept._2)
+        val weight = functions.udf[Double, Int, Double]((i, w) => if (i >= 0) w / scaler.std(i) else
+          // Only for final model intercept we can provide true unscaled variant by a simple UDF.
+          if (w == model.getIntercept) coefficientsAndIntercept._2 else Double.NaN)
 
         // TODO: Configure column names
         data
-          .withColumnRenamed(model.weight, s"unscaled_${model.weight}")
-          .withColumn(model.weight, weight(data(model.index)))
-          .withColumn("value_mean", mean(data(model.index)))
-          .withColumn("value_std", std(data(model.index)))
+            .withColumns(
+              Seq(s"unscaled_${model.weight}", model.weight, "value_mean", "value_std"),
+              Seq(
+                data(model.weight),
+                weight(data(model.index), data(model.weight)),
+                mean(data(model.index)),
+                std(data(model.index))
+              )
+            )
       }))
     )
 
@@ -192,6 +199,8 @@ object Scaler extends Serializable {
 
     @DeveloperApi
     override def transformSchema(schema: StructType): StructType = schema
+
+    override def copy(extra: ParamMap): Unscaler[M] = copyValues(new Unscaler[M](scaler, modelTransformer), extra)
   }
 
 }

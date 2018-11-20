@@ -5,10 +5,11 @@ import java.util.concurrent.ThreadLocalRandom
 import odkl.analysis.spark.TestEnv
 import odkl.analysis.spark.util.SQLOperations
 import org.apache.spark.ml.attribute.AttributeGroup
-import org.apache.spark.ml.odkl.Evaluator.EmptyEvaluator
+import org.apache.spark.ml.odkl.Evaluator.{EmptyEvaluator, TrainTestEvaluator}
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.ml.linalg.{Vector, Vectors}
+import org.apache.spark.ml.odkl.hyperopt.{GridSearch, StableOrderParamGridBuilder}
 import org.apache.spark.sql.functions
 import org.scalatest.FlatSpec
 
@@ -22,11 +23,11 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
   lazy val withCorellated = FeaturesSelectionSpec._withCorellated
   lazy val withBoth = FeaturesSelectionSpec._withBoth
 
-  "Selector " should " should eliminate irrelevant" in {
+  "Selector " should " should eliminate irrelevant" in  {
 
     val estimator = new LogisticRegressionLBFSG().setRegParam(0.01)
 
-    val model = FoldedFeatureSelector.select(
+    val model = SignificantFeatureSelector.select(
       estimator = estimator,
       selector = Evaluator.crossValidate(
         estimator = estimator.copy(ParamMap(estimator.elasticNetParam -> 1.0)),
@@ -45,11 +46,11 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
     Math.abs(rawModel.getCoefficients(0)) should be > 0.0
   }
 
-  "Selector " should " should eliminate correlated" in {
+  "Selector " should " should eliminate correlated" in  {
 
     val estimator = new LogisticRegressionLBFSG().setRegParam(0.01)
 
-    val model = FoldedFeatureSelector.select(
+    val model = SignificantFeatureSelector.select(
       estimator = estimator,
       selector = Evaluator.crossValidate(
         estimator = estimator.copy(ParamMap(estimator.elasticNetParam -> 1.0)),
@@ -70,7 +71,7 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
     Math.abs(rawModel.getCoefficients(0)) should be > 0.0
   }
 
-  lazy val linearModel: LogisticRegressionModel = FoldedFeatureSelector.select(
+  lazy val linearModel: LogisticRegressionModel = SignificantFeatureSelector.select(
     estimator = new LogisticRegressionLBFSG().setRegParam(0.01),
     selector = Evaluator.crossValidate(
       estimator = new LogisticRegressionLBFSG().setRegParam(0.01).setElasticNetParam(1.0),
@@ -80,7 +81,40 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
     minSignificance = 10)
     .fit(withBoth)
 
-  "Selector " should " should eliminate both" in {
+
+  lazy val doubleCrossValidation: LogisticRegressionModel = {
+    val finalEstimator = new LogisticRegressionLBFSG()
+    val selector = new LinearModelSignificantFeatureSelector[LogisticRegressionModel]()
+
+    val paramGrid = new StableOrderParamGridBuilder()
+      .addGrid(finalEstimator.regParam, Array(0.0/*, 0.1, 0.4*/))
+      .addGrid(finalEstimator.elasticNetParam, Array(0.0/*, 0.1, 0.8*/))
+      .addGrid(selector.minSignificance, Array[Double](/*0, 2, 10, 16*/10, 16))
+      .addFilter(x => x.get(finalEstimator.regParam).get > 0.0 || x.get(finalEstimator.elasticNetParam).get == 0)
+
+    Evaluator.addFolds(
+      UnwrappedStage.dataOnly(
+        dataTransformer = new FoldedFeaturesStatsAggregator(
+          nested = Evaluator.validateInFolds(
+            numFolds = 5,
+            numThreads = 5,
+            estimator = new LogisticRegressionLBFSG().setRegParam(0.01).setElasticNetParam(1.0),
+            evaluator = new EmptyEvaluator()
+          ).setAddGlobal(false)),
+        estimator = new GridSearch(UnwrappedStage.wrap(
+          Evaluator.validateInFolds(
+            finalEstimator,
+            new TrainTestEvaluator(new BinaryClassificationEvaluator()),
+            numFolds = 5,
+            numThreads = 5),
+          selector))
+          .setEstimatorParamMaps(paramGrid.build())
+          .setMetricsExpression("SELECT AVG(value) FROM __THIS__ WHERE metric = 'auc' AND isTest")
+      )
+    ).fit(withBoth)
+  }
+
+  "Selector " should " should eliminate both" in  {
 
     linearModel.summary(featuresSignificance).show(10)
 
@@ -90,35 +124,47 @@ class FeaturesSelectionSpec extends FlatSpec with TestEnv with WithTestData with
     Math.abs(linearModel.getCoefficients(3)) should be > 0.0
   }
 
-  "Selector " should " should add summary block" in {
+  "Selector " should " should add summary block" in  {
 
     val summary = linearModel.summary(featuresSignificance)
 
     summary.count should be(4)
 
-    summary.where("index = 0").select(significance).rdd.map(_.getDouble(0)).first() should be < 15.0
-    summary.where("index = 1").select(significance).rdd.map(_.getDouble(0)).first() should be < 15.0
-    summary.where("index = 2").select(significance).rdd.map(_.getDouble(0)).first() should be > 15.0
-    summary.where("index = 3").select(significance).rdd.map(_.getDouble(0)).first() should be > 15.0
+    summary.where("index = 0").select(significance).rdd.map(_.getDouble(0)).first() should be < 14.0
+    summary.where("index = 1").select(significance).rdd.map(_.getDouble(0)).first() should be < 14.0
+    summary.where("index = 2").select(significance).rdd.map(_.getDouble(0)).first() should be > 14.0
+    summary.where("index = 3").select(significance).rdd.map(_.getDouble(0)).first() should be > 14.0
 
 
     val foundModel = Vectors.dense(
-      summary.where("index = 2").select(avg).rdd.map(_.getDouble(0)).first(),
-      summary.where("index = 3").select(avg).rdd.map(_.getDouble(0)).first()
+      summary.where("index = 2").select(average).rdd.map(_.getDouble(0)).first(),
+      summary.where("index = 3").select(average).rdd.map(_.getDouble(0)).first()
     )
     val deviation: Double = cosineDistance(hiddenModel, foundModel)
 
     Math.abs(deviation) should be <= 0.01
 
-    summary.schema.fieldNames should be(Array(feature_index, feature_name, avg, std, n, significance))
+    summary.schema.fieldNames should be(Array(feature_index, feature_name, average, stdDev, count, significance))
   }
 
-  "Model " should " predict classes" in {
+  "Model " should " predict classes" in  {
     val model = linearModel
 
     val auc = new BinaryClassificationMetrics(
       model.transform(withBoth)
         .select(linearModel.getPredictionCol, linearModel.getLabelCol).rdd
+        .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
+
+
+    auc should be >= 0.99
+  }
+
+  "Model " should " predict classes after double cross validataion" in {
+    val model = doubleCrossValidation
+
+    val auc = new BinaryClassificationMetrics(
+      model.transform(withBoth)
+        .select(doubleCrossValidation.getPredictionCol, doubleCrossValidation.getLabelCol).rdd
         .map(r => (r.getDouble(0), r.getDouble(1)))).areaUnderROC()
 
 

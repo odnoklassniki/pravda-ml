@@ -36,7 +36,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
       new LogisticRegressionLBFSG(), 
       new TrainTestEvaluator(new BinaryClassificationEvaluator()),
       numFolds = 2,
-      parallel = true)
+      numThreads = 3)
     estimator.fit(noInterceptDataLogistic)
   }
 
