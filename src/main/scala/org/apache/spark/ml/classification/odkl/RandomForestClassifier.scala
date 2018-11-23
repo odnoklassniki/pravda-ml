@@ -17,6 +17,9 @@ class RandomForestClassifier(override val uid: String) extends SummarizableEstim
   with ProbabilisticClassifierParams with DefaultParamsWritable with RandomForestClassifierParams with HasFeaturesSignificance
 {
 
+  setDefault(
+    addSignificance -> true)
+
   def this() =
     this(Identifiable.randomUID("rfEstimatorWrapper"))
 

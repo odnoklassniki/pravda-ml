@@ -88,4 +88,4 @@ publishTo := {
 
 credentials += Credentials(Path.userHome / ".sonatype" / "credentials.ini")
 
-useGpg := true
+//useGpg := true

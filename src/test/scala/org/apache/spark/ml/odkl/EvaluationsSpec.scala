@@ -44,8 +44,8 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     evaluatedBinaryMerticsMap("auc") should be(directBinaryMetrics.areaUnderROC() +- delta)
   }
 
-  "Binary evaluator " should " should produce same AU_PR" in { 
-    evaluatedBinaryMerticsMap("au_pr") should be(directBinaryMetrics.areaUnderPR() +- delta)
+  "Binary evaluator " should " should produce same AUC_PR" in {
+    evaluatedBinaryMerticsMap("auc_pr") should be(directBinaryMetrics.areaUnderPR() +- delta)
   }
 
   "Binary evaluator " should " should produce same ROC" in { 
@@ -61,7 +61,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
 
   "Binary evaluator " should " should produce same PR" in { 
     val evaluated = evaluatedBinaryMertics
-      .filter(x => x.getString(0).equals("precision") && "recal".equals(x.getString(2)))
+      .filter(x => x.getString(0).equals("precision") && "recall".equals(x.getString(2)))
       .map(x => x.getDouble(3) -> x.getDouble(1))
 
     val direct: Array[(Double, Double)] = directBinaryMetrics.pr().collect()
@@ -175,7 +175,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     ).sorted)
   }
 
-  "Cross validation " should " add weights for main fold" in { 
+  "Cross validation " should " add weights for main fold" in {
     val model = crossValidationModel
     val summary = model.summary
 
@@ -188,7 +188,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     weigths(1) should be(model.getCoefficients(1))
   }
 
-  "Cross validation " should " produce similar weights for folds" in { 
+  "Cross validation " should " produce similar weights for folds" in {
     val model = crossValidationModel
     val summary = model.summary
 
@@ -206,7 +206,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     }
   }
 
-  "Cross validation " should " add expected number of folds to weights" in { 
+  "Cross validation " should " add expected number of folds to weights" in {
     val model = crossValidationModel
     val summary = model.summary
 
@@ -216,7 +216,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     configs.sorted should be(Seq(-1, 0, 1).sorted)
   }
 
-  "Cross validation " should " not miss coefficients weights" in { 
+  "Cross validation " should " not miss coefficients weights" in {
     val model = crossValidationModel
 
     model.getCoefficients(0) should be(noInterceptLogisticModel.getCoefficients(0) +- 0.000001)
