@@ -52,7 +52,7 @@ class BinaryClassificationEvaluator(override val uid: String) extends Evaluator[
     val rows = if (metrics.roc().count() > 2) {
       dataset.sqlContext.sparkContext.parallelize(Seq(
         Seq[Any]("auc", metrics.areaUnderROC(), null, null),
-        Seq[Any]("au_pr", metrics.areaUnderPR(), null, null)
+        Seq[Any]("auc_pr", metrics.areaUnderPR(), null, null)
       ) ++
         $(fmeasureThresholds).map{case (name, threshold) => metrics.fMeasureByThreshold(threshold)
           .map(x => Seq[Any](name, x._2, "threshold", x._1))}.reduce(_ union _)
