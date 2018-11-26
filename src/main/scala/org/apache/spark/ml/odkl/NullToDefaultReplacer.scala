@@ -34,7 +34,6 @@ class NullToDefaultReplacer(override val uid: String) extends Transformer
 
   override def transform(dataset: Dataset[_]): DataFrame = {
     val columns = extractColumns(dataset.toDF).map(_.name).toSet
-
     val expressions = dataset.schema.fields
       .map(field =>
         if (columns.contains(field.name) && field.nullable) {
@@ -47,7 +46,8 @@ class NullToDefaultReplacer(override val uid: String) extends Transformer
                 case _: SparseVector => Vectors.zeros(dataVector.size).toSparse
                 case _: DenseVector => Vectors.zeros(dataVector.size)
               }
-              functions.coalesce(dataset(field.name), functions.lit(defaultVector).cast(field.dataType))
+              val toDefault = setVector(defaultVector)
+              functions.coalesce(dataset(field.name), toDefault(dataset(field.name)))
             case _ => dataset(field.name)
           }
           if (field.metadata != null) {
@@ -65,6 +65,8 @@ class NullToDefaultReplacer(override val uid: String) extends Transformer
 
   @DeveloperApi
   override def transformSchema(schema: StructType): StructType = schema
+
+  private def setVector(vector: Vector) = functions.udf{(_: Vector) => vector}
 }
 
 /**
