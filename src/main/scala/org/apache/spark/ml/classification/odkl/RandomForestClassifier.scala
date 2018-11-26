@@ -5,7 +5,7 @@ import org.apache.spark.ml.{PipelineModel, PredictorParams}
 import org.apache.spark.ml.classification.{ProbabilisticClassifierParams, RandomForestClassificationModel}
 import org.apache.spark.ml.odkl.ModelWithSummary.{Block, WithSummaryReader, WithSummaryWriter}
 import org.apache.spark.ml.odkl.{HasFeaturesSignificance, ModelWithSummary, SummarizableEstimator}
-import org.apache.spark.ml.param.{BooleanParam, ParamMap}
+import org.apache.spark.ml.param.{BooleanParam, ParamMap, Params}
 import org.apache.spark.ml.tree.RandomForestClassifierParams
 import org.apache.spark.ml.util._
 import org.apache.spark.sql.{DataFrame, Dataset}
@@ -17,11 +17,13 @@ class RandomForestClassifier(override val uid: String) extends SummarizableEstim
   with ProbabilisticClassifierParams with DefaultParamsWritable with RandomForestClassifierParams with HasFeaturesSignificance
 {
 
+  val addSignificance = new BooleanParam(this, "addSignificance",
+  "Whenever to add feature significance block to model summary.")
+
   setDefault(
     addSignificance -> true)
 
-  def this() =
-    this(Identifiable.randomUID("rfEstimatorWrapper"))
+  def this() = this(Identifiable.randomUID("rfEstimatorWrapper"))
 
   override def setMaxDepth(value: Int): this.type = set(maxDepth, value)
   override def setMaxBins(value: Int): this.type = set(maxBins, value)
@@ -37,10 +39,7 @@ class RandomForestClassifier(override val uid: String) extends SummarizableEstim
   override def setFeatureSubsetStrategy(value: String): this.type =
     set(featureSubsetStrategy, value)
 
-  val addSignificance = new BooleanParam(this, "addSignificance",
-    "Whenever to add feature significance block to model summary.")
-
-  def setAddSignificance(value: Boolean): this.type = set(addSignificance, value)
+   def setAddSignificance(value: Boolean): this.type = set(addSignificance, value)
 
   def setFeatureCol(value: String): this.type = set(featuresCol, value)
   def setLabelCol(value: String): this.type = set(labelCol, value)
