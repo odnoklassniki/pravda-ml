@@ -11,14 +11,14 @@ package org.apache.spark.ml.odkl
   */
 
 import org.apache.spark.annotation.DeveloperApi
-import org.apache.spark.ml.param.{Param, ParamMap}
+import org.apache.spark.ml.param.{IntParam, Param, ParamMap}
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.{DoubleType, StringType, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset, Row}
-import org.apache.spark.ml.linalg.Vector
+import org.apache.spark.ml.linalg.{Vector, VectorUDT}
 
 /**
   * Simple evaluator based on the mllib.BinaryClassificationMetrics.
@@ -27,6 +27,14 @@ import org.apache.spark.ml.linalg.Vector
 class BinaryClassificationEvaluator(override val uid: String) extends Evaluator[BinaryClassificationEvaluator](uid) {
 
   def this() = this(Identifiable.randomUID("binaryClassificationEvaluator"))
+
+  val predictionIndex = new IntParam(this, "predictionIndex",
+    "Select value by that index from probability vector.")
+
+  setDefault(predictionIndex, 1)
+
+  def setPredictionIndex(value: Int): this.type = set(predictionIndex, value)
+  def getPredictionIndex = $(predictionIndex)
 
   val fmeasureThresholds: Param[Map[String, Double]] = JacksonParam.mapParam[Double](
     this, "defaultValues", "Default values to assign to columns")
@@ -44,11 +52,12 @@ class BinaryClassificationEvaluator(override val uid: String) extends Evaluator[
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
-    val predictions: RDD[(Double, Double)] = dataset.select($(predictionCol), $(labelCol)).rdd
-      .map {
-        case Row(score: Double, label: Double) => (score, label)
-        case Row(score: Vector, label: Double) => (score(1), label)
-      }
+    val predictions: RDD[(Double, Double)] = dataset.schema($(predictionCol)).dataType match {
+      case _: VectorUDT => dataset.select($(predictionCol), $(labelCol))
+        .rdd.map{case Row(score: Vector, label: Double) => (score($(predictionIndex)), label)}
+      case _ => dataset.select($(predictionCol), $(labelCol))
+        .rdd.map{case Row(score: Double, label: Double) => (score, label)}
+    }
 
     val metrics = new BinaryClassificationMetrics(predictions, 100)
 

@@ -6,7 +6,7 @@ import org.apache.spark.ml.linalg.{Vector, Vectors}
 import org.apache.spark.mllib.linalg.DenseVector
 import org.scalatest.{FlatSpec, FunSuite}
 
-class NullToDefaultReplacerTest  extends FlatSpec with TestEnv with org.scalatest.Matchers with SQLOperations with WithModels with HasMetricsBlock{
+class NullToDefaultReplacerSpec  extends FlatSpec with TestEnv with org.scalatest.Matchers with SQLOperations {
   case class P(id: Int, vector: Vector)
 
     lazy val data = sqlc.createDataFrame(Seq(
