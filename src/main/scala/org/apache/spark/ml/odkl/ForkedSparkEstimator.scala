@@ -20,16 +20,16 @@ import scala.util.control.NonFatal
   * 2. Support for larger fork factor in segmented hyperopt (scale driver if it became a bootleneck)
   * 3. Support for parallel XGBoost training (resolves internal conflict on the Rabbit part)
   *
-  * Simple example with lineare SGD and Zeppelin:
+  * Simple example with linear SGD and Zeppelin in yarn-client mode:
   *
   * {{{
   * // This estimator will start new Spark app from an app running in yarn-cluster mode
   * val secondLevel = new ForkedSparkEstimator[LinearRegressionModel, LinearRegressionSGD](new LinearRegressionSGD().setCacheTrainData(true))
   *             .setTempPath("tmp/forkedModels")
   *             // Match only files transfered with the app, re-point to the hdfs for faster start
-  *             .withClassPathPropagation(".*__spark_libs__.*", ".+/" -> "hdfs://datalab-hadoop-nn/user/dmitry.bugaychenko/spark/lib/")
-  *             // These files are localy available on all nodes (but you actually don't need them, added just for example)
-  *             .withClassPathPropagation("/one/.*", "^/" -> "local://")
+  *             .withClassPathPropagation(".*__spark_libs__.*", ".+/" -> "hdfs://my-hadoop-nn/spark/lib/")
+  *             // These files are localy available on all nodes
+  *             .withClassPathPropagation("/opt/.*", "^/" -> "local://")
   *             // For convinience propagate configuration when working in non-interactive mode
   *             .setPropagateConfig(true)
   *             .setConfOverrides(
@@ -51,15 +51,15 @@ import scala.util.control.NonFatal
   * val firstLevel = new ForkedSparkEstimator[LinearRegressionModel, ForkedSparkEstimator[LinearRegressionModel,LinearRegressionSGD]](secondLevel)
   *         .setTempPath("tmp/forkedModels")
   *         // Propagate only odkl-analysiss jars, repoint to HDFS for faster start
-  *         .withClassPathPropagation("/home/.*", ".+/" -> "hdfs://datalab-hadoop-nn/user/dmitry.bugaychenko/spark/lib/")
-  *         // Do not propagate hell alot of Zeppelin configs, relly on spark-defaults
+  *         .withClassPathPropagation("/home/.*", ".+/" -> "hdfs://my-hadoop-nn/user/myuser/spark/lib/")
+  *         // Do not propagate hell a lot of Zeppelin configs, rely on spark-defaults
   *         .setPropagateConfig(false)
   *         .setConfOverrides(
   *             // Enable log aggregation and disable dynamic execution
   *             "spark.hadoop.yarn.log-aggregation-enable" -> "true",
   *             "spark.dynamicAllocation.enabled" -> "false",
   *             // This is required to be able to start new spark apps from our app
-  *             "spark.yarn.appMasterEnv.HADOOP_CONF_DIR" -> "/one/odnoklassniki-yarn/deploy/etc/hadoop/",
+  *             "spark.yarn.appMasterEnv.HADOOP_CONF_DIR" -> "/opt/hadoop/etc/hadoop/",
   *             // This is required to make sure Zeppelin does not full us the we are a Python app
   *             "spark.yarn.isPython" -> "false"
   *              )
