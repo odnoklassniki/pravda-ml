@@ -1,5 +1,7 @@
 *.class
 *.log
 .idea/libraries/*
+.idea/modules/*
+.idea/*
 target/*
 .idea/*

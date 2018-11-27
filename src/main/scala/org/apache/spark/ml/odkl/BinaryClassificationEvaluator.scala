@@ -11,20 +11,39 @@ package org.apache.spark.ml.odkl
   */
 
 import org.apache.spark.annotation.DeveloperApi
-import org.apache.spark.ml.param.{Param, ParamMap}
+import org.apache.spark.ml.param.{IntParam, Param, ParamMap}
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.{DoubleType, StringType, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset, Row}
+import org.apache.spark.ml.linalg.{Vector, VectorUDT}
 
 /**
   * Simple evaluator based on the mllib.BinaryClassificationMetrics.
   */
+
 class BinaryClassificationEvaluator(override val uid: String) extends Evaluator[BinaryClassificationEvaluator](uid) {
 
   def this() = this(Identifiable.randomUID("binaryClassificationEvaluator"))
+
+  val predictionIndex = new IntParam(this, "predictionIndex",
+    "Select value by that index from probability vector.")
+
+  setDefault(predictionIndex, 1)
+
+  def setPredictionIndex(value: Int): this.type = set(predictionIndex, value)
+  def getPredictionIndex = $(predictionIndex)
+
+  val fmeasureThresholds: Param[Map[String, Double]] = JacksonParam.mapParam[Double](
+    this, "defaultValues", "Default values to assign to columns")
+
+  def setFmeasureThresholds(value: Map[String, Double]): this.type = set(fmeasureThresholds, value)
+
+  def getFmeasureThresholds = $(fmeasureThresholds)
+
+  setDefault(fmeasureThresholds, Map[String, Double]("f1" -> 1.0))
 
   final val numBins: Param[Int] = new Param[Int](
     this, "numBins", "How many points to add to nested curves (recall/precision or roc)")
@@ -33,8 +52,11 @@ class BinaryClassificationEvaluator(override val uid: String) extends Evaluator[
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
-    val predictions: RDD[(Double, Double)] = dataset.select($(predictionCol), $(labelCol)).rdd.map {
-      case Row(score: Double, label: Double) => (score, label)
+    val predictions: RDD[(Double, Double)] = dataset.schema($(predictionCol)).dataType match {
+      case _: VectorUDT => dataset.select($(predictionCol), $(labelCol))
+        .rdd.map{case Row(score: Vector, label: Double) => (score($(predictionIndex)), label)}
+      case _ => dataset.select($(predictionCol), $(labelCol))
+        .rdd.map{case Row(score: Double, label: Double) => (score, label)}
     }
 
     val metrics = new BinaryClassificationMetrics(predictions, 100)
@@ -42,10 +64,10 @@ class BinaryClassificationEvaluator(override val uid: String) extends Evaluator[
     val rows = if (metrics.roc().count() > 2) {
       dataset.sqlContext.sparkContext.parallelize(Seq(
         Seq[Any]("auc", metrics.areaUnderROC(), null, null),
-        Seq[Any]("au_pr", metrics.areaUnderPR(), null, null)
+        Seq[Any]("auc_pr", metrics.areaUnderPR(), null, null)
       ) ++
-        metrics.fMeasureByThreshold().map(x => Seq[Any]("f1", x._2, "threshold", x._1))
-          .union(metrics.fMeasureByThreshold().map(x => Seq[Any]("f1", x._2, "threshold", x._1)))
+        $(fmeasureThresholds).map{case (name, threshold) => metrics.fMeasureByThreshold(threshold)
+          .map(x => Seq[Any](name, x._2, "threshold", x._1))}.reduce(_ union _)
           .union(metrics.precisionByThreshold().map(x => Seq[Any]("precision", x._2, "threshold", x._1)))
           .union(metrics.recallByThreshold().map(x => Seq[Any]("recall", x._2, "threshold", x._1)))
           .union(metrics.pr().map(x => Seq[Any]("precision", x._2, "recall", x._1)))

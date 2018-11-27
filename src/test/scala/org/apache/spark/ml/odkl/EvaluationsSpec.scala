@@ -22,9 +22,12 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
       .map(r => (r.getDouble(0), r.getDouble(1))),
     numBins = 100)
 
-  lazy val evaluatedBinaryMertics = new BinaryClassificationEvaluator().transform(noInterceptBinaryPredictions).collect()
+  lazy val evaluatedBinaryMetrics = new BinaryClassificationEvaluator().transform(noInterceptBinaryPredictions).collect()
 
-  lazy val evaluatedBinaryMerticsMap = evaluatedBinaryMertics.map(x => x.getString(0) -> x.getDouble(1)).toMap
+  lazy val evaluatedBinaryMetricsWithFMeasureThresholds = new BinaryClassificationEvaluator().setFmeasureThresholds(Map("f1" -> 1.0, "f01" -> 0.1))
+    .transform(noInterceptBinaryPredictions).collect()
+
+  lazy val evaluatedBinaryMetricsMap = evaluatedBinaryMetrics.map(x => x.getString(0) -> x.getDouble(1)).toMap
 
   lazy val modelWithMetrics: LogisticRegressionModel = {
     val estimator = Evaluator.evaluate(new LogisticRegressionLBFSG(), new BinaryClassificationEvaluator())
@@ -33,23 +36,23 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
 
   lazy val crossValidationModel: LogisticRegressionModel = {
     val estimator = Evaluator.crossValidate(
-      new LogisticRegressionLBFSG(), 
+      new LogisticRegressionLBFSG(),
       new TrainTestEvaluator(new BinaryClassificationEvaluator()),
       numFolds = 2,
       numThreads = 3)
     estimator.fit(noInterceptDataLogistic)
   }
 
-  "Binary evaluator " should " should produce same AUC" in { 
-    evaluatedBinaryMerticsMap("auc") should be(directBinaryMetrics.areaUnderROC() +- delta)
+  "Binary evaluator " should " should produce same AUC" in {
+    evaluatedBinaryMetricsMap("auc") should be(directBinaryMetrics.areaUnderROC() +- delta)
   }
 
-  "Binary evaluator " should " should produce same AU_PR" in { 
-    evaluatedBinaryMerticsMap("au_pr") should be(directBinaryMetrics.areaUnderPR() +- delta)
+  "Binary evaluator " should " should produce same AUC_PR" in {
+    evaluatedBinaryMetricsMap("auc_pr") should be(directBinaryMetrics.areaUnderPR() +- delta)
   }
 
-  "Binary evaluator " should " should produce same ROC" in { 
-    val evaluated = evaluatedBinaryMertics.filter(x => x.getString(0).equals("tp_rate")).map(x => x.getDouble(3) -> x.getDouble(1))
+  "Binary evaluator " should " should produce same ROC" in {
+    val evaluated = evaluatedBinaryMetrics.filter(x => x.getString(0).equals("tp_rate")).map(x => x.getDouble(3) -> x.getDouble(1))
 
     val direct: Array[(Double, Double)] = directBinaryMetrics.roc().collect()
 
@@ -59,9 +62,9 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     })
   }
 
-  "Binary evaluator " should " should produce same PR" in { 
-    val evaluated = evaluatedBinaryMertics
-      .filter(x => x.getString(0).equals("precision") && "recal".equals(x.getString(2)))
+  "Binary evaluator " should " should produce same PR" in {
+    val evaluated = evaluatedBinaryMetrics
+      .filter(x => x.getString(0).equals("precision") && "recall".equals(x.getString(2)))
       .map(x => x.getDouble(3) -> x.getDouble(1))
 
     val direct: Array[(Double, Double)] = directBinaryMetrics.pr().collect()
@@ -72,8 +75,8 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     })
   }
 
-  "Binary evaluator " should " should produce same precision by threshold" in { 
-    val evaluated = evaluatedBinaryMertics
+  "Binary evaluator " should " should produce same precision by threshold" in {
+    val evaluated = evaluatedBinaryMetrics
       .filter(x => x.getString(0).equals("precision") && "threshold".equals(x.getString(2)))
       .map(x => x.getDouble(3) -> x.getDouble(1))
 
@@ -85,8 +88,8 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     })
   }
 
-  "Binary evaluator " should " should produce same recall by threshold" in { 
-    val evaluated = evaluatedBinaryMertics
+  "Binary evaluator " should " should produce same recall by threshold" in {
+    val evaluated = evaluatedBinaryMetrics
       .filter(x => x.getString(0).equals("recall") && "threshold".equals(x.getString(2)))
       .map(x => x.getDouble(3) -> x.getDouble(1))
 
@@ -98,8 +101,8 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     })
   }
 
-  "Binary evaluator " should " should produce same f1 by threshold" in { 
-    val evaluated = evaluatedBinaryMertics
+  "Binary evaluator " should " should produce same f1 by threshold" in {
+    val evaluated = evaluatedBinaryMetrics
       .filter(x => x.getString(0).equals("f1") && "threshold".equals(x.getString(2)))
       .map(x => x.getDouble(3) -> x.getDouble(1))
 
@@ -111,8 +114,34 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     })
   }
 
+
+  "Binary evaluator " should " should produce same f1 and f0.1 by thresholds" in {
+    val evaluatedF1 = evaluatedBinaryMetricsWithFMeasureThresholds
+      .filter(x => x.getString(0).equals("f1") && "threshold".equals(x.getString(2)))
+      .map(x => x.getDouble(3) -> x.getDouble(1))
+
+    val directF1: Array[(Double, Double)] = directBinaryMetrics.fMeasureByThreshold().collect()
+
+    val evaluatedF01 = evaluatedBinaryMetricsWithFMeasureThresholds
+      .filter(x => x.getString(0).equals("f01") && "threshold".equals(x.getString(2)))
+      .map(x => x.getDouble(3) -> x.getDouble(1))
+
+    val directF01: Array[(Double, Double)] = directBinaryMetrics.fMeasureByThreshold(0.1).collect()
+
+    directF1.zip(evaluatedF1).foreach(pair => {
+      pair._2._1 should be(pair._1._1)
+      pair._2._2 should be(pair._1._2 +- delta)
+    })
+
+    directF01.zip(evaluatedF01).foreach(pair => {
+      pair._2._1 should be(pair._1._1)
+      pair._2._2 should be(pair._1._2 +- delta)
+    })
+  }
+
+
   "Evaluating estimator " should " add metrics to summary" in {
-    modelWithMetrics.summary.blocks(metrics).collect().zip(evaluatedBinaryMertics).foreach(pair => {
+    modelWithMetrics.summary.blocks(metrics).collect().zip(evaluatedBinaryMetrics).foreach(pair => {
       pair._1.getString(0) should be(pair._2.getString(0))
       pair._1.getString(2) should be(pair._2.getString(2))
 
@@ -125,7 +154,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     })
   }
 
-  "Evaluating estimator " should " not miss weights" in { 
+  "Evaluating estimator " should " not miss weights" in {
     val model = modelWithMetrics
     val summary = model.summary
 
@@ -135,7 +164,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     weigths(1) should be(model.getCoefficients(1))
   }
 
-  "Evaluating estimator " should " not set coefficients weights" in { 
+  "Evaluating estimator " should " not set coefficients weights" in {
     val model = modelWithMetrics
 
     model.getCoefficients(0) should be(noInterceptLogisticModel.getCoefficients(0) +- 0.000001)
@@ -143,12 +172,12 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     model.getIntercept should be(noInterceptLogisticModel.getIntercept +- 0.000001)
   }
 
-  "Cross validation " should " add total metrics to summary" in { 
+  "Cross validation " should " add total metrics to summary" in {
     val metrics: DataFrame = crossValidationModel.summary.blocks(this.metrics)
 
 
     metrics.filter(metrics("foldNum") === -1 && metrics("isTest") === false)
-      .select("metric", "value", "x-metric", "x-value").collect().zip(evaluatedBinaryMertics).foreach(pair => {
+      .select("metric", "value", "x-metric", "x-value").collect().zip(evaluatedBinaryMetrics).foreach(pair => {
       pair._1.getString(0) should be(pair._2.getString(0))
       pair._1.getString(2) should be(pair._2.getString(2))
 
@@ -175,7 +204,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     ).sorted)
   }
 
-  "Cross validation " should " add weights for main fold" in { 
+  "Cross validation " should " add weights for main fold" in {
     val model = crossValidationModel
     val summary = model.summary
 
@@ -188,7 +217,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     weigths(1) should be(model.getCoefficients(1))
   }
 
-  "Cross validation " should " produce similar weights for folds" in { 
+  "Cross validation " should " produce similar weights for folds" in {
     val model = crossValidationModel
     val summary = model.summary
 
@@ -206,7 +235,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     }
   }
 
-  "Cross validation " should " add expected number of folds to weights" in { 
+  "Cross validation " should " add expected number of folds to weights" in {
     val model = crossValidationModel
     val summary = model.summary
 
@@ -216,7 +245,7 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     configs.sorted should be(Seq(-1, 0, 1).sorted)
   }
 
-  "Cross validation " should " not miss coefficients weights" in { 
+  "Cross validation " should " not miss coefficients weights" in {
     val model = crossValidationModel
 
     model.getCoefficients(0) should be(noInterceptLogisticModel.getCoefficients(0) +- 0.000001)
