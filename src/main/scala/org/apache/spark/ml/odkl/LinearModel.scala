@@ -376,7 +376,9 @@ class LinearRegressionSGD(override val uid: String)
     .setMiniBatchFraction($(miniBatchFraction))
 }
 
+object LogisticRegressionLBFSG extends DefaultParamsReadable[LogisticRegressionLBFSG]
 
+object LinearRegressionSGD extends DefaultParamsReadable[LinearRegressionSGD]
 
 
 

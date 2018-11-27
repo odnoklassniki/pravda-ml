@@ -34,12 +34,12 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     estimator.fit(noInterceptDataLogistic)
   }
 
-  lazy val crossValidationModel: LogisticRegressionModel = {
+  lazy val crossValidationModel = {
     val estimator = Evaluator.crossValidate(
       new LogisticRegressionLBFSG(),
       new TrainTestEvaluator(new BinaryClassificationEvaluator()),
       numFolds = 2,
-      numThreads = 3)
+      numThreads = 1)
     estimator.fit(noInterceptDataLogistic)
   }
 
