@@ -41,7 +41,7 @@ libraryDependencies ++= Seq(
 
 organization := "ru.odnoklassniki"
 
-version := "0.5.0-SNAPSHOT"
+version := "0.5.1-SNAPSHOT"
 
 scalaVersion := "2.11.8"
 
@@ -67,10 +67,15 @@ developers := List(
   ),
   Developer(
     id    = "EugenyMalyutin",
-
     name  = "Eugeny Malyutin",
     email = "eugeny.malyutin@corp.mail.ru",
     url   = url("https://github.com/WarlockTheGrait")
+  ),
+  Developer(
+    id    = "EugenyZhurin",
+    name  = "Eugeny Zhurin",
+    email = "eugeny.zhurin@corp.mail.ru",
+    url   = url("https://github.com/Nordsvich")
   )
 )
 
