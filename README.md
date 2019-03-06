@@ -1,5 +1,5 @@
-# ok-ml-pipelines
-This project is used to define machine learning pipelines on top of Spark. 
+# PravdaML
+This project is used to define machine learning pipelines on top of Spark and was formerly known as ok-ml-pipelines. 
 This an *extension*, not a replacement, of the Spark ML package with a focus on structural aspects
 of distributed machine learning deployments. Core features added by the project are:
 
@@ -29,3 +29,4 @@ Slides available from JBreak 2018 demo: https://cloud.mail.ru/public/77xY/GKAfB3
 
 Set of usage examples available on Zepl:
 * Basic stat and ML features: https://www.zepl.com/viewer/notebooks/bm90ZTovL2RtaXRyeWJ1Z2F5Y2hlbmtvL2I4YWUyN2Y4YWMwMzRlNzZiMmQyOWFkZGRhOGIwMWQ1L25vdGUuanNvbg
+* Demo for SNA Hackathon 2019: https://www.zepl.com/viewer/notebooks/bm90ZTovL2RtaXRyeWJ1Z2F5Y2hlbmtvLzc2ZTJiNWU1YjQ1YzRjZTY5YWFlZGUzMmI4OTc0OWJiL25vdGUuanNvbg
