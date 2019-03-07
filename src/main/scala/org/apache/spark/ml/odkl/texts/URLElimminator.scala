@@ -3,9 +3,9 @@ package org.apache.spark.ml.odkl.texts
 import org.apache.lucene.analysis.standard.UAX29URLEmailTokenizer
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.Transformer
-import org.apache.spark.ml.param.ParamMap
+import org.apache.spark.ml.param.{ParamMap, Params}
 import org.apache.spark.ml.param.shared.{HasInputCol, HasOutputCol}
-import org.apache.spark.ml.util.Identifiable
+import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
 import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.types.StructType
@@ -16,7 +16,12 @@ import org.apache.spark.sql.types.StructType
   * Transformer to remove URL's from text based on lucene UAX29URLEmailTokenizer
   * With given column inputColumn of StringType returns outputColumn of StringType with text filtered non-url
   */
-class URLElimminator(override val uid: String) extends Transformer with HasInputCol with HasOutputCol {
+class URLElimminator(override val uid: String) extends Transformer
+  with HasInputCol
+  with HasOutputCol
+  with Params
+  with DefaultParamsWritable
+{
   @transient lazy val urlTokenizer = {
     new ThreadLocal[UAX29URLEmailTokenizer]() {
       override def initialValue(): UAX29URLEmailTokenizer = URLElimminatorUtil.geURLTokenizer()
@@ -50,6 +55,10 @@ class URLElimminator(override val uid: String) extends Transformer with HasInput
   override def transformSchema(schema: StructType): StructType = {
     schema
   }
+}
+
+object URLElimminator extends DefaultParamsReadable[URLElimminator] {
+  override def load(path: String): URLElimminator = super.load(path)
 }
 
 

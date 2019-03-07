@@ -4,8 +4,8 @@ import org.apache.lucene.analysis.util.StopwordAnalyzerBase
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.param.shared.HasOutputCol
-import org.apache.spark.ml.param.{Param, ParamMap}
-import org.apache.spark.ml.util.{Identifiable, SchemaUtils}
+import org.apache.spark.ml.param.{Param, ParamMap, Params}
+import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable, SchemaUtils}
 import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.types.{ArrayType, StringType, StructType}
@@ -14,7 +14,10 @@ import org.apache.spark.sql.types.{ArrayType, StringType, StructType}
   * Created by eugeny.malyutin on 05.05.16.
   */
 
-class LanguageAwareAnalyzer(override val uid: String) extends Transformer with HasOutputCol {
+class LanguageAwareAnalyzer(override val uid: String) extends Transformer
+  with HasOutputCol
+  with Params
+  with DefaultParamsWritable{
 
   @transient lazy val languageAnalyzerMap = {
     LanguageAwareStemmerUtil.languageAnalyzersMap.mapValues(analyzer => {
@@ -39,7 +42,7 @@ class LanguageAwareAnalyzer(override val uid: String) extends Transformer with H
   setDefault(inputColText -> "text")
 
   val defaultLanguage = new Param[String](this, "defaultLanguage",
-  "language to use as default if actual unknown")
+    "language to use as default if actual unknown")
 
   setDefault(defaultLanguage -> "ru")
 
@@ -86,6 +89,10 @@ class LanguageAwareAnalyzer(override val uid: String) extends Transformer with H
     }
   }
 
+}
+
+object LanguageAwareAnalyzer extends DefaultParamsReadable[LanguageAwareAnalyzer] {
+  override def load(path: String): LanguageAwareAnalyzer = super.load(path)
 }
 
 
