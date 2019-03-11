@@ -53,7 +53,7 @@ class NGramExtractor(override val uid: String)
 
   @DeveloperApi
   override def transformSchema(schema: StructType): StructType = {
-    if ($(inputCol) == $(outputCol)) {
+    if ($(inputCol) != $(outputCol)) {
       schema.add($(outputCol), new ArrayType(StringType, true))
     } else {
       schema
