@@ -3,8 +3,8 @@ package org.apache.spark.ml.odkl.texts
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.param.shared.{HasInputCol, HasOutputCol}
-import org.apache.spark.ml.param.{IntParam, ParamMap, ParamPair, ParamValidators}
-import org.apache.spark.ml.util.{DefaultParamsWritable, Identifiable}
+import org.apache.spark.ml.param.{IntParam, ParamMap, ParamPair, ParamValidators, Params}
+import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
 import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions.udf
 import org.apache.spark.sql.types.{ArrayType, StringType, StructType}
@@ -14,7 +14,11 @@ import org.apache.spark.sql.types.{ArrayType, StringType, StructType}
   * Simple NGramExtractor Transformer with option to extract from lowerNGrams to UPper together
   */
 class NGramExtractor(override val uid: String)
-  extends Transformer with DefaultParamsWritable with HasInputCol with HasOutputCol {
+  extends Transformer
+    with DefaultParamsWritable
+    with Params
+    with HasInputCol
+    with HasOutputCol {
 
   val upperN: IntParam = new IntParam(this, "LowerN", "number elements(lower) per n-gram (>=1) lowerN<=n<=upperN",
     ParamValidators.gtEq(1))
@@ -59,8 +63,9 @@ class NGramExtractor(override val uid: String)
       schema
     }
   }
-
-
+}
+object NGramExtractor extends DefaultParamsReadable[NGramExtractor] {
+  override def load(path: String): NGramExtractor = super.load(path)
 }
 
 
