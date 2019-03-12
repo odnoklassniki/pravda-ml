@@ -129,7 +129,7 @@ class PartitionedRankingEvaluationsSpec extends FlatSpec with TestEnv with org.s
 
     val idcg = 1.0 + 1.0 / log2(3) + 1.0 / log2(4)
 
-    evaluations(1)(0) should be((1.0 + 1.0 / log2(4)) / idcg)
+    evaluations(1)(0) should be((1.0 + 1.0 / log2(4) + 1.0 / log2(5)) / idcg)
     evaluations(2)(0) should be(1.0)
   }
 
@@ -145,7 +145,7 @@ class PartitionedRankingEvaluationsSpec extends FlatSpec with TestEnv with org.s
 
     val idcg = 2.0 + 1.0 / log2(3)
 
-    evaluations(1)(2) should be((1.0 + 1.0 / log2(3)) / idcg)
+    evaluations(1)(2) should be((1.0 + 1.0 / log2(3) + 1.0 / log2(4)) / idcg)
     evaluations(2)(2) should be(1.0)
   }
 
@@ -159,7 +159,7 @@ class PartitionedRankingEvaluationsSpec extends FlatSpec with TestEnv with org.s
 
   "Evaluator " should " calculate auc" in {
 
-    evaluations(1)(4) should be(0.5)
+    evaluations(1)(4) should be(1.0 / 3.0)
     evaluations(2)(4) should be(1.0)
   }
 
@@ -282,8 +282,8 @@ class PartitionedRankingEvaluationsSpec extends FlatSpec with TestEnv with org.s
   "Evaluator " should " calculate metrics for multiple labels" in {
     val idcg = 1.0 + 1.0 / log2(3) + 1.0 / log2(4)
 
-    multiLabelEvaluations(1L -> "label")(0) should be((1.0 + 1.0 / log2(4)) / idcg)
-    multiLabelEvaluations(1L -> "label")(1) should be(0.5)
+    multiLabelEvaluations(1L -> "label")(0) should be((1.0 + 1.0 / log2(4) + 1.0 / log2(5)) / idcg)
+    multiLabelEvaluations(1L -> "label")(1) should be(1.0 / 3.0)
 
     multiLabelEvaluations(1L -> "score")(0) should be(1.0)
     multiLabelEvaluations(1L -> "score")(1) should be(1.0)
@@ -292,8 +292,8 @@ class PartitionedRankingEvaluationsSpec extends FlatSpec with TestEnv with org.s
   "Evaluator " should " calculate metrics for multiple scores" in {
     val idcg = 1.0 + 1.0 / log2(3) + 1.0 / log2(4)
 
-    multiScoreEvaluations(1L -> "score")(0) should be((1.0 + 1.0 / log2(4)) / idcg)
-    multiScoreEvaluations(1L -> "score")(1) should be(0.5)
+    multiScoreEvaluations(1L -> "score")(0) should be((1.0 + 1.0 / log2(4) + 1.0 / log2(5)) / idcg)
+    multiScoreEvaluations(1L -> "score")(1) should be(1.0 / 3.0)
 
     multiScoreEvaluations(1L -> "label")(0) should be(1.0)
     multiScoreEvaluations(1L -> "label")(1) should be(1.0)
@@ -302,8 +302,8 @@ class PartitionedRankingEvaluationsSpec extends FlatSpec with TestEnv with org.s
   "Evaluator " should " calculate metrics for multiple labels and scores" in {
     val idcg = 1.0 + 1.0 / log2(3) + 1.0 / log2(4)
 
-    multiLabelScoreEvaluations((1L, "score", "label"))(0) should be((1.0 + 1.0 / log2(4)) / idcg)
-    multiLabelScoreEvaluations((1L, "score", "label"))(1) should be(0.5)
+    multiLabelScoreEvaluations((1L, "score", "label"))(0) should be((1.0 + 1.0 / log2(4) + 1.0 / log2(5)) / idcg)
+    multiLabelScoreEvaluations((1L, "score", "label"))(1) should be(1.0 / 3.0)
 
     multiLabelScoreEvaluations((1L, "label", "label"))(0) should be(1.0)
     multiLabelScoreEvaluations((1L, "label", "label"))(1) should be(1.0)
@@ -313,7 +313,7 @@ class PartitionedRankingEvaluationsSpec extends FlatSpec with TestEnv with org.s
 
     val idcgInverse = (Math.pow(2, 0.9) - 1) + (Math.pow(2, 0.8) - 1) / log2(3) + (Math.pow(2, 0.7) - 1) / log2(4)
 
-    multiLabelScoreEvaluations((1L, "label", "score"))(0) should be(((Math.pow(2, 0.9) - 1) + (Math.pow(2, 0.7) - 1) / log2(3)) / idcgInverse)
+    multiLabelScoreEvaluations((1L, "label", "score"))(0) should be(((Math.pow(2, 0.9) - 1) + (Math.pow(2, 0.7) - 1) / log2(3) + (Math.pow(2, 0.8) - 1) / log2(5)) / idcgInverse)
     multiLabelScoreEvaluations((1L, "label", "score"))(1) should be(2.0 / 3.0)
   }
 

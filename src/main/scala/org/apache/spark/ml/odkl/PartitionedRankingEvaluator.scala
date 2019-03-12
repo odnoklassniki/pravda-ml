@@ -203,14 +203,14 @@ object PartitionedRankingEvaluator extends Serializable {
           byLabel.transform(x => x.setLabel(x.row.getAs[Vector](1)(i)))
           util.Arrays.sort(byLabel, byLabelComparator)
 
-          prefix ++ Seq(i, Vectors.dense(Array.tabulate(metrics.size) { i => metrics(i).apply(byLabel, byScore.iterator.takeWhile(_.score >= modelThreshold), labelThreshold) }))
+          prefix ++ Seq(i, Vectors.dense(Array.tabulate(metrics.size) { i => metrics(i).apply(byLabel, byScore.iterator.takeWhile(_.score >= modelThreshold), byScore, labelThreshold) }))
         })
       } else {
         Seq({
           byLabel.transform(x => x.setLabel(x.row.getDouble(1)))
           util.Arrays.sort(byLabel, byLabelComparator)
 
-          prefix ++ Seq(Vectors.dense(Array.tabulate(metrics.size) { i => metrics(i).apply(byLabel, byScore.iterator.takeWhile(_.score >= modelThreshold), labelThreshold) }))
+          prefix ++ Seq(Vectors.dense(Array.tabulate(metrics.size) { i => metrics(i).apply(byLabel, byScore.iterator.takeWhile(_.score >= modelThreshold), byScore, labelThreshold) }))
         })
       }
     }
@@ -254,21 +254,21 @@ object PartitionedRankingEvaluator extends Serializable {
     }
   }
 
-  class Metric(val name: String, private val func: (Iterable[ScoreLabel], Iterator[ScoreLabel], Double) => Double) extends Serializable {
+  class Metric(val name: String, private val func: (Iterable[ScoreLabel], Iterator[ScoreLabel], Iterable[ScoreLabel], Double) => Double) extends Serializable {
 
     def this(name: String, func: (Iterable[ScoreLabel], Iterator[ScoreLabel]) => Double) =
-      this(name, (byLabel: Iterable[ScoreLabel], byScore: Iterator[ScoreLabel], labelRelevanceThreshold: Double) => func(byLabel, byScore))
+      this(name, (byLabel: Iterable[ScoreLabel], byScoreReturned: Iterator[ScoreLabel], byScoreAll: Iterable[ScoreLabel], labelRelevanceThreshold: Double) => func(byLabel, byScoreReturned))
 
-    def apply(byLabel: Iterable[ScoreLabel], byScore: Iterator[ScoreLabel], labelRelevanceThreshold: Double): Double = {
-      func(byLabel, byScore, labelRelevanceThreshold)
+    def apply(byLabel: Iterable[ScoreLabel], byScoreReturned: Iterator[ScoreLabel], byScoreAll: Iterable[ScoreLabel], labelRelevanceThreshold: Double): Double = {
+      func(byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold)
     }
   }
 
 
   private case class AucAccumulator(height: Int, area: Int, positives: Int, negatives: Int)
 
-  def auc(name: String = "auc") = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
-    val accumulator = byScore.foldLeft(AucAccumulator(0, 0, 0, 0))((accumulated, current) => {
+  def auc(name: String = "auc") = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    val accumulator = byScoreAll.foldLeft(AucAccumulator(0, 0, 0, 0))((accumulated, current) => {
       if (current.label >= labelRelevanceThreshold) {
         accumulated.copy(height = accumulated.height + 1, positives = accumulated.positives + 1)
       } else {
@@ -276,63 +276,67 @@ object PartitionedRankingEvaluator extends Serializable {
       }
     })
 
-    // Add extra negative sample to the end
-    (accumulator.area + accumulator.height).toDouble / ((accumulator.negatives + 1) * byLabel.count(_.label >= labelRelevanceThreshold))
+    val denomintor = accumulator.negatives * accumulator.height
+    if (denomintor == 0) {
+      Double.NaN
+    } else {
+      accumulator.area.toDouble / denomintor
+    }
   })
 
-  def numPositives(name: String = "numPositives") = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
+  def numPositives(name: String = "numPositives") = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
     byLabel.count(_.label >= labelRelevanceThreshold)
   })
 
-  def foundPositives(name: String = "foundPositives") = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
-    byScore.count(_.label >= labelRelevanceThreshold)
+  def foundPositives(name: String = "foundPositives") = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    byScoreReturned.count(_.label >= labelRelevanceThreshold)
   })
 
-  def countIf(name: String, filter: Row => Boolean) = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
-    byScore.count(x => filter(x.row))
+  def countIf(name: String, filter: Row => Boolean) = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    byScoreReturned.count(x => filter(x.row))
   })
 
-  def countIfAt(name: String, size: Int, filter: Row => Boolean) = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
-    byScore.take(size).count(x => filter(x.row))
+  def countIfAt(name: String, size: Int, filter: Row => Boolean) = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    byScoreReturned.take(size).count(x => filter(x.row))
   })
 
-  def countRelevantIf(name: String, filter: Row => Boolean) = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
-    byScore.count(x => x.label >= labelRelevanceThreshold && filter(x.row))
+  def countRelevantIf(name: String, filter: Row => Boolean) = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    byScoreReturned.count(x => x.label >= labelRelevanceThreshold && filter(x.row))
   })
 
-  def countRelevantIfAt(name: String, size: Int, filter: Row => Boolean) = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
-    byScore.take(size).count(x => x.label >= labelRelevanceThreshold && filter(x.row))
+  def countRelevantIfAt(name: String, size: Int, filter: Row => Boolean) = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    byScoreReturned.take(size).count(x => x.label >= labelRelevanceThreshold && filter(x.row))
   })
 
-  def countDistinctIf[T](name: String, filter: Row => Boolean, extractor: Row => T) = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
-    byScore.filter(x => filter(x.row)).map(x => extractor(x.row)).toSet.size
+  def countDistinctIf[T](name: String, filter: Row => Boolean, extractor: Row => T) = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    byScoreReturned.filter(x => filter(x.row)).map(x => extractor(x.row)).toSet.size
   })
 
-  def countDistinctRelevantIf[T](name: String, filter: Row => Boolean, extractor: Row => T) = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
-    byScore.filter(x => x.label >= labelRelevanceThreshold && filter(x.row)).map(x => extractor(x.row)).toSet.size
+  def countDistinctRelevantIf[T](name: String, filter: Row => Boolean, extractor: Row => T) = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    byScoreReturned.filter(x => x.label >= labelRelevanceThreshold && filter(x.row)).map(x => extractor(x.row)).toSet.size
   })
 
-  def countDistinctIfAt[T](name: String, size: Int, filter: Row => Boolean, extractor: Row => T) = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
-    byScore.take(size).filter(x => filter(x.row)).map(x => extractor(x.row)).toSet.size
+  def countDistinctIfAt[T](name: String, size: Int, filter: Row => Boolean, extractor: Row => T) = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    byScoreReturned.take(size).filter(x => filter(x.row)).map(x => extractor(x.row)).toSet.size
   })
 
-  def countDistinctRelevantIfAt[T](name: String, size: Int, filter: Row => Boolean, extractor: Row => T) = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
-    byScore.take(size).filter(x => x.label >= labelRelevanceThreshold && filter(x.row)).map(x => extractor(x.row)).toSet.size
+  def countDistinctRelevantIfAt[T](name: String, size: Int, filter: Row => Boolean, extractor: Row => T) = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    byScoreReturned.take(size).filter(x => x.label >= labelRelevanceThreshold && filter(x.row)).map(x => extractor(x.row)).toSet.size
   })
 
-  def numNegatives(name: String = "numNegatives") = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
+  def numNegatives(name: String = "numNegatives") = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
     byLabel.count(_.label < labelRelevanceThreshold)
   })
 
-  def foundNegatves(name: String = "foundNegatives") = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
-    byScore.count(_.label < labelRelevanceThreshold)
+  def foundNegatves(name: String = "foundNegatives") = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    byScoreReturned.count(_.label < labelRelevanceThreshold)
   })
 
-  def precision(name: String = "precision") = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
-    if (byScore.nonEmpty) {
+  def precision(name: String = "precision") = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    if (byScoreReturned.nonEmpty) {
       var size: Int = 0
       var relevant: Int = 0
-      byScore.foreach(i => {
+      byScoreReturned.foreach(i => {
         size += 1
         if (i.label >= labelRelevanceThreshold) {
           relevant += 1
@@ -342,24 +346,24 @@ object PartitionedRankingEvaluator extends Serializable {
     } else if (byLabel.count(_.label >= labelRelevanceThreshold) > 0) 0.0 else Double.NaN
   })
 
-  def recall(name: String = "recall") = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
+  def recall(name: String = "recall") = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
     val allPositive: Int = byLabel.count(_.label >= labelRelevanceThreshold)
-    if (allPositive > 0) byScore.count(_.label >= labelRelevanceThreshold).toDouble / allPositive else Double.NaN
+    if (allPositive > 0) byScoreReturned.count(_.label >= labelRelevanceThreshold).toDouble / allPositive else Double.NaN
   })
 
-  def precisionAt(at: Int, name: Option[String] = None) = new Metric(name.getOrElse(s"precisionAt$at"), (byLabel, byScore, labelRelevanceThreshold) => {
-    precision()(byLabel, byScore.take(at), labelRelevanceThreshold)
+  def precisionAt(at: Int, name: Option[String] = None) = new Metric(name.getOrElse(s"precisionAt$at"), (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    precision()(byLabel, byScoreReturned.take(at), byScoreAll, labelRelevanceThreshold)
   })
 
-  def recallAt(at: Int, name: Option[String] = None) = new Metric(name.getOrElse(s"recalAt$at"), (byLabel, byScore, labelRelevanceThreshold) => {
-    recall()(byLabel.take(at), byScore.take(at), labelRelevanceThreshold)
+  def recallAt(at: Int, name: Option[String] = None) = new Metric(name.getOrElse(s"recalAt$at"), (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    recall()(byLabel.take(at), byScoreReturned.take(at), byScoreAll, labelRelevanceThreshold)
   })
 
-  def f1(name: String = "f1") = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
+  def f1(name: String = "f1") = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
     var truePos: Int = 0
     var allRecommended: Int = 0
 
-    byScore.foreach(i => {
+    byScoreReturned.foreach(i => {
       allRecommended += 1
       if (i.label >= labelRelevanceThreshold) {
         truePos += 1
@@ -370,35 +374,35 @@ object PartitionedRankingEvaluator extends Serializable {
     if (allPositive > 0) 2.0 * truePos / (allRecommended + allPositive) else Double.NaN
   })
 
-  def f1At(at: Int, name: Option[String] = None) = new Metric(name.getOrElse(s"f1At$at"), (byLabel, byScore, labelRelevanceThreshold) => {
-    f1()(byLabel.take(at), byScore.take(at), labelRelevanceThreshold)
+  def f1At(at: Int, name: Option[String] = None) = new Metric(name.getOrElse(s"f1At$at"), (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    f1()(byLabel.take(at), byScoreReturned.take(at), byScoreAll, labelRelevanceThreshold)
   })
 
-  def ndcgWeak(name: String = "ndcgWeak") = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
-    relativeSortedMetric(byLabel, byScore,
+  def ndcgWeak(name: String = "ndcgWeak") = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    relativeSortedMetric(byLabel, byScoreAll.iterator,
       (accumulated, current) => {
         accumulated + current._1.label / (if (current._2 == 0) 1 else log2(current._2 + 1))
       })
   })
 
-  def ndcgWeakAt(at: Int, name: Option[String] = None) = new Metric(name.getOrElse(s"ndcgWeakAt$at"), (byLabel, byScore, labelRelevanceThreshold) => {
-    ndcgWeak()(byLabel.take(at), byScore.take(at), labelRelevanceThreshold)
+  def ndcgWeakAt(at: Int, name: Option[String] = None) = new Metric(name.getOrElse(s"ndcgWeakAt$at"), (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    ndcgWeak()(byLabel.take(at), byScoreAll.iterator.take(at), byScoreAll.take(at), labelRelevanceThreshold)
   })
 
-  def ndcgStrong(name: String = "ndcg") = new Metric(name, (byLabel, byScore, labelRelevanceThreshold) => {
-    relativeSortedMetric(byLabel, byScore,
+  def ndcgStrong(name: String = "ndcg") = new Metric(name, (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    relativeSortedMetric(byLabel, byScoreAll.iterator,
       (accumulated, current) => {
         accumulated + (Math.pow(2, current._1.label) - 1) / log2(current._2 + 2)
       })
   })
 
-  def ndcgStrongAt(at: Int, name: Option[String] = None) = new Metric(name.getOrElse(s"ndcgAt$at"), (byLabel, byScore, labelRelevanceThreshold) => {
-    ndcgStrong()(byLabel.take(at), byScore.take(at), labelRelevanceThreshold)
+  def ndcgStrongAt(at: Int, name: Option[String] = None) = new Metric(name.getOrElse(s"ndcgAt$at"), (byLabel, byScoreReturned, byScoreAll, labelRelevanceThreshold) => {
+    ndcgStrong()(byLabel.take(at), byScoreAll.iterator.take(at), byScoreAll.take(at), labelRelevanceThreshold)
   })
 
-  def relativeSortedMetric(byLabel: Iterable[ScoreLabel], byScore: Iterator[ScoreLabel], op: (Double, (ScoreLabel, Int)) => Double, initial: Double = 0.0): Double = {
+  def relativeSortedMetric(byLabel: Iterable[ScoreLabel], byScoreAll: Iterator[ScoreLabel], op: (Double, (ScoreLabel, Int)) => Double, initial: Double = 0.0): Double = {
     val ideal = byLabel.zipWithIndex.foldLeft(initial)(op)
-    val actual = byScore.zipWithIndex.foldLeft(initial)(op)
+    val actual = byScoreAll.zipWithIndex.foldLeft(initial)(op)
 
     if (ideal == 0) Double.NaN else actual / ideal
   }

@@ -1,12 +1,12 @@
 import sbt.Developer
 
-name := "ok-ml-pipelines"
+name := "pravda-ml"
 
 // Have to fix Guava in order to avoid conflict on Stopwatch in FileInputFormat (of haddop 2.6.5)
 libraryDependencies += "com.google.guava" % "guava" % "16.0.1" withSources()
 
 libraryDependencies ++= {
-  val sparkVer = "2.3.1"
+  val sparkVer = "2.3.3"
   Seq(
     "org.apache.spark"     %% "spark-core"              % sparkVer withSources() exclude("com.google.guava", "guava"),
     "org.apache.spark"     %% "spark-mllib"             % sparkVer withSources() exclude("com.google.guava", "guava"),
@@ -41,7 +41,7 @@ libraryDependencies ++= Seq(
 
 organization := "ru.odnoklassniki"
 
-version := "0.5.1-SNAPSHOT"
+version := "0.5.2-SNAPSHOT"
 
 scalaVersion := "2.11.8"
 
@@ -49,12 +49,12 @@ crossScalaVersions := Seq("2.11.11")
 
 licenses := Seq("Apache 2.0" -> url("https://www.apache.org/licenses/LICENSE-2.0"))
 
-homepage := Some(url("https://github.com/odnoklassniki/ok-ml-pipelines"))
+homepage := Some(url("https://github.com/odnoklassniki/pravda-ml"))
 
 scmInfo := Some(
   ScmInfo(
-    url("https://github.com/odnoklassniki/ok-ml-pipelines"),
-    "scm:git@github.com:odnoklassniki/ok-ml-pipelines.git"
+    url("https://github.com/odnoklassniki/pravda-ml"),
+    "scm:git@github.com:odnoklassniki/pravda-ml.git"
   )
 )
 

@@ -203,16 +203,16 @@ E <: SummarizableEstimator[M] with MLWritable]
       Array[String]()
     }
 
-    val okMlPath = if (isDefined(mainJar)) {
+    val pravdaMlPath = if (isDefined(mainJar)) {
       $(mainJar)
     } else {
-      jars.find(_.contains("ok-ml-pipelines")).getOrElse(
-        System.getProperty("java.class.path").split(":").find(_.contains("ok-ml-pipelines")).getOrElse(
-          throw new IllegalArgumentException("OK-ML not found in classpath, specify the main jar directly")
+      jars.find(_.contains("pravda-ml")).getOrElse(
+        System.getProperty("java.class.path").split(":").find(_.contains("pravda-ml")).getOrElse(
+          throw new IllegalArgumentException("PravdaML not found in classpath, specify the main jar directly")
         ))
     }
 
-    logInfo(s"OK ML jare resolved to $okMlPath")
+    logInfo(s"PravdaML jar resolved to $pravdaMlPath")
 
     val inheritedConfig = if ($(propagateConfig)) {
       conf.getAll.view
@@ -246,7 +246,7 @@ E <: SummarizableEstimator[M] with MLWritable]
         "--master", $(master),
         "--name", get(name).getOrElse(uid),
         "--class", "org.apache.spark.ml.odkl.ForkedSparkEstimatorApp",
-        okMlPath,
+        pravdaMlPath,
         dataPath, estimatorPath, modelPath
       )
 
