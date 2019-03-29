@@ -8,7 +8,7 @@ import org.apache.spark.ml.param.shared.{HasInputCol, HasOutputCol}
 import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
 import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions.udf
-import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.types.{StringType, StructType}
 
 /**
   * Created by eugeny.malyutin on 05.05.16.
@@ -53,7 +53,11 @@ class URLElimminator(override val uid: String) extends Transformer
 
   @DeveloperApi
   override def transformSchema(schema: StructType): StructType = {
-    schema
+    if ($(inputCol) != $(outputCol)) {
+      schema.add($(outputCol), StringType)
+    } else {
+      schema
+    }
   }
 }
 
