@@ -7,7 +7,7 @@ import org.apache.spark.ml.param.{Param, ParamMap, ParamPair, Params}
 import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable, SchemaUtils}
 import org.apache.spark.sql.{DataFrame, Dataset}
 import org.apache.spark.sql.functions._
-import org.apache.spark.sql.types.{ArrayType, StringType, StructType}
+import org.apache.spark.sql.types.{StringType, StructType}
 
 /**
   * Created by eugeny.malyutin on 12.05.16.
@@ -50,9 +50,9 @@ class RegexpReplaceTransformer(override val uid: String) extends Transformer
   override def transformSchema(schema: StructType): StructType = {
     if ($(inputCol) equals $(outputCol)) {
       val schemaWithoutInput = new StructType(schema.fields.filterNot(_.name equals $(inputCol)))
-      SchemaUtils.appendColumn(schemaWithoutInput, $(outputCol), ArrayType(StringType, true))
+      SchemaUtils.appendColumn(schemaWithoutInput, $(outputCol), StringType)
     } else {
-      SchemaUtils.appendColumn(schema, $(outputCol), ArrayType(StringType, true))
+      SchemaUtils.appendColumn(schema, $(outputCol), StringType)
     }
   }
 
