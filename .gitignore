@@ -3,5 +3,8 @@
 .idea/libraries/*
 .idea/modules/*
 .idea/*
+project/target/*
+project/project
 target/*
 .idea/*
+*.zplnb
