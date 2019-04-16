@@ -13,7 +13,7 @@ package org.apache.spark.ml.odkl
 import org.apache.spark.SparkContext
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml._
-import org.apache.spark.ml.param.{Param, ParamMap}
+import org.apache.spark.ml.param.{BooleanParam, Param, ParamMap}
 import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
 import org.apache.spark.sql._
 import org.apache.spark.sql.odkl.SparkSqlUtils
@@ -55,7 +55,7 @@ class ColumnsExtractor(override val uid: String) extends Transformer with Defaul
     }
   }
 
-  val saveInputColumns = new Param[Boolean](this,"saveInputColumns","save columns input dataframe")
+  val saveInputColumns = new BooleanParam(this,"saveInputColumns","save columns input dataframe")
 
   setDefault(columnStatements -> Seq(), columnMetadata -> Map(), saveInputColumns -> false)
 
@@ -76,9 +76,6 @@ class ColumnsExtractor(override val uid: String) extends Transformer with Defaul
   }
 
   override def transform(dataset: Dataset[_]): DataFrame = {
-    if (getSaveInputCols){
-      set(columnStatements, $(columnStatements) ++ dataset.columns.toSeq.map(x => x -> x))
-    }
     select(dataset.toDF)
   }
 
@@ -95,6 +92,10 @@ class ColumnsExtractor(override val uid: String) extends Transformer with Defaul
   }
 
   def select(dataset: DataFrame) = {
+    if (getSaveInputCols){
+      set(columnStatements, $(columnStatements) ++ dataset.columns.toSeq.map(x => x -> x))
+      setSaveInputCols(false)
+    }
     val columns: Seq[Column] = $(columnStatements).map {
       case (name, expr) =>
         require(name != null, "Null for column name not allowed")
