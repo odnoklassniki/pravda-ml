@@ -55,7 +55,14 @@ class ColumnsExtractor(override val uid: String) extends Transformer with Defaul
     }
   }
 
-  setDefault(columnStatements -> Seq(), columnMetadata -> Map())
+  val saveInputColumns = new Param[Boolean](this,"saveInputColumns","save columns input dataframe")
+
+  setDefault(columnStatements -> Seq(), columnMetadata -> Map(), saveInputColumns -> false)
+
+  def setSaveInputCols(value: Boolean): this.type =
+    set(saveInputColumns, value)
+
+  def getSaveInputCols: Boolean = $(saveInputColumns)
 
   def withColumns(columns: String*): this.type =
     set(columnStatements, $(columnStatements) ++ columns.map(x => x -> x))
@@ -68,7 +75,12 @@ class ColumnsExtractor(override val uid: String) extends Transformer with Defaul
     set(columnMetadata, $(columnMetadata) + (column -> metadata))
   }
 
-  override def transform(dataset: Dataset[_]): DataFrame = select(dataset.toDF)
+  override def transform(dataset: Dataset[_]): DataFrame = {
+    if (getSaveInputCols){
+      set(columnStatements, $(columnStatements) ++ dataset.columns.toSeq.map(x => x -> x))
+    }
+    select(dataset.toDF)
+  }
 
   override def copy(extra: ParamMap): this.type = defaultCopy(extra)
 
