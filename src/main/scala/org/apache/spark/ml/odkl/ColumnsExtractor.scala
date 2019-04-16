@@ -21,6 +21,7 @@ import org.apache.spark.sql.types._
 import org.json4s.DefaultWriters._
 import org.json4s.jackson.JsonMethods
 import org.json4s.{DefaultFormats, JValue}
+import org.apache.spark.sql.functions.col
 
 /**
   * Used to extract a set of columns from the underlying data frame based on names and/or SQL expresions.
@@ -92,10 +93,6 @@ class ColumnsExtractor(override val uid: String) extends Transformer with Defaul
   }
 
   def select(dataset: DataFrame) = {
-    if (getSaveInputCols){
-      set(columnStatements, $(columnStatements) ++ dataset.columns.toSeq.map(x => x -> x))
-      setSaveInputCols(false)
-    }
     val columns: Seq[Column] = $(columnStatements).map {
       case (name, expr) =>
         require(name != null, "Null for column name not allowed")
@@ -110,7 +107,13 @@ class ColumnsExtractor(override val uid: String) extends Transformer with Defaul
                 // Finally, create field with no metadata
                 functions.expr(expr).as(name)))
     }
-    dataset.select(columns: _*)
+    val outputColumns: Seq[Column] = if (getSaveInputCols){
+      columns ++ dataset.columns.toSeq.map(f => col(f))
+    }
+    else {
+      columns
+    }
+    dataset.select(outputColumns: _*)
   }
 }
 
