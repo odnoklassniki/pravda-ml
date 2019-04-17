@@ -13,7 +13,7 @@ package org.apache.spark.ml.odkl
 import org.apache.spark.SparkContext
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml._
-import org.apache.spark.ml.param.{Param, ParamMap}
+import org.apache.spark.ml.param.{BooleanParam, Param, ParamMap}
 import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
 import org.apache.spark.sql._
 import org.apache.spark.sql.odkl.SparkSqlUtils
@@ -55,7 +55,17 @@ class ColumnsExtractor(override val uid: String) extends Transformer with Defaul
     }
   }
 
-  setDefault(columnStatements -> Seq(), columnMetadata -> Map())
+  val saveInputColumns = new BooleanParam(this,"saveInputColumns",
+    "If set to true all columns from the original dataframe are propagated to the new dataframe. " +
+          "If set to false (default) only new columns added. " +
+          "In case of name conflict new definitions are used to override original columns.")
+
+  setDefault(columnStatements -> Seq(), columnMetadata -> Map(), saveInputColumns -> false)
+
+  def setSaveInputCols(value: Boolean): this.type =
+    set(saveInputColumns, value)
+
+  def getSaveInputCols: Boolean = $(saveInputColumns)
 
   def withColumns(columns: String*): this.type =
     set(columnStatements, $(columnStatements) ++ columns.map(x => x -> x))
@@ -68,7 +78,9 @@ class ColumnsExtractor(override val uid: String) extends Transformer with Defaul
     set(columnMetadata, $(columnMetadata) + (column -> metadata))
   }
 
-  override def transform(dataset: Dataset[_]): DataFrame = select(dataset.toDF)
+  override def transform(dataset: Dataset[_]): DataFrame = {
+    select(dataset.toDF)
+  }
 
   override def copy(extra: ParamMap): this.type = defaultCopy(extra)
 
@@ -97,7 +109,16 @@ class ColumnsExtractor(override val uid: String) extends Transformer with Defaul
                 // Finally, create field with no metadata
                 functions.expr(expr).as(name)))
     }
-    dataset.select(columns: _*)
+    val outputColumns: Seq[Column] = if (getSaveInputCols){
+      val newColumns: Seq[String] = $(columnStatements).map{case (name, _) => name}
+      val columnsToKeep: Seq[String] = dataset.columns.toSeq diff newColumns
+
+      columnsToKeep.map(f => dataset(f)) ++ columns
+    }
+    else {
+      columns
+    }
+    dataset.select(outputColumns: _*)
   }
 }
 
