@@ -108,7 +108,7 @@ class ColumnsExtractor(override val uid: String) extends Transformer with Defaul
                 functions.expr(expr).as(name)))
     }
     val outputColumns: Seq[Column] = if (getSaveInputCols){
-      columns ++ dataset.columns.toSeq.map(f => col(f))
+      dataset.columns.toSeq.map(f => col(f)) ++ columns
     }
     else {
       columns
