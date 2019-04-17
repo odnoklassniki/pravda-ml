@@ -78,7 +78,6 @@ class ColumnExtractorSpec extends FlatSpec with TestEnv with org.scalatest.Match
 
     val result = pipeline.transform(testDF)
     result.columns should be (Array("number1", "number2", "text", "skip", "length_text", "upper_p", "lower_p", "digits_p"))
-
   }
 
 }

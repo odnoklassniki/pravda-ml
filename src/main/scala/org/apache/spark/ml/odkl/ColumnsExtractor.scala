@@ -21,7 +21,6 @@ import org.apache.spark.sql.types._
 import org.json4s.DefaultWriters._
 import org.json4s.jackson.JsonMethods
 import org.json4s.{DefaultFormats, JValue}
-import org.apache.spark.sql.functions.col
 
 /**
   * Used to extract a set of columns from the underlying data frame based on names and/or SQL expresions.
@@ -56,7 +55,10 @@ class ColumnsExtractor(override val uid: String) extends Transformer with Defaul
     }
   }
 
-  val saveInputColumns = new BooleanParam(this,"saveInputColumns","save columns input dataframe")
+  val saveInputColumns = new BooleanParam(this,"saveInputColumns",
+    "If set to true all columns from the original dataframe are propagated to the new dataframe. " +
+          "If set to false (default) only new columns added. " +
+          "In case of name conflict new definitions are used to override original columns.")
 
   setDefault(columnStatements -> Seq(), columnMetadata -> Map(), saveInputColumns -> false)
 
@@ -108,7 +110,8 @@ class ColumnsExtractor(override val uid: String) extends Transformer with Defaul
                 functions.expr(expr).as(name)))
     }
     val outputColumns: Seq[Column] = if (getSaveInputCols){
-      dataset.columns.toSeq.map(f => col(f)) ++ columns
+      val colsToAdd: Seq[Column] = dataset.columns.toSeq.map(f => dataset(f)) diff columns
+      colsToAdd ++ columns
     }
     else {
       columns
