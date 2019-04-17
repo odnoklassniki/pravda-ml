@@ -80,4 +80,27 @@ class ColumnExtractorSpec extends FlatSpec with TestEnv with org.scalatest.Match
     result.columns should be (Array("number1", "number2", "text", "skip", "length_text", "upper_p", "lower_p", "digits_p"))
   }
 
+  "ColumnExtractor" should "skip original column if column is modified (if saveInputColumns == true)" in {
+
+    val pipeline = new Pipeline().setStages(Array(
+      new ColumnsExtractor()
+        .setSaveInputCols(true)
+        .withExpresions(
+          "length_text" -> "length(text)",
+          "upper_p" -> "LENGTH(regexp_replace(text, '[^A-ZА-ЯЁ]', ''))/length(text)",
+          "lower_p" -> "LENGTH(regexp_replace(text, '[^a-zа-яё]', ''))/length(text)",
+          "digits_p" -> "LENGTH(regexp_replace(text, '[^0-9]', ''))/length(text)",
+          "text" -> "text + '!'"),
+
+      new RegexpReplaceTransformer()
+        .setInputCol("text")
+        .setOutputCol("text")
+        .setRegexpPattern("h")
+        .setRegexpReplacement("H")
+    )).fit(testDF)
+
+    val result = pipeline.transform(testDF)
+    result.columns should be (Array("number1", "number2", "skip", "length_text", "upper_p", "lower_p", "digits_p", "text"))
+  }
+
 }
