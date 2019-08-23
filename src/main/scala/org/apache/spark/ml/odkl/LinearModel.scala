@@ -48,7 +48,7 @@ abstract class LinearModel[M <: LinearModel[M]] private[odkl](override val uid: 
 
   def getIntercept: Double = $(intercept)
 
-  override final protected def predict(features: Vector): Double =
+  override final def predict(features: Vector): Double =
     postProcess(BLAS.dot($(coefficients), features) + $(intercept))
 
   def postProcess(value: Double): Double

@@ -6,7 +6,7 @@ name := "pravda-ml"
 libraryDependencies += "com.google.guava" % "guava" % "16.0.1" withSources()
 
 libraryDependencies ++= {
-  val sparkVer = "2.3.3"
+  val sparkVer = "2.4.3"
   Seq(
     "org.apache.spark"     %% "spark-core"              % sparkVer withSources() exclude("com.google.guava", "guava"),
     "org.apache.spark"     %% "spark-mllib"             % sparkVer withSources() exclude("com.google.guava", "guava"),

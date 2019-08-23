@@ -226,10 +226,16 @@ final class QuantileDiscretizer @Since("1.6.0") (@Since("1.6.0") override val ui
   }
 
   private def getDistinctSplits(splits: Array[Double]): Array[Double] = {
+
     if (splits.length < 3) {
       // Parvda-ML Patch: Keep columns with few splits
-      logWarning(s"Column with few splits $splits found, extending")
-      Array(Double.NegativeInfinity) ++ splits ++ Array(Double.PositiveInfinity)
+      if (splits.isEmpty) {
+        logWarning(s"Column with no valid splits found, extending with split around 0")
+        Array(Double.NegativeInfinity, 0.0, Double.PositiveInfinity)
+      } else {
+        logWarning(s"Column with few splits $splits found, extending with infinity edges")
+        Array(Double.NegativeInfinity) ++ splits ++ Array(Double.PositiveInfinity)
+      }
     } else {
       splits(0) = Double.NegativeInfinity
       splits(splits.length - 1) = Double.PositiveInfinity

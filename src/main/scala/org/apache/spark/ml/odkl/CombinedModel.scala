@@ -350,7 +350,7 @@ object CombinedModel extends MLReadable[PipelineStage] {
 
     def predictDirect(features: Any): Double = predict(features.asInstanceOf[I])
 
-    override protected def predict(features: I): Double
+    override def predict(features: I): Double
 
     /**
       * @return If possible, try to evaluate prediction directly, overwise revert to chain of transformations.
