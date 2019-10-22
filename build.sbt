@@ -38,6 +38,7 @@ libraryDependencies ++= Seq(
   "ml.dmlc" % "xgboost4j-spark" % "0.81"
 )
 
+libraryDependencies += "org.mlflow" % "mlflow-client" % "1.2.0"
 
 organization := "ru.odnoklassniki"
 

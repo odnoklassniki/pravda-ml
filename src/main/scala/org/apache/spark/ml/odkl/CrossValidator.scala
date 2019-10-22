@@ -94,7 +94,7 @@ object CrossValidator extends DefaultParamsReadable[CrossValidator[_]] with Seri
     * Utility used to assign folds to instances. Byt default based on the hash of entire row, but might
     * also use only a sub set of columns.
     */
-  class FoldsAssigner(override val uid: String) extends Transformer with HasFolds {
+  class FoldsAssigner(override val uid: String) extends Transformer with HasFolds with DefaultParamsReadable[FoldsAssigner]{
     def this() = this(Identifiable.randomUID("foldsAssigner"))
 
     val partitionBy = new StringArrayParam(this, "partitionBy", "Columns to partition dataset by")
@@ -123,4 +123,6 @@ object CrossValidator extends DefaultParamsReadable[CrossValidator[_]] with Seri
     @DeveloperApi
     override def transformSchema(schema: StructType): StructType = schema.add($(numFoldsColumn), IntegerType, nullable = false)
   }
+
+  object FoldsAssigner extends DefaultParamsReadable[FoldsAssigner]
 }

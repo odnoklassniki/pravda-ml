@@ -30,33 +30,43 @@ class RegressionEvaluator(override val uid: String) extends Evaluator[Regression
 
   val throughOrigin = new BooleanParam(this, "throughOrigin",
     "True if the regression is through the origin. For example, in " +
-    "linear regression, it will be true without fitting intercept.")
+      "linear regression, it will be true without fitting intercept.")
 
-  def setThroughOrigin(value : Boolean) : this.type = set(throughOrigin, value)
+  def setThroughOrigin(value: Boolean): this.type = set(throughOrigin, value)
+
   def getThroughOrigin: Boolean = $(throughOrigin)
-    
+
   def this() = this(Identifiable.randomUID("regressionEvaluator"))
 
 
   override def transform(dataset: Dataset[_]): DataFrame = {
 
-    val predictions: RDD[(Double, Double)] = dataset.select($(predictionCol), $(labelCol))
-        .rdd.map{case Row(score: Double, label: Double) => (score, label)}
+    try {
+      val predictions: RDD[(Double, Double)] = dataset.select($(predictionCol), $(labelCol))
+        .rdd.map { case Row(score: Double, label: Double) => (score, label) }
 
-    val metrics = Try(new RegressionMetrics(predictions))
+      val metrics = Try(new RegressionMetrics(predictions))
 
 
-    val rows = metrics.toOption.map(m => Seq(
-      "r2" -> m.r2,
-      "rmse" -> m.rootMeanSquaredError,
-      "explainedVariance" -> m.explainedVariance,
-      "meanAbsoluteError" -> m.meanAbsoluteError,
-      "meanSquaredError" -> m.meanSquaredError
-    ).map(Row.fromTuple)).getOrElse(Seq())
+      val rows = metrics.toOption.map(m => Seq(
+        "r2" -> m.r2,
+        "rmse" -> m.rootMeanSquaredError,
+        "explainedVariance" -> m.explainedVariance,
+        "meanAbsoluteError" -> m.meanAbsoluteError,
+        "meanSquaredError" -> m.meanSquaredError
+      ).map(Row.fromTuple)).getOrElse(Seq())
 
-    SparkSqlUtils.reflectionLock.synchronized(
-      dataset.sqlContext.createDataFrame(
-        dataset.sparkSession.sparkContext.parallelize(rows, 1), transformSchema(dataset.schema)))
+      SparkSqlUtils.reflectionLock.synchronized(
+        dataset.sqlContext.createDataFrame(
+          dataset.sparkSession.sparkContext.parallelize(rows, 1), transformSchema(dataset.schema)))
+    } catch {
+      // Most probably evaluation dataset is empty
+      case e: Exception =>
+        logWarning("Failed to calculate metrics due to " + e.getMessage)
+        SparkSqlUtils.reflectionLock.synchronized(
+          dataset.sqlContext.createDataFrame(
+            dataset.sparkSession.sparkContext.emptyRDD[Row], transformSchema(dataset.schema)))
+    }
   }
 
   override def copy(extra: ParamMap): RegressionEvaluator = {

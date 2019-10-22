@@ -1,7 +1,7 @@
 package odkl.analysis.spark
 
-import org.apache.spark.sql.SQLContext
-import org.apache.spark.{SparkContext, SparkConf}
+import org.apache.spark.sql.{SQLContext, SparkSession}
+import org.apache.spark.{SparkConf, SparkContext}
 
 /**
  * Created by vyacheslav.baranov on 22/12/15.
@@ -9,6 +9,7 @@ import org.apache.spark.{SparkContext, SparkConf}
 trait TestEnv {
 
   lazy val sparkConf = TestEnv._sparkConf
+  lazy val spark = TestEnv._spark
   lazy val sc = TestEnv._sc
   lazy val sqlc = TestEnv._sqlc
 }
@@ -22,8 +23,10 @@ object TestEnv extends TestEnv {
     .setAppName(getClass.getName)
     .set("spark.sql.shuffle.partitions", "2")
 
-  private lazy val _sc = new SparkContext(_sparkConf)
+  private lazy val _spark = SparkSession.builder().config(_sparkConf).getOrCreate()
 
-  private lazy val _sqlc = new SQLContext(_sc)
+  private lazy val _sc = _spark.sparkContext
+
+  private lazy val _sqlc = _spark.sqlContext
 
 }
