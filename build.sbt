@@ -41,7 +41,7 @@ libraryDependencies ++= Seq(
 
 organization := "ru.odnoklassniki"
 
-version := "0.5.6"
+version := "0.5.7-SNAPSHOT"
 
 scalaVersion := "2.11.8"
 
