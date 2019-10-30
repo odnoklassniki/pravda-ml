@@ -42,7 +42,7 @@ libraryDependencies += "org.mlflow" % "mlflow-client" % "1.2.0"
 
 organization := "ru.odnoklassniki"
 
-version := "0.5.6-SNAPSHOT"
+version := "0.5.7-SNAPSHOT"
 
 scalaVersion := "2.11.8"
 
