@@ -10,7 +10,7 @@ package org.apache.spark.ml.odkl
   * This particular file contains common parameters sets used in multiple places.
   */
 
-import org.apache.spark.ml.param.{BooleanParam, Param, StringArrayParam, Params}
+import org.apache.spark.ml.param._
 import org.apache.spark.sql.DataFrame
 import org.apache.spark.sql.types.StructField
 import org.json4s.DefaultWriters._
@@ -102,7 +102,7 @@ trait HasIsTestCol extends Params {
   * Adds parameters for folding - number of folds and name of column with fold number.
   */
 trait HasFolds extends Params {
-  final val numFolds: Param[Int] = new Param[Int](
+  final val numFolds: IntParam = new IntParam(
     this, "numFolds", "Number of folds to split data to.")
 
   final val numFoldsColumn: Param[String] = new Param[String](

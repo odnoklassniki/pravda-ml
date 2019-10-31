@@ -1,23 +1,22 @@
 package org.apache.spark.repro
 
-import java.util
-
 import odkl.analysis.spark.util.Logging
 import org.apache.spark.ml.odkl.HasMetricsBlock
 import org.apache.spark.ml.param.{Param, Params}
 import org.apache.spark.ml.util.MLWritable
-import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.apache.spark.sql.{DataFrame, Row, SparkSession}
 import org.joda.time.LocalDate
 import org.mlflow.tracking.creds.MlflowHostCredsProvider
 import org.mlflow.tracking.{ActiveRun, MlflowClient, MlflowContext}
 
 import scala.collection.JavaConverters._
 
-trait MLFlowClient { self =>
+trait MLFlowClient {
+  self =>
   val context: MlflowContext
   val run: ActiveRun
 
-  def dive(newRun: String) : MLFlowClient = {
+  def dive(newRun: String): MLFlowClient = {
     new MLFlowClient {
       override val context: MlflowContext = self.context
       override lazy val run: ActiveRun = self.context.startRun(newRun, self.run.getId)
@@ -64,7 +63,7 @@ class MlFlowReproContext private[repro]
   }
 
   override def dive(tags: Seq[(String, String)]): ReproContext = {
-    val newRun = mlFlow.dive(s"Fork for ${tags.map(_.productIterator.mkString("=")).mkString(", ")}")
+    val newRun: MLFlowClient = mlFlow.dive(s"Fork for ${tags.map(_.productIterator.mkString("=")).mkString(", ")}")
 
     newRun.run.setTags(tags.toMap.asJava)
 
@@ -79,33 +78,66 @@ class MlFlowReproContext private[repro]
     mlFlow.run.logParams(javaParams)
   }
 
-  override def logMetircs(metrics: DataFrame): Unit = {
-    val fields = metrics.schema.fieldNames.toSet
-    import metrics.sqlContext.implicits._
+  override def logMetircs(metrics: => DataFrame): Unit = {
+    try {
+      val groundMetrics: DataFrame = metrics
+      val fields = groundMetrics.schema.fieldNames.toSet
+      import groundMetrics.sqlContext.implicits._
+      logInfo(s"Got metrics dataframe to log with fields $fields")
 
-    val javaMetrics: util.Map[String, java.lang.Double] = if (Set("metric", "value", "isTest").subsetOf(fields)) {
-      metrics
-        .select('metric.as[String], 'value.as[Option[Number]], 'isTest.as[Boolean])
-        .filter(_._2.isDefined)
-        .map { case (metric, value, isTest) => (s"$metric on (${if (isTest) "test" else "train"})"
-          -> java.lang.Double.valueOf(value.get.doubleValue()))
-        }
-        .collect()
-        .toMap
-        .asJava
-    } else if (Set("metric,value").subsetOf(fields)) {
-      metrics
-        .select('metric.as[String], 'value.as[Option[Number]])
-        .filter(_._2.isDefined)
-        .map { case (metric, value) => metric -> java.lang.Double.valueOf(value.get.doubleValue()) }
-        .collect()
-        .toMap
-        .asJava
-    } else {
-      Map[String, java.lang.Double]().asJava
+      val defaultFold = if (fields.contains("foldNum")) {
+        logInfo("Filtering by fold")
+        groundMetrics.filter('foldNum === -1)
+      } else {
+        groundMetrics
+      }
+
+      val scalarMetrics = if (fields.contains("x-value")) {
+        logInfo("Filtering scalar metrics")
+        defaultFold.filter($"x-value".isNull)
+      } else {
+        defaultFold
+      }
+
+      val metricsMap: Map[String, java.lang.Double] = if (Set("metric", "value", "isTest").subsetOf(fields)) {
+        logInfo("Logging train/test metrics")
+        extractMetricValue(scalarMetrics)
+          .select("metric", "value", "isTest")
+          .map {
+            case Row(metric: String, value: Double, isTest: Boolean)
+            => s"$metric on ${if (isTest) "test" else "train"}" -> java.lang.Double.valueOf(value)
+          }
+          .collect()
+          .toMap
+      } else if (Set("metric", "value").subsetOf(fields)) {
+        logInfo("Logging plain metrics")
+        extractMetricValue(scalarMetrics)
+          .select("metric", "value")
+          .map {
+            case Row(metric: String, value: Double) => metric -> java.lang.Double.valueOf(value)
+          }
+          .collect()
+          .toMap
+      } else {
+        logWarning("Unknown schema, not logging the metrics.")
+        Map[String, java.lang.Double]()
+      }
+
+      if (metricsMap.nonEmpty) {
+        mlFlow.run.logMetrics(metricsMap.asJava)
+      }
+    } catch {
+      case e: Throwable =>
+        logError("Exception while logging metrics", e)
+        throw e
     }
+  }
 
-    mlFlow.run.logMetrics(javaMetrics)
+  private def extractMetricValue(scalarMetrics: DataFrame): DataFrame = {
+    import scalarMetrics.sqlContext.implicits._
+    scalarMetrics
+      .withColumn("value", 'value.cast("double"))
+      .filter('value.isNotNull)
   }
 
   override def start(): Unit = {}

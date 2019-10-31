@@ -13,7 +13,7 @@ package org.apache.spark.ml.odkl
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.odkl.ModelWithSummary.Block
-import org.apache.spark.ml.param.{Param, ParamMap, StringArrayParam}
+import org.apache.spark.ml.param.{BooleanParam, Param, ParamMap, StringArrayParam}
 import org.apache.spark.ml.util.{DefaultParamsReadable, Identifiable}
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.{IntegerType, StructType}
@@ -34,7 +34,7 @@ class CrossValidator[M <: ModelWithSummary[M]]
 )
   extends ForkedEstimatorSameType[M, Int](nested, uid) with HasIsTestCol with HasFolds {
 
-  val addGlobal = new Param[Boolean](this, "addGlobal", "Whenever to add fold with global data")
+  val addGlobal = new BooleanParam(this, "addGlobal", "Whenever to add fold with global data")
 
   setDefault(addGlobal -> true)
 

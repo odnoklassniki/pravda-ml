@@ -13,10 +13,11 @@ package org.apache.spark.ml.odkl
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.param.shared.HasFeaturesCol
 import org.apache.spark.ml.param.{BooleanParam, Param, ParamMap, Params}
-import org.apache.spark.ml.util.{DefaultParamsWritable, Identifiable}
+import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
 import org.apache.spark.ml.Estimator
 import org.apache.spark.mllib.feature.{StandardScaler, StandardScalerModel}
 import org.apache.spark.ml.linalg.{BLAS, DenseVector, SparseVector, Vector}
+import org.apache.spark.ml.odkl.Scaler.transformModel
 import org.apache.spark.mllib
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.StructType
@@ -65,25 +66,41 @@ trait ScalerParams extends Params with HasFeaturesCol {
   * This is a specific implementation of the scaler for linear models. Uses the ability to propagate scaling to the
   * weights to avoid overhead when predicting.
   */
-class ScalerEstimator[M <: ModelWithSummary[M]]
+abstract class ScalerEstimator[M <: ModelWithSummary[M]]
 (
   override val uid: String = Identifiable.randomUID("scalerEstimator"))
   extends Estimator[Scaler.Unscaler[M]] with ScalerParams with DefaultParamsWritable {
 
-  private[odkl] val modelTransformer = new Param[(M,StandardScalerModel) => M](
-    this, "modelTransformer", "Function used to transform nested model.")
+  protected def unscaleModel(model: M, scaler: StandardScalerModel): M
 
   override def fit(dataset: Dataset[_]): Scaler.Unscaler[M] = {
     val scaler = new StandardScaler($(withMean), $(withStd)).fit(
       dataset.select($(featuresCol)).rdd.map(r => mllib.linalg.Vectors.fromML(r.getAs[Vector](0))))
 
-    new Scaler.Unscaler[M](scaler, $(modelTransformer)).setParent(this)
+    new Scaler.Unscaler[M](scaler, unscaleModel).setParent(this)
   }
-
-  override def copy(extra: ParamMap) = defaultCopy(extra)
 
   override def transformSchema(schema: StructType): StructType = schema
 }
+
+class LinearScaleEstimator[M <: LinearModel[M]] extends ScalerEstimator[M] {
+  override protected def unscaleModel(model: M, scaler: StandardScalerModel): M
+  = Scaler.transformModel(model, scaler)
+
+  override def copy(extra: ParamMap) = defaultCopy(extra)
+}
+
+object LinearScaleEstimator extends DefaultParamsReadable[LinearScaleEstimator[_]]
+
+class CompositScaleEstimator[M <: LinearModel[M], C <: CombinedModel[M, C]] extends ScalerEstimator[C] {
+  override protected def unscaleModel(model: C, scaler: StandardScalerModel): C = {
+    model.transformNested(x => transformModel[M](x, scaler))
+  }
+
+  override def copy(extra: ParamMap) = defaultCopy(extra)
+}
+
+object CompositScaleEstimator extends DefaultParamsReadable[CompositScaleEstimator[_,_]]
 
 object Scaler extends Serializable {
   /**
@@ -97,11 +114,11 @@ object Scaler extends Serializable {
   def scale[M <: LinearModel[M]]
   (
     estimator: SummarizableEstimator[M],
-    scaler: ScalerEstimator[M] = new ScalerEstimator[M]())
+    scaler: ScalerEstimator[M] = new LinearScaleEstimator[M]())
   (implicit m: Manifest[M])
   : UnwrappedStage[M, Unscaler[M]] = {
 
-    new UnwrappedStage[M, Unscaler[M]](estimator, scaler.set(scaler.modelTransformer, transformModel[M] _))
+    new UnwrappedStage[M, Unscaler[M]](estimator, scaler)
   }
 
   /**
@@ -114,9 +131,8 @@ object Scaler extends Serializable {
   def scaleComposite[M <: LinearModel[M], C <: CombinedModel[M, C]]
   (
     estimator: SummarizableEstimator[C],
-    scaler: ScalerEstimator[C] = new ScalerEstimator[C]()) : UnwrappedStage[C, Unscaler[C]] = {
-    new UnwrappedStage[C, Unscaler[C]](estimator, scaler.set(
-      scaler.modelTransformer, (model : C, scalerModel: StandardScalerModel) => model.transformNested(x => transformModel[M](x, scalerModel))))
+    scaler: ScalerEstimator[C] = new CompositScaleEstimator[M, C]()) : UnwrappedStage[C, Unscaler[C]] = {
+    new UnwrappedStage[C, Unscaler[C]](estimator, scaler)
   }
 
 
@@ -137,7 +153,7 @@ object Scaler extends Serializable {
       featuresCol, transform(dataset(featuresCol)).as(featuresCol, structField.metadata))
   }
 
-  private def transformModel[M <: LinearModel[M]](model: M, scaler: StandardScalerModel): M = {
+  private[odkl] def transformModel[M <: LinearModel[M]](model: M, scaler: StandardScalerModel): M = {
     val nestedSummary: ModelSummary = model.summary
 
     val (coefficientsAndIntercept, delta) = if (scaler.withMean) {

@@ -24,6 +24,8 @@ import org.apache.spark.sql.functions._
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql._
 import org.apache.spark.storage.StorageLevel
+import org.json4s.JString
+import org.json4s.jackson.JsonMethods.{render,compact}
 
 import scala.collection.mutable
 
@@ -327,7 +329,7 @@ object UnwrappedStage extends Serializable {
   class NoTrainEstimator[M <: ModelWithSummary[M], T <: ModelTransformer[M, T]]
   (
     override val uid: String,
-    transformer: T)
+    val transformer: T)
     extends Estimator[T] with DefaultParamsWritable {
 
     def this(transformer: T) = this(Identifiable.randomUID("noTrainEstimator"), transformer)
@@ -383,7 +385,7 @@ object UnwrappedStage extends Serializable {
   class IdentityModelTransformer[M <: ModelWithSummary[M]]
   (
     override val uid: String,
-    dataTransformer: Transformer) extends
+    val dataTransformer: Transformer) extends
     PredefinedDataTransformer[M, IdentityModelTransformer[M]](uid, dataTransformer) {
 
     def this(dataTransformer: Transformer) = this(Identifiable.randomUID("identityModelTransformer"), dataTransformer)
@@ -485,13 +487,17 @@ object UnwrappedStage extends Serializable {
     */
   class CachingTransformer[M <: ModelWithSummary[M]](override val uid: String) extends ModelTransformer[M, CachingTransformer[M]] {
 
-    def storageLevel = new Param[StorageLevel](this, "storageLevel", "Storage level to use for cached data.")
+    val storageLevel = new Param[StorageLevel](this, "storageLevel", "Storage level to use for cached data.") {
+      override def jsonEncode(value: StorageLevel): String = compact(render(JString(value.toString())))
 
-    def materializeCached = new BooleanParam(
+      override def jsonDecode(json: String): StorageLevel = StorageLevel.fromString(Param.jsonDecode[String](json))
+    }
+
+    val materializeCached = new BooleanParam(
       this, "materializeCached", "Whenever to materialize cached data. If nested estimator is parallelizable it is " +
         "worth doing. Otherwise cached data might be materialized more than once.")
 
-    def cacheRdd = new BooleanParam(
+    val cacheRdd = new BooleanParam(
       this, "cacheRdd", "Whenever to cache RDD and re-create DataFrame. Skips columnar serialized form of DataFrame caching," +
         " thus provides faster processing with potentially large memory footprint.")
 
@@ -698,7 +704,7 @@ object UnwrappedStage extends Serializable {
   class DynamicDataTransformerTrainer[M <: ModelWithSummary[M]]
   (
     override val uid: String,
-    nested: Estimator[_])
+    val nested: Estimator[_])
     extends Estimator[IdentityModelTransformer[M]] with DefaultParamsWritable with PartitioningParams {
 
 

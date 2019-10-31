@@ -2,7 +2,7 @@ package org.apache.spark.repro
 
 import org.apache.spark.ml.param.{Param, Params}
 import org.apache.spark.ml.util.MLWritable
-import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
+import org.apache.spark.sql.{DataFrame, Dataset, SparkSession, functions}
 
 class SimpleReproContext private
 (spark: SparkSession, basePath: String, tags: Seq[(String,String)]) extends ReproContext {
@@ -27,17 +27,18 @@ class SimpleReproContext private
   override def logParams(params: Params, path: Seq[String]): Unit =
     accumulatedParams = accumulatedParams :+ path -> params
 
-  override def logMetircs(metrics: DataFrame): Unit = accumulatedMetrics = accumulatedMetrics :+ metrics
+  override def logMetircs(metrics: => DataFrame): Unit = accumulatedMetrics = accumulatedMetrics :+ metrics
 
   override def start(): Unit = {
     import spark.implicits._
-    accumulatedParams.foreach {
+    accumulatedParams.map {
       case (path, params) => params.params.view
         .filter(params.isSet)
         .map(x => x.name -> x.asInstanceOf[Param[Any]].jsonEncode(params.get(x).get))
         .toDF("param", "value")
-        .write.parquet(path.mkString(taggedPrefix + "/params/", "/", ""))
-    }
+        .withColumn("path", functions.lit(path.mkString("/")))
+    }.reduce(_ unionByName _)
+      .write.parquet(taggedPrefix + "/params")
   }
 
   override def finish(): Unit = {

@@ -501,7 +501,7 @@ abstract class DSVRGD[M <: ModelWithSummary[M]]
         }
       }
 
-      // Yes, ignore the last mini-batch. It is smaller and thus less precise, but last step is the most
+      // Yes, in the last mini-batch. It is smaller and thus less precise, but last step is the most
       // important.
       //if (batchedSamples > 0) {
       //  minibatchStep

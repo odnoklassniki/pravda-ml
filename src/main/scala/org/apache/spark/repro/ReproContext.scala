@@ -1,12 +1,15 @@
 package org.apache.spark.repro
 
-import org.apache.spark.ml.odkl.{HasMetricsBlock, ModelWithSummary}
+import org.apache.spark.ml.odkl.UnwrappedStage.{DynamicDataTransformerTrainer, IdentityModelTransformer, NoTrainEstimator}
+import org.apache.spark.ml.odkl.{ForkedEstimator, HasMetricsBlock, ModelWithSummary, UnwrappedStage}
 import org.apache.spark.ml.param.{ParamMap, Params}
 import org.apache.spark.ml.util.{MLWritable, MLWriter}
-import org.apache.spark.ml.{Estimator, Model, Pipeline, PipelineModel}
+import org.apache.spark.ml._
+import org.apache.spark.ml.odkl.Evaluator.EvaluatingTransformer
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, Dataset}
 
+import scala.annotation.tailrec
 import scala.util.DynamicVariable
 
 trait ReproContext {
@@ -19,7 +22,7 @@ trait ReproContext {
 
   def logParams(params: Params, path: Seq[String]): Unit
 
-  def logMetircs(metrics: DataFrame)
+  def logMetircs(metrics: => DataFrame)
 
   def start(): Unit
 
@@ -63,7 +66,7 @@ object ReproContext extends ReproContext with HasMetricsBlock {
     }
   }
 
-  private class PhantomWritableEstimator[M <: Model[M]](delegate: Estimator[M]) extends Estimator[M] with MLWritable {
+  private class PhantomWritableEstimator[M <: Model[M]](val delegate: Estimator[M]) extends Estimator[M] with MLWritable {
     override def fit(dataset: Dataset[_]): M = delegate.fit(dataset)
 
     override def copy(extra: ParamMap): Estimator[M] = delegate.copy(extra)
@@ -87,13 +90,49 @@ object ReproContext extends ReproContext with HasMetricsBlock {
 
   private def logParams(context: ReproContext, path: Seq[String], params: Params) : Unit = {
     params match {
+      case phantom: PhantomWritableEstimator[_] => logParams(context, path, phantom.delegate)
       case pipeline: Pipeline =>
         val stages = pipeline.getStages
-        for(i <- stages.indices) logParams(context, path :+ s"stage${i}_${stages(i).getClass.getSimpleName}", stages(i))
+        for(i <- stages.indices) logParams(context, path :+ s"stage${i}_${getNameToLog(stages(i))}", stages(i))
       case holder: ParamsHolder =>
         holder.getThis.foreach(x => context.logParams(x, path))
         holder.getNested.foreach(x => logParams(context, path :+ x._1, x._2))
+      case unwrapped: UnwrappedStage[_, _] =>
+        val estimator = unwrapped.estimator
+        logParams(context, path :+ s"${getNameToLog(estimator)}", estimator)
+
+        unwrapped.transformerTrainer match {
+          case noTrain : NoTrainEstimator[_, _] =>
+            noTrain.transformer match {
+              case identity: IdentityModelTransformer[_] => logParams(context, path, identity.dataTransformer)
+              case _ => logParams(context, path, noTrain.transformer)
+            }
+          case dynamicData : DynamicDataTransformerTrainer[_] =>
+            logParams(context, path, dynamicData.nested)
+          case transformerTrainer: Estimator[_] =>
+            logParams(context, path, transformerTrainer)
+        }
+
+      case evaluator: EvaluatingTransformer[_, _] =>
+        logParams(context, path :+ s"${getNameToLog(evaluator.evaluator)}", evaluator.evaluator)
+
+      case forked: ForkedEstimator[_, _, _]  =>
+        context.logParams(forked, path)
+        logParams(context, path :+ s"${getNameToLog(forked.nested)}", forked.nested)
+
       case _ => context.logParams(params, path)
+    }
+  }
+
+  @tailrec
+  private def getNameToLog(estimator: PipelineStage) : String = {
+    estimator match {
+      case unwrapped: UnwrappedStage[_,_] => getNameToLog(unwrapped.transformerTrainer)
+      case noTrain : NoTrainEstimator[_, _] => noTrain.transformer match {
+        case identity: IdentityModelTransformer[_] => getNameToLog(identity.dataTransformer)
+        case _ => getNameToLog(noTrain.transformer)
+      }
+      case _ => estimator.getClass.getSimpleName
     }
   }
 
@@ -133,7 +172,7 @@ object ReproContext extends ReproContext with HasMetricsBlock {
 
   override def logParams(params: Params, path: Seq[String]): Unit = currentContext.value.lastOption.foreach(_.logParams(params, path))
 
-  override def logMetircs(metrics: DataFrame): Unit = currentContext.value.lastOption.foreach(_.logMetircs(metrics))
+  override def logMetircs(metrics: => DataFrame): Unit = currentContext.value.lastOption.foreach(_.logMetircs(metrics))
 
   override def start(): Unit =  ???
 

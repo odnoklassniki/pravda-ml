@@ -17,8 +17,10 @@ import java.util.function.Supplier
 import org.apache.commons.lang3.StringUtils
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.annotation.DeveloperApi
+import org.apache.spark.ml.odkl.ModelWithSummary.Block
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.DefaultParamsReader
+import org.apache.spark.repro.ReproContext
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, Dataset, SQLContext, functions}
 
@@ -184,18 +186,27 @@ ModelOut <: ModelWithSummary[ModelOut]]
     val result: (ForeKeyType, Try[ModelIn]) = (
       partialData._1,
       failFast(partialData._1, Try({
-        val model = estimator.fit(get(propagatedKeyColumn).map(x => partialData._2.withColumn(x, functions.lit(partialData._1))).getOrElse(partialData._2))
+        ReproContext.dive(Seq("fork" -> partialData._1.toString))
+        try {
+          val model = estimator.fit(get(propagatedKeyColumn).map(x => partialData._2.withColumn(x, functions.lit(partialData._1))).getOrElse(partialData._2))
 
-        logInfo(s"Fitting at $uid for ${partialData._1} DONE")
+          logInfo(s"Fitting at $uid for ${partialData._1} DONE")
 
-        if (pathForModel.isDefined) {
-          if ($(overwriteModels))
-            model.write.overwrite().save(pathForModel.get)
-          else
-            model.write.save(pathForModel.get)
+          if (pathForModel.isDefined) {
+            if ($(overwriteModels))
+              model.write.overwrite().save(pathForModel.get)
+            else
+              model.write.save(pathForModel.get)
+          }
+
+          if (model.summary.blocks.contains(Block("metrics"))) {
+            ReproContext.logMetircs(model.summary(Block("metrics")))
+          }
+
+          model
+        } finally {
+          ReproContext.comeUp()
         }
-
-        model
       })))
 
     result

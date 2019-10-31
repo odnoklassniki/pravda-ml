@@ -19,7 +19,7 @@ class ReproContextSpec extends FlatSpec with Matchers with WithTestData {
   import spark.implicits._
 
 
-  "ReproContext" should " train a simple model" in {
+  "ReproContext" should " train a simple model" in  {
 
     simpleModel shouldNot be(null)
 
@@ -35,7 +35,7 @@ class ReproContextSpec extends FlatSpec with Matchers with WithTestData {
     model.getIntercept should be(0.0 +- delta)
   }
 
-  "ReproContext" should "persist estimator" in {
+  "ReproContext" should "persist estimator" in  {
     simpleModel shouldNot be(null)
 
     val loaded = Pipeline.load(tempPath + "/estimator")
@@ -43,7 +43,7 @@ class ReproContextSpec extends FlatSpec with Matchers with WithTestData {
     loaded.getStages.length should be(2)
   }
 
-  "ReproContext" should "persist model" in {
+  "ReproContext" should "persist model" in  {
     simpleModel shouldNot be(null)
 
     val loaded = PipelineModel.load(tempPath + "/model")
@@ -51,18 +51,36 @@ class ReproContextSpec extends FlatSpec with Matchers with WithTestData {
     loaded.stages.length should be(2)
   }
 
-  "ReproContext" should "persist params" in {
+  "ReproContext" should "persist params" in  {
     simpleModel shouldNot be(null)
 
     val loaded = sqlc.read.parquet(tempPath + "/params")
 
-    loaded.schema.fieldNames should contain theSameElementsAs Seq("stage", "param", "value")
+    loaded.schema.fieldNames should contain theSameElementsAs Seq("path", "param", "value")
 
     loaded.as[(String,String,String)].collect() should contain theSameElementsAs Seq(
-      ("inputCols", """["first","second"]""", "0_VectorAssembler"),
-      ("outputCol", "\"features\"", "0_VectorAssembler"),
-      ("regParam", "0.001", "1_LinearRegression")
+      ("inputCols", """["first","second"]""", "stage0_VectorAssembler"),
+      ("outputCol", "\"features\"", "stage0_VectorAssembler"),
+      ("regParam", "0.001", "stage1_LinearRegression")
     )
+  }
+
+  "ReproContext" should "persist params for model with metrics" in {
+    modelWithMetrics shouldNot be(null)
+
+    val loaded = sqlc.read.parquet(tempPathWithMetrics + "/params")
+
+    loaded.schema.fieldNames should contain theSameElementsAs Seq("path", "param", "value")
+
+    val actual = loaded.as[(String, String, String)].collect()
+    Seq(
+      ("inputCols", """["first","second"]""", "stage0_VectorAssembler"),
+      ("outputCol", "\"features\"", "stage0_VectorAssembler"),
+      ("testMarker","\"isTest\"","stage1_CachingTransformer/FoldsAssigner/CrossValidator/EvaluatingTransformer/TrainOnlyFilter"),
+      ("storageLevel","\"StorageLevel(memory, deserialized, 1 replicas)\"","stage1_CachingTransformer"),
+      ("materializeCached","true","stage1_CachingTransformer"),
+      ("regParam", "0.001", "stage1_CachingTransformer/FoldsAssigner/CrossValidator/EvaluatingTransformer/TrainOnlyFilter/LinearRegression")
+    ).foreach(part => actual should contain(part))
   }
 
   "ReproContext" should "persist metrics" in {
@@ -77,6 +95,7 @@ class ReproContextSpec extends FlatSpec with Matchers with WithTestData {
 
     loaded.select('foldNum.as[Int]).distinct.collect() should contain theSameElementsAs Seq(-1, 0, 1, 2)
 
+    loaded.filter('metric === "r2" && 'isTest === true).count() should be(3)
 
     val r2s = loaded.where("metric = 'r2' and isTest").select('value.as[Double]).collect()
     r2s.sum / r2s.length should be(1.0 +- delta)
@@ -111,10 +130,11 @@ object ReproContextSpec extends WithTestData {
       new VectorAssembler()
         .setInputCols(Array("first", "second"))
         .setOutputCol("features"),
-      Evaluator.crossValidate(
-        estimator = new LinearRegression().setRegParam(0.001),
-        evaluator = new TrainTestEvaluator(new RegressionEvaluator()),
-        numFolds = 3)
+      UnwrappedStage.cacheAndMaterialize(
+        Evaluator.crossValidate(
+          estimator = new LinearRegression().setRegParam(0.001),
+          evaluator = new TrainTestEvaluator(new RegressionEvaluator()),
+          numFolds = 3))
     )).tracedFit(rawData)
   }
 }
