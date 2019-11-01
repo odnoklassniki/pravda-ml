@@ -8,6 +8,7 @@ import org.apache.spark.ml.odkl._
 import org.apache.spark.ml.param.shared.{HasMaxIter, HasSeed, HasTol}
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.Identifiable
+import org.apache.spark.repro.ReproContext
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SQLContext}
 
 import scala.collection.mutable
@@ -26,15 +27,21 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
 
   def this(nested: SummarizableEstimator[ModelIn]) = this(nested, Identifiable.randomUID("stochasticHyperopt"))
 
-  val paramDomains = new Param[Seq[ParamDomainPair[_]]](this, "paramDomains",
-  "Domains of the parameters to optimize. Used to map actual values to the [0,1] and back to interact with sampler.")
+  val paramDomains = new Param[Array[ParamDomainPair[_]]](this, "paramDomains",
+  "Domains of the parameters to optimize. Used to map actual values to the [0,1] and back to interact with sampler.") {
+    override def jsonEncode(value: Array[ParamDomainPair[_]]): String = value.map(x => s"${x.param.name} -> ${x.domain}").mkString(",")
+  }
 
   val nanReplacement = new DoubleParam(this, "nanReplacement",
   "Value to use as evaluation result in case if model evaluation failed. Should be 'bad enougth' to force" +
     " sampler to avoid this region.")
 
   val searchMode = new Param[BayesianParamOptimizerFactory](this, "searchMode",
-    "How to search for parameters. See BayesianParamOptimizer for supported modes. Default is random.")
+    "How to search for parameters. See BayesianParamOptimizer for supported modes. Default is random.") {
+    override def jsonEncode(value: BayesianParamOptimizerFactory): String = value.toString
+
+    override def jsonDecode(json: String): BayesianParamOptimizerFactory = super.jsonDecode(json)
+  }
 
   val maxNoImproveIters = new IntParam(this, "maxNoImproveIters",
     "After having this many iterations without improvement search is considered converged.", (i: Int) => i > 0)
@@ -66,7 +73,7 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
     priorsToSample -> 20
   )
 
-  def setParamDomains(pairs: ParamDomainPair[_]*) : this.type = set(paramDomains, pairs)
+  def setParamDomains(pairs: ParamDomainPair[_]*) : this.type = set(paramDomains, pairs.toArray)
 
   def setMaxIter(iters: Int) : this.type = set(maxIter, iters)
 
@@ -106,6 +113,15 @@ class StochasticHyperopt[ModelIn <: ModelWithSummary[ModelIn]]
     }
     // Grid search can tollerate some invalid configs
     triedIn
+  }
+
+
+  override protected def getForkTags(partialData: (ConfigNumber, DataFrame)): Seq[(String, String)]
+  = Seq("configuration" -> partialData._1.number.toString)
+
+  override protected def diveToReproContext(partialData: (ConfigNumber, DataFrame), estimator: SummarizableEstimator[ModelIn]): Unit = {
+    ReproContext.dive(getForkTags(partialData))
+    ReproContext.logParamPairs(partialData._1.config.toSeq, Seq())
   }
 
   def createConfigDF(config: ParamMap): DataFrame = ???

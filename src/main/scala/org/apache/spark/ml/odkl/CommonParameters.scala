@@ -171,7 +171,7 @@ trait HasCacheTrainData {
   * Used for evaluators with batch support
   */
 trait HasBatchSize extends Params {
-  val batchSize = new Param[Int](this, "batchSize", "Amount of sample to put into batch before calculating the gradient.")
+  val batchSize = new  IntParam(this, "batchSize", "Amount of sample to put into batch before calculating the gradient.")
 
   def setBatchSize(value: Int): this.type = set(batchSize, value)
   def getBatchSize : Int = $(batchSize)

@@ -43,6 +43,8 @@ object BayesianParamOptimizer {
   lazy val RANDOM = new BayesianParamOptimizerFactory {
     override def create(domains: Seq[ParamDomain[_]], seed: Long, priors : Option[Seq[(Double, DenseVector[Double])]]): BayesianParamOptimizer =
       new RandomOptimizer(domains, seed, buildDiscreteMap(domains))
+
+    override def toString: String = "RANDOM"
   }
 
   /**
@@ -58,6 +60,8 @@ object BayesianParamOptimizer {
 
         result
       }
+
+    override def toString: String = "GAUSSIAN_PROCESS"
   }
 
   /**
@@ -73,6 +77,8 @@ object BayesianParamOptimizer {
 
       result
     }
+
+    override def toString: String = "GAUSSIAN_PROCESS_WITH_NOISE"
   }
 
   /**

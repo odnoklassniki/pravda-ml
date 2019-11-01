@@ -15,6 +15,7 @@ import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.odkl.ModelWithSummary.Block
 import org.apache.spark.ml.param.{BooleanParam, Param, ParamMap, StringArrayParam}
 import org.apache.spark.ml.util.{DefaultParamsReadable, Identifiable}
+import org.apache.spark.repro.MetricsExtractor
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.{IntegerType, StructType}
 import org.apache.spark.sql.{DataFrame, Dataset, Row, SQLContext, functions}
@@ -32,13 +33,19 @@ class CrossValidator[M <: ModelWithSummary[M]]
   override val uid: String
 
 )
-  extends ForkedEstimatorSameType[M, Int](nested, uid) with HasIsTestCol with HasFolds {
+  extends ForkedEstimatorSameType[M, Int](nested, uid)
+    with HasIsTestCol with HasFolds with MetricsExtractor with HasMetricsBlock {
 
   val addGlobal = new BooleanParam(this, "addGlobal", "Whenever to add fold with global data")
+
+  val testSetExpression = new Param[String](this, "testSetExpression", "Expression used to create test marker column. " +
+    "Number of fold is inserted into __FOLD__ placeholder. Could be used, for example, to include only future data into " +
+    "test set.")
 
   setDefault(addGlobal -> true)
 
   def setAddGlobal(value: Boolean) : this.type = set(addGlobal, value)
+  def setTestSetExpression(value: String) : this.type = set(testSetExpression, value)
 
   def this(nested: SummarizableEstimator[M]) = this(nested, Identifiable.randomUID("kFoldEvaluator"))
 
@@ -51,7 +58,9 @@ class CrossValidator[M <: ModelWithSummary[M]]
     val numFoldsValue: Int = getNumFolds(dataset.toDF)
 
     val folds = for (i <- 0 until numFoldsValue)
-      yield (i, dataset.withColumn($(isTestColumn), dataset($(numFoldsColumn)) === i))
+      yield (i, dataset.withColumn($(isTestColumn),  get(testSetExpression)
+        .map(expr => functions.expr(expr.replaceAll("__FOLD__", i.toString)))
+        .getOrElse(dataset($(numFoldsColumn)) === i)))
 
     if ($(addGlobal)) {
       folds ++ Seq((-1, dataset.withColumn($(isTestColumn), functions.lit(false))))
@@ -85,8 +94,18 @@ class CrossValidator[M <: ModelWithSummary[M]]
         })
 
 
-    wholeModel.copy(extendedBlocks)
+    wholeModel.copy(extendedBlocks).setParent(this)
   }
+
+  override def extractImpl(model: ModelWithSummary[_]): Option[DataFrame] = {
+    // We had reported nested metrics, thus keep only global ones, unless aggregation
+    // is specified
+    model.summary.blocks.get(metrics)
+      .map(x => if(!isDefined(extractExpression)) x.filter(s"${$(numFoldsColumn)} = -1").drop($(numFoldsColumn)) else x)
+  }
+
+  override protected def getForkTags(partialData: (Int, DataFrame)): Seq[(String, String)]
+  = Seq("fold" -> partialData._1.toString)
 }
 
 object CrossValidator extends DefaultParamsReadable[CrossValidator[_]] with Serializable {

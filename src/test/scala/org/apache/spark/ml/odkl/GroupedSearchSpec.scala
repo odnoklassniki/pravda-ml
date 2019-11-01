@@ -104,7 +104,7 @@ object GroupedSearchSpec extends WithTestData {
       )
 
     val estimator = new GroupedSearch(Seq(
-      "regParam" -> optimizer.copy(ParamMap(optimizer.paramDomains -> Seq(
+      "regParam" -> optimizer.copy(ParamMap(optimizer.paramDomains -> Array(
         ParamDomainPair(nested.regParam, new DoubleRangeDomain(0, 2))))),
       "elasticNet" -> gridSearch.copy(ParamMap(gridSearch.estimatorParamMaps -> new StableOrderParamGridBuilder()
         .addGrid(nested.elasticNetParam, Array(0.0,0.25,0.5))

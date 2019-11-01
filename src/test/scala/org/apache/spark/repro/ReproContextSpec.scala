@@ -76,24 +76,37 @@ class ReproContextSpec extends FlatSpec with Matchers with WithTestData {
     Seq(
       ("inputCols", """["first","second"]""", "stage0_VectorAssembler"),
       ("outputCol", "\"features\"", "stage0_VectorAssembler"),
-      ("testMarker","\"isTest\"","stage1_CachingTransformer/FoldsAssigner/CrossValidator/EvaluatingTransformer/TrainOnlyFilter"),
-      ("storageLevel","\"StorageLevel(memory, deserialized, 1 replicas)\"","stage1_CachingTransformer"),
       ("materializeCached","true","stage1_CachingTransformer"),
       ("regParam", "0.001", "stage1_CachingTransformer/FoldsAssigner/CrossValidator/EvaluatingTransformer/TrainOnlyFilter/LinearRegression")
     ).foreach(part => actual should contain(part))
   }
 
-  "ReproContext" should "persist metrics" in {
+  "ReproContext" should "persist metrics for global" in {
     modelWithMetrics shouldNot be(null)
 
     val loaded = sqlc.read.parquet(tempPathWithMetrics + "/metrics")
 
-    loaded.schema.fieldNames should contain theSameElementsAs Seq("foldNum", "isTest", "metric", "value")
+    loaded.schema.fieldNames should contain theSameElementsAs Seq("isTest", "metric", "value")
 
     loaded.select('metric.as[String]).distinct().collect() should contain allElementsOf Seq(
       "r2", "rmse", "explainedVariance", "meanAbsoluteError", "meanSquaredError")
 
-    loaded.select('foldNum.as[Int]).distinct.collect() should contain theSameElementsAs Seq(-1, 0, 1, 2)
+
+    loaded.filter('metric === "r2").count() should be(1)
+  }
+
+
+  "ReproContext" should "persist metrics for folds" in {
+    modelWithMetrics shouldNot be(null)
+
+    val loaded = sqlc.read.option("basePath", tempPath).parquet(tempPathWithMetrics + "/*/metrics")
+
+    loaded.schema.fieldNames should contain theSameElementsAs Seq("fold", "isTest", "metric", "value")
+
+    loaded.select('metric.as[String]).distinct().collect() should contain allElementsOf Seq(
+      "r2", "rmse", "explainedVariance", "meanAbsoluteError", "meanSquaredError")
+
+    loaded.select('fold.as[Int]).distinct.collect() should contain theSameElementsAs Seq(-1, 0, 1, 2)
 
     loaded.filter('metric === "r2" && 'isTest === true).count() should be(3)
 

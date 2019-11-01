@@ -45,7 +45,7 @@ class BinaryClassificationEvaluator(override val uid: String) extends Evaluator[
 
   setDefault(fmeasureThresholds, Map[String, Double]("f1" -> 1.0))
 
-  final val numBins: Param[Int] = new Param[Int](
+  final val numBins:  IntParam = new  IntParam(
     this, "numBins", "How many points to add to nested curves (recall/precision or roc)")
 
   setDefault(numBins, 100)

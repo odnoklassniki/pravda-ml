@@ -1,11 +1,15 @@
 package org.apache.spark.repro
 
+import java.util.Collections
+
 import odkl.analysis.spark.util.Logging
 import org.apache.spark.ml.odkl.HasMetricsBlock
-import org.apache.spark.ml.param.{Param, Params}
+import org.apache.spark.ml.param.{Param, ParamPair, Params}
 import org.apache.spark.ml.util.MLWritable
-import org.apache.spark.sql.{DataFrame, Row, SparkSession}
+import org.apache.spark.sql.odkl.SparkSqlUtils
+import org.apache.spark.sql.{DataFrame, Row, SparkSession, functions}
 import org.joda.time.LocalDate
+import org.mlflow.api.proto.Service
 import org.mlflow.tracking.creds.MlflowHostCredsProvider
 import org.mlflow.tracking.{ActiveRun, MlflowClient, MlflowContext}
 
@@ -16,10 +20,22 @@ trait MLFlowClient {
   val context: MlflowContext
   val run: ActiveRun
 
+  def logMetricsBatch(metrics: Iterable[Service.Metric] ) = {
+    context.getClient.logBatch(run.getId,
+      metrics.asJava,
+      Collections.emptyList[Service.Param],
+      Collections.emptyList[Service.RunTag])
+  }
+
   def dive(newRun: String): MLFlowClient = {
     new MLFlowClient {
       override val context: MlflowContext = self.context
-      override lazy val run: ActiveRun = self.context.startRun(newRun, self.run.getId)
+      override lazy val run: ActiveRun = {
+        val run = self.context.startRun(newRun, self.run.getId)
+        // Used to simplify navigation in ML Flow UI
+        run.setTag("parent", self.run.getId)
+        run
+      }
     }
   }
 }
@@ -37,12 +53,16 @@ class MLFlowRootClient private[repro](client: MlflowClient, experiment: String) 
   }
 
   override lazy val run: ActiveRun = context.startRun("root")
+
+  run.setTag("parent", "root")
 }
+
+case class MetricInfo(metric: String, value: Double, isTest: Option[Boolean], step: Long)
 
 class MlFlowReproContext private[repro]
 (spark: SparkSession,
  basePath: String,
- mlFlow: MLFlowClient,
+ val mlFlow: MLFlowClient,
  tags: Seq[(String, String)]) extends ReproContext with Logging with HasMetricsBlock {
 
   private val startTime = new LocalDate()
@@ -70,10 +90,9 @@ class MlFlowReproContext private[repro]
     new MlFlowReproContext(spark, basePath, newRun, tags)
   }
 
-  override def logParams(params: Params, path: Seq[String]): Unit = {
-    val javaParams = params.params.view
-      .filter(params.isSet)
-      .map(x => (path :+ x.name).mkString("/") -> x.asInstanceOf[Param[Any]].jsonEncode(params.get(x).get))
+  override def logParamPairs(params: Iterable[ParamPair[_]], path: Seq[String]): Unit = {
+    val javaParams = params
+      .map(x => (path :+ x.param.name).mkString("/") -> x.param.asInstanceOf[Param[Any]].jsonEncode(x.value))
       .toMap.asJava
     mlFlow.run.logParams(javaParams)
   }
@@ -82,49 +101,57 @@ class MlFlowReproContext private[repro]
     try {
       val groundMetrics: DataFrame = metrics
       val fields = groundMetrics.schema.fieldNames.toSet
-      import groundMetrics.sqlContext.implicits._
-      logInfo(s"Got metrics dataframe to log with fields $fields")
 
-      val defaultFold = if (fields.contains("foldNum")) {
-        logInfo("Filtering by fold")
-        groundMetrics.filter('foldNum === -1)
-      } else {
-        groundMetrics
-      }
+      if (Set("metric", "value").subsetOf(fields)) {
+        import groundMetrics.sqlContext.implicits._
+        logInfo(s"Got metrics dataframe to log with fields $fields")
 
-      val scalarMetrics = if (fields.contains("x-value")) {
-        logInfo("Filtering scalar metrics")
-        defaultFold.filter($"x-value".isNull)
-      } else {
-        defaultFold
-      }
+        val scalarMetrics = if (fields.contains("x-value")) {
+          logInfo("Filtering scalar metrics")
+          groundMetrics.filter($"x-value".isNull)
+        } else {
+          groundMetrics
+        }
 
-      val metricsMap: Map[String, java.lang.Double] = if (Set("metric", "value", "isTest").subsetOf(fields)) {
-        logInfo("Logging train/test metrics")
-        extractMetricValue(scalarMetrics)
-          .select("metric", "value", "isTest")
-          .map {
-            case Row(metric: String, value: Double, isTest: Boolean)
-            => s"$metric on ${if (isTest) "test" else "train"}" -> java.lang.Double.valueOf(value)
-          }
+        val (withStep, converter) = if (fields.contains("invertedStep")) {
+          logInfo("Adding step from inverted index.")
+          scalarMetrics.withColumn("step", 'invertedStep.cast("long")) -> ((i: Long, max: Long) => max - i)
+        } else if (fields.contains("step")) {
+          scalarMetrics.withColumn("step", 'step.cast("long")) -> ((i: Long, max: Long) => i)
+        } else {
+          scalarMetrics.withColumn("step", functions.lit(0L).cast("long")) -> ((i: Long, max: Long) => i)
+        }
+
+        val withIsTest = if (fields.contains("isTest")) {
+          withStep
+        } else {
+          withStep.withColumn("isTest", functions.lit(null).cast("boolean"))
+        }
+
+        val rows: Array[MetricInfo] = withIsTest
+          .withColumn("value", 'value.cast("double"))
+          .filter('value.isNotNull)
+          .select(SparkSqlUtils.toStruct[MetricInfo]())
           .collect()
-          .toMap
-      } else if (Set("metric", "value").subsetOf(fields)) {
-        logInfo("Logging plain metrics")
-        extractMetricValue(scalarMetrics)
-          .select("metric", "value")
-          .map {
-            case Row(metric: String, value: Double) => metric -> java.lang.Double.valueOf(value)
-          }
-          .collect()
-          .toMap
-      } else {
-        logWarning("Unknown schema, not logging the metrics.")
-        Map[String, java.lang.Double]()
-      }
 
-      if (metricsMap.nonEmpty) {
-        mlFlow.run.logMetrics(metricsMap.asJava)
+
+        if (rows.nonEmpty) {
+          val maxStep: Long = rows.view.map(_.step).max
+
+          val metricsBatch: Array[Service.Metric] = rows
+            .map(x => Service.Metric.newBuilder()
+              .setKey(x.isTest.map(y => s"${x.metric} on ${if (y) "test" else "train"}").getOrElse(x.metric))
+              .setValue(x.value)
+              .setStep(converter(x.step, maxStep))
+              .build()
+            )
+
+          mlFlow.logMetricsBatch(metricsBatch)
+        } else {
+          logWarning("Got empty metrics set.")
+        }
+      } else {
+        logWarning("Missing required fields for logging metrics to MLFlow - metric and value")
       }
     } catch {
       case e: Throwable =>

@@ -1,6 +1,6 @@
 package org.apache.spark.repro
 
-import org.apache.spark.ml.param.{Param, Params}
+import org.apache.spark.ml.param.{Param, ParamPair, Params}
 import org.apache.spark.ml.util.MLWritable
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession, functions}
 
@@ -11,7 +11,7 @@ class SimpleReproContext private
 
   var accumulatedMetrics : Seq[DataFrame] = Seq()
 
-  var accumulatedParams: Seq[(Seq[String], Params)] = Seq()
+  var accumulatedParams: Seq[(Seq[String], Iterable[ParamPair[_]])] = Seq()
 
   override def persistEstimator(estimator: MLWritable): Unit = {
     estimator.save(basePath + "/estimator")
@@ -24,7 +24,7 @@ class SimpleReproContext private
   override def dive(tags: Seq[(String, String)]): ReproContext = new SimpleReproContext(
     spark, basePath, this.tags ++ tags)
 
-  override def logParams(params: Params, path: Seq[String]): Unit =
+  override def logParamPairs(params: Iterable[ParamPair[_]], path: Seq[String]): Unit =
     accumulatedParams = accumulatedParams :+ path -> params
 
   override def logMetircs(metrics: => DataFrame): Unit = accumulatedMetrics = accumulatedMetrics :+ metrics
@@ -32,9 +32,9 @@ class SimpleReproContext private
   override def start(): Unit = {
     import spark.implicits._
     accumulatedParams.map {
-      case (path, params) => params.params.view
-        .filter(params.isSet)
-        .map(x => x.name -> x.asInstanceOf[Param[Any]].jsonEncode(params.get(x).get))
+      case (path, params) => params.view
+        .map(x => x.param.name -> x.param.asInstanceOf[Param[Any]].jsonEncode(x.value))
+        .toSeq
         .toDF("param", "value")
         .withColumn("path", functions.lit(path.mkString("/")))
     }.reduce(_ unionByName _)

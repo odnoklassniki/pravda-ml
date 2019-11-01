@@ -420,7 +420,7 @@ object UnwrappedStage extends Serializable {
   class PartitioningTransformer(override val uid: String) extends Transformer with PartitioningParams {
     def this() = this(Identifiable.randomUID("partitioner"))
 
-    val numPartitions = new Param[Int](this, "numPartitions", "Number of partitions to create")
+    val numPartitions = new  IntParam(this, "numPartitions", "Number of partitions to create")
 
     def setNumPartitions(value: Int): this.type = set(numPartitions, value)
 
@@ -668,10 +668,10 @@ object UnwrappedStage extends Serializable {
       "Approximate amount of records to store in one partition. Number of partitions is computed dynamicaly assuming even " +
         "partitioning.")
 
-    val maxPartitions = new Param[Int](
+    val maxPartitions = new  IntParam(
       this, "maxPartitions", "Maximum number of partitions to assign")
 
-    val minPartitions = new Param[Int](
+    val minPartitions = new  IntParam(
       this, "minPartitions", "Minimum number of partitions to assign")
 
     setDefault(maxPartitions -> Int.MaxValue, minPartitions -> 1)

@@ -1,13 +1,14 @@
 package org.apache.spark.repro
 
 import org.apache.spark.ml.odkl.UnwrappedStage.{DynamicDataTransformerTrainer, IdentityModelTransformer, NoTrainEstimator}
-import org.apache.spark.ml.odkl.{ForkedEstimator, HasMetricsBlock, ModelWithSummary, UnwrappedStage}
-import org.apache.spark.ml.param.{ParamMap, Params}
+import org.apache.spark.ml.odkl._
+import org.apache.spark.ml.param.{Param, ParamMap, ParamPair, Params}
 import org.apache.spark.ml.util.{MLWritable, MLWriter}
 import org.apache.spark.ml._
 import org.apache.spark.ml.odkl.Evaluator.EvaluatingTransformer
+import org.apache.spark.ml.odkl.hyperopt.HasConfigurations
 import org.apache.spark.sql.types.StructType
-import org.apache.spark.sql.{DataFrame, Dataset}
+import org.apache.spark.sql.{DataFrame, Dataset, functions}
 
 import scala.annotation.tailrec
 import scala.util.DynamicVariable
@@ -20,7 +21,16 @@ trait ReproContext {
 
   def dive(tags: Seq[(String, String)]): ReproContext
 
-  def logParams(params: Params, path: Seq[String]): Unit
+  def logParamPairs(params: Iterable[ParamPair[_]], path: Seq[String]): Unit
+
+  def logParams(params: Params, path: Seq[String]): Unit = {
+    val pairs = params
+      .params.view
+      .filter(x => params.get(x).exists(y => params.getDefault(x).isEmpty || y != params.getDefault(x).get))
+      .map(x => ParamPair[Any](x.asInstanceOf[Param[Any]], params.get(x).get))
+
+    logParamPairs(pairs, path)
+  }
 
   def logMetircs(metrics: => DataFrame)
 
@@ -143,8 +153,15 @@ object ReproContext extends ReproContext with HasMetricsBlock {
           case nestedModel: Model[_] => logMetrics(context, nestedModel)
           case _ =>
         }
-      case withSummary: ModelWithSummary[_] if withSummary.summary.blocks.contains(metrics) =>
-        context.logMetircs(withSummary.summary(metrics))
+      case withSummary: ModelWithSummary[_] =>
+        (withSummary.parent match {
+          case extractor: MetricsExtractor =>
+            extractor.extract(withSummary)
+          case _ =>
+            withSummary.summary.blocks.get(metrics)
+
+        }).foreach(x => logMetircs(x))
+
       case _ =>
     }
   }
@@ -170,9 +187,13 @@ object ReproContext extends ReproContext with HasMetricsBlock {
     }
   }
 
-  override def logParams(params: Params, path: Seq[String]): Unit = currentContext.value.lastOption.foreach(_.logParams(params, path))
+  override def logParamPairs(params: Iterable[ParamPair[_]], path: Seq[String]): Unit = currentContext.value.lastOption.foreach(_.logParamPairs(params, path))
 
   override def logMetircs(metrics: => DataFrame): Unit = currentContext.value.lastOption.foreach(_.logMetircs(metrics))
+
+  def logMetricsFromModel(model : Model[_]) : Unit = {
+    currentContext.value.lastOption.foreach(x => logMetrics(x, model))
+  }
 
   override def start(): Unit =  ???
 

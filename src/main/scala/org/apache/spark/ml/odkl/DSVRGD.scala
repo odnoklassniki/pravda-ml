@@ -8,7 +8,7 @@ import org.apache.spark.ml.attribute.{Attribute, AttributeGroup, NumericAttribut
 import org.apache.spark.ml.odkl.DSVRGD.{DistributedSgdState, LossRecord}
 import org.apache.spark.ml.odkl.ModelWithSummary.Block
 import org.apache.spark.ml.param.shared._
-import org.apache.spark.ml.param.{BooleanParam, DoubleParam, Param, ParamMap}
+import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.{DefaultParamsReadable, Identifiable, SchemaUtils}
 import org.apache.spark.ml.linalg._
 import org.apache.spark.mllib
@@ -57,7 +57,7 @@ abstract class DSVRGD[M <: ModelWithSummary[M]]
   val lastIsIntercept = new BooleanParam(
     this, "lastIsIntercept", "Whenever to treat the last feature as intercept (should not be regularized and properly initialized).")
 
-  val localMinibatchSize = new Param[Int](this, "localMinibatchSize",
+  val localMinibatchSize = new  IntParam(this, "localMinibatchSize",
     "Amount of samples to group into mini-batches localy when computing gradient. Makes gradient approximation more preciese.",
     (x: Int) => x > 0 && x < 100000)
 

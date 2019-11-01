@@ -87,7 +87,7 @@ class LinearScaleEstimator[M <: LinearModel[M]] extends ScalerEstimator[M] {
   override protected def unscaleModel(model: M, scaler: StandardScalerModel): M
   = Scaler.transformModel(model, scaler)
 
-  override def copy(extra: ParamMap) = defaultCopy(extra)
+  override def copy(extra: ParamMap) = copyValues(new LinearScaleEstimator[M](), extra)
 }
 
 object LinearScaleEstimator extends DefaultParamsReadable[LinearScaleEstimator[_]]
@@ -97,7 +97,7 @@ class CompositScaleEstimator[M <: LinearModel[M], C <: CombinedModel[M, C]] exte
     model.transformNested(x => transformModel[M](x, scaler))
   }
 
-  override def copy(extra: ParamMap) = defaultCopy(extra)
+  override def copy(extra: ParamMap)  = copyValues(new CompositScaleEstimator[M,C](), extra)
 }
 
 object CompositScaleEstimator extends DefaultParamsReadable[CompositScaleEstimator[_,_]]
@@ -194,7 +194,7 @@ object Scaler extends Serializable {
       summary,
       ParamMap(
         model.coefficients -> coefficientsAndIntercept._1,
-        model.intercept -> coefficientsAndIntercept._2))
+        model.intercept -> coefficientsAndIntercept._2)).setParent(model.parent)
   }
 
   /**
