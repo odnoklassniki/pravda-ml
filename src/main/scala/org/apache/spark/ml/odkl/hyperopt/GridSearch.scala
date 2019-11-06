@@ -26,8 +26,12 @@ class GridSearch[ModelIn <: ModelWithSummary[ModelIn]]
 
   def this(nested: SummarizableEstimator[ModelIn]) = this(nested, Identifiable.randomUID("gridSearch"))
 
-  val estimatorParamMaps: Param[Array[ParamMap]] = JacksonParam.arrayParam[ParamMap](
-    this, "estimatorParamMaps", "All the configurations to test in grid search.")
+  val estimatorParamMaps: Param[Array[ParamMap]] = new Param[Array[ParamMap]](
+    this, "estimatorParamMaps", "All the configurations to test in grid search.") {
+    override def jsonEncode(value: Array[ParamMap]): String = ""
+
+    override def jsonDecode(json: String): Array[ParamMap] = super.jsonDecode(json)
+  }
 
   def getEstimatorParamMaps: Array[ParamMap] = $(estimatorParamMaps)
 
