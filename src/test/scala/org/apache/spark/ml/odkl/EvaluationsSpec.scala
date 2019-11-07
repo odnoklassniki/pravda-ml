@@ -5,7 +5,8 @@ import odkl.analysis.spark.util.SQLOperations
 import org.apache.spark.ml.odkl.Evaluator.TrainTestEvaluator
 import org.apache.spark.mllib.evaluation.BinaryClassificationMetrics
 import org.apache.spark.ml.linalg.Vectors
-import org.apache.spark.sql.DataFrame
+import org.apache.spark.ml.odkl.CrossValidator.FoldsAssigner
+import org.apache.spark.sql.{DataFrame, functions}
 import org.scalatest.FlatSpec
 
 /**
@@ -41,6 +42,19 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
       numFolds = 2,
       numThreads = 1)
     estimator.fit(noInterceptDataLogistic)
+  }
+
+  lazy val timeBasedValidatedModel = {
+    val estimator = Evaluator.addFolds(
+      estimator = Evaluator.validateInFolds(
+      new LogisticRegressionLBFSG(),
+      new TrainTestEvaluator(new BinaryClassificationEvaluator()),
+      numFolds = 2,
+      numThreads = 1)
+      .setTestSetExpression("IF(time > 0.8, true, IF(foldNum != __FOLD__, false, cast(null as boolean)))"),
+      folder = new FoldsAssigner().setNumFolds(2))
+
+    estimator.fit(noInterceptDataLogistic.withColumn("time", functions.rand(0xdeadbeaf)))
   }
 
   "Binary evaluator " should " should produce same AUC" in {
@@ -253,5 +267,86 @@ class EvaluationsSpec extends FlatSpec with TestEnv with org.scalatest.Matchers 
     model.getIntercept should be(noInterceptLogisticModel.getIntercept +- 0.000001)
   }
 
+  "Time based cross validation " should " add total metrics to summary" in {
+    val metrics: DataFrame = timeBasedValidatedModel.summary.blocks(this.metrics)
+
+
+    metrics.filter(metrics("foldNum") === -1 && metrics("isTest") === false)
+      .select("metric", "value", "x-metric", "x-value").collect().zip(evaluatedBinaryMetrics).foreach(pair => {
+      pair._1.getString(0) should be(pair._2.getString(0))
+      pair._1.getString(2) should be(pair._2.getString(2))
+
+      Math.abs(pair._1.getDouble(1) - pair._2.getDouble(1)) should be <= delta
+      if (pair._1.isNullAt(3)) {
+        pair._2.isNullAt(3) should be(true)
+      } else {
+        pair._1.getDouble(3) should be(pair._2.getDouble(3) +- delta)
+      }
+    })
+  }
+
+  "Time based cross validation " should " add expected number of folds to metircs" in {
+    val metrics: DataFrame = timeBasedValidatedModel.summary.blocks(this.metrics)
+
+    val configs = metrics.select("foldNum", "isTest").distinct().collect().map(x => x.getInt(0) -> x.getBoolean(1))
+
+    configs.sorted should be(Seq(
+      -1 -> false,
+      0 -> false,
+      0 -> true,
+      1 -> false,
+      1 -> true
+    ).sorted)
+  }
+
+  "Time based cross validation " should " add weights for main fold" in {
+    val model = timeBasedValidatedModel
+    val summary = model.summary
+
+    val weightsFrame: DataFrame = summary $ model.weights
+    val weigths = weightsFrame
+      .filter(weightsFrame("foldNum") === -1).rdd
+      .map(r => r.getInt(0) -> r.getDouble(2)).collect().toMap
+
+    weigths(0) should be(model.getCoefficients(0))
+    weigths(1) should be(model.getCoefficients(1))
+  }
+
+  "Time based cross validation " should " produce similar weights for folds" in {
+    val model = timeBasedValidatedModel
+    val summary = model.summary
+
+    val weightsFrame: DataFrame = summary $ model.weights
+
+    for(i <- -1 to 1) {
+      val weigths = weightsFrame
+        .filter(weightsFrame("foldNum") === 0)
+        .select("index", "weight").rdd
+        .map(r => r.getInt(0) -> r.getDouble(1)).collect().toMap
+
+      val average = Vectors.dense(Array(weigths(0), weigths(1)))
+
+      // Smaller folds, smaller limits
+      cosineDistance(average, model.getCoefficients) should be <= 0.0001
+    }
+  }
+
+  "Time based cross validation " should " add expected number of folds to weights" in {
+    val model = timeBasedValidatedModel
+    val summary = model.summary
+
+    val weightsFrame: DataFrame = summary $ model.weights
+    val configs = weightsFrame.select("foldNum").distinct().collect().map(x => x.getInt(0))
+
+    configs.sorted should be(Seq(-1, 0, 1).sorted)
+  }
+
+  "Time based cross validation " should " not miss coefficients weights" in {
+    val model = timeBasedValidatedModel
+
+    model.getCoefficients(0) should be(noInterceptLogisticModel.getCoefficients(0) +- 0.000001)
+    model.getCoefficients(1) should be(noInterceptLogisticModel.getCoefficients(1) +- 0.000001)
+    model.getIntercept should be(noInterceptLogisticModel.getIntercept +- 0.000001)
+  }
 
 }

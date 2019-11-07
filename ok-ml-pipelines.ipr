@@ -632,22 +632,22 @@
         <root url="jar://$USER_HOME$/.ivy2/cache/log4j/log4j/srcs/log4j-1.2.17-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: ml.dmlc:xgboost4j-spark:0.81:jar">
+    <library name="sbt: ml.dmlc:xgboost4j-spark:0.90:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/ml.dmlc/xgboost4j-spark/jars/xgboost4j-spark-0.81.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/ml.dmlc/xgboost4j-spark/jars/xgboost4j-spark-0.90.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/ml.dmlc/xgboost4j-spark/srcs/xgboost4j-spark-0.81-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/ml.dmlc/xgboost4j-spark/srcs/xgboost4j-spark-0.90-sources.jar!/" />
       </SOURCES>
     </library>
-    <library name="sbt: ml.dmlc:xgboost4j:0.81:jar">
+    <library name="sbt: ml.dmlc:xgboost4j:0.90:jar">
       <CLASSES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/ml.dmlc/xgboost4j/jars/xgboost4j-0.81.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/ml.dmlc/xgboost4j/jars/xgboost4j-0.90.jar!/" />
       </CLASSES>
       <JAVADOC />
       <SOURCES>
-        <root url="jar://$USER_HOME$/.ivy2/cache/ml.dmlc/xgboost4j/srcs/xgboost4j-0.81-sources.jar!/" />
+        <root url="jar://$USER_HOME$/.ivy2/cache/ml.dmlc/xgboost4j/srcs/xgboost4j-0.90-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: net.arnx:jsonic:1.2.11:jar">
@@ -1513,6 +1513,15 @@
       <JAVADOC />
       <SOURCES>
         <root url="jar://$USER_HOME$/.ivy2/cache/org.lz4/lz4-java/srcs/lz4-java-1.4.0-sources.jar!/" />
+      </SOURCES>
+    </library>
+    <library name="sbt: org.mlflow:mlflow-client:1.2.0:jar">
+      <CLASSES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.mlflow/mlflow-client/jars/mlflow-client-1.2.0.jar!/" />
+      </CLASSES>
+      <JAVADOC />
+      <SOURCES>
+        <root url="jar://$USER_HOME$/.ivy2/cache/org.mlflow/mlflow-client/srcs/mlflow-client-1.2.0-sources.jar!/" />
       </SOURCES>
     </library>
     <library name="sbt: org.mockito:mockito-core:2.13.0:jar">

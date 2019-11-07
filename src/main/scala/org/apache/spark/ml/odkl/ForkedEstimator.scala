@@ -17,8 +17,10 @@ import java.util.function.Supplier
 import org.apache.commons.lang3.StringUtils
 import org.apache.hadoop.fs.{FileSystem, Path}
 import org.apache.spark.annotation.DeveloperApi
+import org.apache.spark.ml.odkl.ModelWithSummary.Block
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.DefaultParamsReader
+import org.apache.spark.repro.ReproContext
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, Dataset, SQLContext, functions}
 
@@ -43,9 +45,7 @@ ModelOut <: ModelWithSummary[ModelOut]]
   override val uid: String
 
 )
-  extends SummarizableEstimator[ModelOut] with ForkedModelParams {
-
-  final val numThreads = new IntParam(this, "numThreads", "How many threads to use for fitting forks.")
+  extends SummarizableEstimator[ModelOut] with ForkedModelParams with HasNumThreads {
 
   final val pathForTempModels = new Param[String](
     this, "pathForTempModels", "Used for incremental training. Persist models when trained and skips training if valid model found.")
@@ -56,14 +56,18 @@ ModelOut <: ModelWithSummary[ModelOut]]
   final val overwriteModels = new BooleanParam(this, "overwriteModels", "Whenever to allow overwriting models. If not enabled restoration " +
     "after failure might fail for partly written model.")
 
-  setDefault(numThreads -> 1, overwriteModels -> false)
+  final val enableDive = new BooleanParam(
+    this, "enableDive", "Whenever to dive into repro context for this fork"
+  )
 
-  def setNumThreads(value: Int): this.type = set(numThreads, value)
+  setDefault(numThreads -> 1, overwriteModels -> false, enableDive -> true)
 
   def setPathForTempModels(value: String): this.type =
     if (StringUtils.isNotBlank(value)) set(pathForTempModels, value) else clear(pathForTempModels)
 
   def setOverwriteModels(value: Boolean) : this.type = set(overwriteModels, value)
+
+  def setEnableDive(value: Boolean) : this.type = set(enableDive, value)
 
   /**
     * Override this method and create forks to train from the data.
@@ -184,21 +188,51 @@ ModelOut <: ModelWithSummary[ModelOut]]
     val result: (ForeKeyType, Try[ModelIn]) = (
       partialData._1,
       failFast(partialData._1, Try({
-        val model = estimator.fit(get(propagatedKeyColumn).map(x => partialData._2.withColumn(x, functions.lit(partialData._1))).getOrElse(partialData._2))
-
-        logInfo(s"Fitting at $uid for ${partialData._1} DONE")
-
-        if (pathForModel.isDefined) {
-          if ($(overwriteModels))
-            model.write.overwrite().save(pathForModel.get)
-          else
-            model.write.save(pathForModel.get)
+        if ($(enableDive)) {
+          diveToReproContext(partialData, estimator)
         }
+        try {
+          val model = estimator.fit(get(propagatedKeyColumn).map(x => partialData._2.withColumn(x, functions.lit(partialData._1))).getOrElse(partialData._2))
 
-        model
+          logInfo(s"Fitting at $uid for ${partialData._1} DONE")
+
+          if (pathForModel.isDefined) {
+            if ($(overwriteModels))
+              model.write.overwrite().save(pathForModel.get)
+            else
+              model.write.save(pathForModel.get)
+          }
+
+          if ($(enableDive)) {
+            logMetricsToReproContext(model)
+          }
+
+          model
+        } finally {
+          if ($(enableDive)) {
+            finilizeReproContext
+          }
+        }
       })))
 
     result
+  }
+
+  protected def finilizeReproContext = {
+    ReproContext.comeUp()
+  }
+
+  protected def logMetricsToReproContext(model: ModelIn) = {
+    ReproContext.logMetricsFromModel(model)
+  }
+
+  protected def diveToReproContext(partialData: (ForeKeyType, DataFrame), estimator: SummarizableEstimator[ModelIn]) = {
+    ReproContext.dive(getForkTags(partialData))
+    ReproContext.logParams(estimator, Seq())
+  }
+
+  protected def getForkTags(partialData: (ForeKeyType, DataFrame)) = {
+    Seq("fork" -> partialData._1.toString)
   }
 
   @DeveloperApi

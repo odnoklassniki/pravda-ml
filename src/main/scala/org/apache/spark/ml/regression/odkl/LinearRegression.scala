@@ -6,7 +6,7 @@ import org.apache.spark.ml.odkl._
 import org.apache.spark.ml.param.ParamMap
 import org.apache.spark.ml.regression
 import org.apache.spark.ml.regression.LinearRegressionParams
-import org.apache.spark.ml.util.{DefaultParamsWritable, Identifiable}
+import org.apache.spark.ml.util.{DefaultParamsReadable, DefaultParamsWritable, Identifiable}
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.StructType
 import org.apache.spark.sql.{DataFrame, Dataset, SparkSession}
@@ -207,3 +207,5 @@ with LinearRegressionParams with DefaultParamsWritable with HasWeights{
   override def transformSchema(schema: StructType): StructType =
     copyValues(new org.apache.spark.ml.regression.LinearRegression()).transformSchema(schema)
 }
+
+object LinearRegression extends DefaultParamsReadable[LinearRegression]

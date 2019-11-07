@@ -7,7 +7,7 @@ import org.apache.commons.math3.distribution.TDistribution
 import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.param.shared.HasFeaturesCol
-import org.apache.spark.ml.param.{DoubleParam, IntArrayParam, Param, ParamMap}
+import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.Identifiable
 import org.apache.spark.ml.linalg._
 import org.apache.spark.sql.odkl.SparkSqlUtils
@@ -230,7 +230,7 @@ case class WeightsStat(stats: Array[WeightsStatRecord])
 
 abstract class GenericFeatureSelector[M <: ModelWithSummary[M]] extends ModelWithSummary[M] with HasFeaturesCol {
 
-  val originalSize = new Param[Int](this, "originalSize", "Number of features in the original data.")
+  val originalSize = new  IntParam(this, "originalSize", "Number of features in the original data.")
   val relevantFeatures = new IntArrayParam(this, "relevantFeatures", "Features with high enough significance")
   val weightsStat = new Param[WeightsStat](this, "weightsStat", "Statistics regarding model weights acquired during selection.")
 

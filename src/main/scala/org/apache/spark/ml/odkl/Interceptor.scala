@@ -135,7 +135,7 @@ object Interceptor extends DefaultParamsReadable[Interceptor] with Serializable 
         ParamMap(
           model.coefficients -> Interceptor.removeBias(coefficients),
           model.intercept -> coefficients(interceptIndex)
-        ))
+        )).setParent(model.parent)
     )
   }
 

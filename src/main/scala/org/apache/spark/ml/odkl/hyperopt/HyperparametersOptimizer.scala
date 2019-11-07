@@ -1,6 +1,6 @@
 package org.apache.spark.ml.odkl.hyperopt
 
-import org.apache.spark.ml.odkl.{ModelWithSummary, SummarizableEstimator}
+import org.apache.spark.ml.odkl.{HasNumThreads, ModelWithSummary, SummarizableEstimator}
 import org.apache.spark.ml.odkl.ModelWithSummary.Block
 import org.apache.spark.ml.param._
 import org.apache.spark.sql.types._
@@ -11,27 +11,19 @@ import scala.util.Try
 /**
   * Common trait to all the hyper-parameter optimizers.
   */
-trait HyperparametersOptimizer[M <: ModelWithSummary[M]] extends SummarizableEstimator[M] with HasConfigurations {
+trait HyperparametersOptimizer[M <: ModelWithSummary[M]] extends SummarizableEstimator[M] with HasConfigurations with HasNumThreads {
 
   val paramNames: Param[Map[Param[_], String]] = new Param[Map[Param[_], String]](
     this, "paramsFriendlyNames", "Names of the parameters to use in column names to store configs"
-  )
+  ) {
+    override def jsonEncode(value: Map[Param[_], String]): String = ""
+  }
   val metricsBlock = new Param[String](this, "metricsBlock", "Name of the block with metrics to get results from.")
   val metricsExpression = new Param[String](this, "metricsExpression",
     "Expression used to extract single metric value from the metrics table. __THIS__ shoud be used as a table alias.")
-  val configurationIndexColumn = new Param[String](this, "configurationIndexColumn",
-    "Name of the column to store id of config for further analysis.")
-  val resultingMetricColumn = new Param[String](this, "resultingMetricColumn",
-    "Name of the column to store resulting metrics for further analysis.")
-  val errorColumn = new Param[String](this, "errorColumn",
-    "Name of the column to store text of the error if occurs.")
 
-  setDefault(
-    metricsBlock -> "metrics",
-    configurationIndexColumn -> "configurationIndex",
-    resultingMetricColumn -> "resultingMetric",
-    errorColumn -> "error"
-  )
+
+  setDefault(metricsBlock -> "metrics")
 
   def setParamNames(value: (Param[_], String)*): this.type = set(paramNames, value.toMap)
 
@@ -45,14 +37,6 @@ trait HyperparametersOptimizer[M <: ModelWithSummary[M]] extends SummarizableEst
   def getMetricsExpression: String = $(metricsExpression)
 
   def setMetricsExpression(value: String): this.type = set(metricsExpression, value)
-
-  def getConfigurationIndexColumn: String = $(configurationIndexColumn)
-
-  def setConfigurationIndexColumn(value: String): this.type = set(configurationIndexColumn, value)
-
-  def getResultingMetricColumn: String = $(resultingMetricColumn)
-
-  def setResultingMetricColumn(value: String): this.type = set(resultingMetricColumn, value)
 
   /**
     * Extracts information of the resulting metrics from the trained model.
@@ -86,7 +70,7 @@ trait HyperparametersOptimizer[M <: ModelWithSummary[M]] extends SummarizableEst
       ).reduce(_ union _)).toMap ++ Map(configurations -> configurationBlock)
 
 
-    bestModel.copy(nestedBlocks)
+    bestModel.copy(nestedBlocks).setParent(this)
   }
 
   /**

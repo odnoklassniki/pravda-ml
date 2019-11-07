@@ -10,7 +10,7 @@ import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.PredictorParams
 import org.apache.spark.ml.attribute.{Attribute, AttributeGroup, NumericAttribute}
 import org.apache.spark.ml.param.shared.{HasMaxIter, HasRegParam, HasTol}
-import org.apache.spark.ml.param.{BooleanParam, Param, ParamMap}
+import org.apache.spark.ml.param.{BooleanParam, IntParam, Param, ParamMap}
 import org.apache.spark.ml.util.{Identifiable, SchemaUtils}
 import org.apache.spark.ml.linalg._
 import org.apache.spark.mllib
@@ -40,7 +40,7 @@ class MatrixLBFGS(override val uid: String) extends
   with HasNetlibBlas {
 
   val predictVector = new Param[Boolean](this, "predictVector", "Whenever to configure model for predicting a vector.")
-  val numCorrections = new Param[Int](this, "numCorrections", "Number of corrections to memorize for search in LBFGS.")
+  val numCorrections = new  IntParam(this, "numCorrections", "Number of corrections to memorize for search in LBFGS.")
 
   def setRegParam(value: Double): this.type = set(regParam, value)
 

@@ -39,7 +39,7 @@ case class ParamDomainPair[T](param: Param[T], domain: ParamDomain[T]) {
 /**
   * Models a simple real valued parameter from the range [lower,upper]
   */
-class DoubleRangeDomain(lower: Double, upper: Double) extends ParamDomain[Double] {
+case class DoubleRangeDomain(lower: Double, upper: Double) extends ParamDomain[Double] {
   override def toDouble(domain: Double): Double = (domain - lower) / (upper - lower)
 
   override def fromDouble(double: Double): Double = double * (upper - lower) + lower
@@ -50,7 +50,7 @@ class DoubleRangeDomain(lower: Double, upper: Double) extends ParamDomain[Double
 /**
   * Models a ordinal valued parameter from the sequence {lower, lower + 1, ... , upper}
   */
-class IntRangeDomain(lower: Int, upper: Int) extends ParamDomain[Int] {
+case class IntRangeDomain(lower: Int, upper: Int) extends ParamDomain[Int] {
   override def toDouble(domain: Int): Double = (domain.toDouble - lower.toDouble) / (upper.toDouble - lower.toDouble)
 
   override def fromDouble(double: Double): Int = (double * (upper - lower + 1)).toInt + lower
@@ -61,7 +61,7 @@ class IntRangeDomain(lower: Int, upper: Int) extends ParamDomain[Int] {
 /**
   * Models parameter having limited set of values
   */
-class CategorialParam[T](values: Array[T]) extends ParamDomain[T] {
+case class CategorialParam[T](values: Array[T]) extends ParamDomain[T] {
   override def toDouble(domain: T): Double = {
     val index = values.indexWhere(_.equals(domain))
     require(index >= 0, s"Failed to resolve domain value $domain")

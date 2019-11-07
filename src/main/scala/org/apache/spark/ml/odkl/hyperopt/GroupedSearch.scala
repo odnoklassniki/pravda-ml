@@ -50,6 +50,9 @@ class GroupedSearch[ModelIn <: ModelWithSummary[ModelIn]]
     super.fitFork(estimatorCopy, wholeData, partialData)
   }
 
+
+  override protected def getForkTags(partialData: (OptimizerStage, DataFrame)): Seq[(String, String)] = Seq("stage" -> partialData._1.stage)
+
   override protected def createForkSource(dataset: Dataset[_]): ForkSource[ModelIn, OptimizerStage, ModelIn] = {
     new ForkSource[ModelIn, OptimizerStage, ModelIn] {
 

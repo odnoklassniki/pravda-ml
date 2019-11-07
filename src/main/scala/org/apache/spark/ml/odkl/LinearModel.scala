@@ -25,6 +25,7 @@ import org.apache.spark.ml.linalg._
 import org.apache.spark.mllib
 import org.apache.spark.mllib.optimization._
 import org.apache.spark.rdd.RDD
+import org.apache.spark.repro.ReproContext
 import org.apache.spark.sql.odkl.SparkSqlUtils
 import org.apache.spark.sql.types.StructField
 import org.apache.spark.sql.{DataFrame, Dataset, SQLContext}
@@ -300,6 +301,8 @@ class LogisticRegressionLBFSG(override val uid: String)
     mllib.linalg.Vectors.fromML(weights)
   }
 
+  case class LossInfo(name: String, value: Double)
+
   /**
     * CostFun implements Breeze's DiffFunction[T], which returns the loss and gradient
     * at a particular point (weights). It's used in Breeze's convex optimization routines.
@@ -340,7 +343,9 @@ class LogisticRegressionLBFSG(override val uid: String)
           }
         }
 
-        (loss + regValue * regParamL2 * 0.5, BDV(grad))
+
+        val regLoss = regValue * regParamL2 * 0.5
+        (loss + regLoss, BDV(grad))
       }
     }
   }

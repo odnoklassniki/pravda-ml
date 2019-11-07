@@ -15,7 +15,7 @@ import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.ml.Transformer
 import org.apache.spark.ml.attribute.AttributeGroup
 import org.apache.spark.ml.param.shared.HasInputCol
-import org.apache.spark.ml.param.{DoubleArrayParam, Param, ParamMap}
+import org.apache.spark.ml.param.{DoubleArrayParam, IntParam, Param, ParamMap}
 import org.apache.spark.ml.util.{DefaultParamsWritable, Identifiable}
 import org.apache.spark.ml.linalg.{Vector, VectorUDT}
 import org.apache.spark.rdd.RDD
@@ -35,16 +35,16 @@ class VectorStatCollector(override val uid: String) extends
 
   val percentiles = new DoubleArrayParam(this, "percentiles", "Percentiles to calculate for the vectors.")
 
-  val dimensions = new Param[Int](this, "dimensions", "Dimensionality of vectors to aggregate. Taken from metadata if not provided.")
+  val dimensions = new  IntParam(this, "dimensions", "Dimensionality of vectors to aggregate. Taken from metadata if not provided.")
 
-  val compression = new Param[Int](this, "compression",
+  val compression = new  IntParam(this, "compression",
     "How should accuracy be traded for size?  A value of N here will give quantile errors almost always less " +
       "than 3/N with considerably smaller errors expected for extreme quantiles.  Conversely, you should " +
       "expect to track about 5 N centroids for this accuracy.")
 
-  val numPartitions = new Param[Int](this, "numPartitions", "Number of partitions for final result.")
+  val numPartitions = new  IntParam(this, "numPartitions", "Number of partitions for final result.")
 
-  val numShufflePartitions = new Param[Int](
+  val numShufflePartitions = new  IntParam(
     this, "numShufflePartitions", "Number of partitions used for intermediate shuffle. In case if there are only a few keys" +
       " in the result this could improve performance by adding an intermediate combiner.")
 

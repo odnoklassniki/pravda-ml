@@ -5,6 +5,7 @@ import org.apache.spark.annotation.Since
 import org.apache.spark.ml.odkl._
 import org.apache.spark.ml.param._
 import org.apache.spark.ml.util.Identifiable
+import org.apache.spark.repro.ReproContext
 import org.apache.spark.sql._
 
 import scala.collection.mutable
@@ -25,8 +26,12 @@ class GridSearch[ModelIn <: ModelWithSummary[ModelIn]]
 
   def this(nested: SummarizableEstimator[ModelIn]) = this(nested, Identifiable.randomUID("gridSearch"))
 
-  val estimatorParamMaps: Param[Array[ParamMap]] =
-    new Param(this, "estimatorParamMaps", "All the configurations to test in grid search.")
+  val estimatorParamMaps: Param[Array[ParamMap]] = new Param[Array[ParamMap]](
+    this, "estimatorParamMaps", "All the configurations to test in grid search.") {
+    override def jsonEncode(value: Array[ParamMap]): String = ""
+
+    override def jsonDecode(json: String): Array[ParamMap] = super.jsonDecode(json)
+  }
 
   def getEstimatorParamMaps: Array[ParamMap] = $(estimatorParamMaps)
 
@@ -97,6 +102,14 @@ class GridSearch[ModelIn <: ModelWithSummary[ModelIn]]
     val restoredParams = ParamMap(pairs : _*)
     
     (evaluation, restoredParams)
+  }
+
+  override protected def getForkTags(partialData: (ConfigHolder, DataFrame)): Seq[(String, String)]
+  = Seq("configuration" -> partialData._1.number.toString)
+
+  override protected def diveToReproContext(partialData: (ConfigHolder, DataFrame), estimator: SummarizableEstimator[ModelIn]): Unit = {
+    ReproContext.dive(getForkTags(partialData))
+    ReproContext.logParamPairs(partialData._1.config.toSeq, Seq())
   }
 }
 
