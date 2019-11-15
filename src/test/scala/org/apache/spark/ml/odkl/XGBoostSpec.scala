@@ -86,7 +86,7 @@ class XGBoostSpec extends FlatSpec with TestEnv with org.scalatest.Matchers with
     val loss = XGBoostSpec.createEstimator().setTrainTestRation(0.2).fit(XGBoostSpec._treeData).summary(lossHistory)
 
     loss.count() should be > 0L
-    loss.schema.size should be(4)
+    loss.schema.size should be(3)
 
     loss.where("loss > testLoss").count should be(0)
   }

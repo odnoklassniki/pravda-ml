@@ -179,10 +179,10 @@ class XGBoostRegressor(override val uid: String)
     var blocks = Map[Block, DataFrame]()
 
     // Loss history for the training process
-    blocks += lossHistory -> model.dlmc.summary.validationObjectiveHistory.map(test =>
+    blocks += lossHistory -> model.dlmc.summary.testObjectiveHistory.map(test =>
       sc.parallelize(
-        test._2.zip(model.dlmc.summary.trainObjectiveHistory).zipWithIndex.map(x => (test._1, x._2, x._1._2, x._1._1)), 1)
-        .toDF("tag", iteration, loss, testLoss)).reduceOption(_ unionByName _)
+        test.zip(model.dlmc.summary.trainObjectiveHistory).zipWithIndex.map(x => (x._2, x._1._2, x._1._1)), 1)
+        .toDF(iteration, loss, testLoss)).reduceOption(_ unionByName _)
       .getOrElse(sc.parallelize(model.dlmc.summary.trainObjectiveHistory.zipWithIndex.map(x => x._2 -> x._1), 1)
         .toDF(iteration, loss))
 

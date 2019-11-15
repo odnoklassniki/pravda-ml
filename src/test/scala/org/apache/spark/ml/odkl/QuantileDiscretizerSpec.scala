@@ -49,8 +49,8 @@ class QuantileDiscretizerSpec extends FlatSpec with TestEnv with org.scalatest.M
   }
 
   "Transformed data" should "contain only valid buckets for partly filled column" in {
-    val values = transformed.select('partlyEmpty_bucket.as[Option[Double]]).distinct().collect().sorted
-    values should contain theSameElementsInOrderAs Seq(None) ++ Array.tabulate(5){i => Some(i + 1.0)}
+    val values = transformed.select('partlyEmpty_bucket.as[java.lang.Double]).distinct().collect()
+    values should contain theSameElementsAs Seq(null) ++ Array.tabulate(5){i => java.lang.Double.valueOf(i + 1.0)}
   }
 
   "Transformed data" should "contain only single buckets for constant column" in {
@@ -59,8 +59,8 @@ class QuantileDiscretizerSpec extends FlatSpec with TestEnv with org.scalatest.M
   }
 
   "Transformed data" should "contain single buckets for empty column" in {
-    val values = transformed.select('empty_bucket.as[Option[Double]]).distinct().collect().sorted
-    values should contain theSameElementsInOrderAs Seq(None)
+    val values = transformed.select('empty_bucket.as[java.lang.Double]).distinct().collect().sorted
+    values should contain theSameElementsInOrderAs Seq(null)
   }
 }
 

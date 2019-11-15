@@ -6,7 +6,7 @@ name := "pravda-ml"
 libraryDependencies += "com.google.guava" % "guava" % "16.0.1" withSources()
 
 libraryDependencies ++= {
-  val sparkVer = "2.4.4"
+  val sparkVer = "2.3.4"
   Seq(
     "org.apache.spark"     %% "spark-core"              % sparkVer withSources() exclude("com.google.guava", "guava"),
     "org.apache.spark"     %% "spark-mllib"             % sparkVer withSources() exclude("com.google.guava", "guava"),
@@ -34,15 +34,15 @@ libraryDependencies ++= {
 }
 
 libraryDependencies ++= Seq(
-  "ml.dmlc" % "xgboost4j" % "0.90" withSources(),
-  "ml.dmlc" % "xgboost4j-spark" % "0.90" withSources()
+  "ml.dmlc" % "xgboost4j" % "0.81" withSources(),
+  "ml.dmlc" % "xgboost4j-spark" % "0.81" withSources()
 )
 
 libraryDependencies += "org.mlflow" % "mlflow-client" % "1.2.0"
 
 organization := "ru.odnoklassniki"
 
-version := "0.6.1-SNAPSHOT"
+version := "0.6.0-spark2.3"
 
 scalaVersion := "2.11.8"
 
