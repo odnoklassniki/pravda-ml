@@ -17,6 +17,7 @@ import org.mlflow.tracking.creds.BasicMlflowHostCreds
 class AiJourneyDemo extends TestEnv {
 
   import sqlc.implicits._
+  import org.apache.spark.repro.ReproContext._
 
   // Feature extractor used - in order to force overfitting and avoid trivial optimal parameters
   // we add ownerId_string column and one-hot it.
