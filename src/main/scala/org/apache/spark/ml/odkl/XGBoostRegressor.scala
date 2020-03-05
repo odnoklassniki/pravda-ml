@@ -129,6 +129,8 @@ class XGBoostRegressor(override val uid: String)
 
   def setPredictionCol(value: String): this.type = set(predictionCol, value)
 
+  def setGroupCol(value: String): this.type = set(groupCol, value)
+
   def setTrackerConf(workerConnectionTimeout: Long, trackerImpl: String): this.type = set(trackerConf, new TrackerConf(workerConnectionTimeout, trackerImpl))
 
   def setTrainTestRation(value: Double): this.type = set(trainTestRatio, value)
