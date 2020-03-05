@@ -107,7 +107,7 @@ class SeriallizableAvlTreeDigest(val initialCompression: Double = 100) extends S
     digest = AVLTreeDigest.fromBytes(ByteBuffer.wrap(bytes))
   }
 
-  def add(x: Double) = digest.add(x)
+  def add(x: Double) = if(x.isNaN)  {digest.add(0.0)} else {digest.add(x)}
 
   def add(x: SeriallizableAvlTreeDigest) = digest.add(x.digest)
 
