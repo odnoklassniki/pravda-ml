@@ -138,6 +138,7 @@ class XGBoostRegressor(override val uid: String)
   def setNumRounds(value: Int): this.type = set(numRound, value)
 
   def setSilent(value: Boolean): this.type = set(silent, if (value) 1 else 0)
+  def setVerbosity(value: Int): this.type = set(verbosity, value)
 
   def setCustomObjective(value: ObjectiveTrait): this.type = set(customObj, value)
 

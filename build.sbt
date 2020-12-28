@@ -8,10 +8,10 @@ libraryDependencies += "com.google.guava" % "guava" % "16.0.1" withSources()
 libraryDependencies ++= {
   val sparkVer = "2.4.4"
   Seq(
-    "org.apache.spark"     %% "spark-core"              % sparkVer withSources() exclude("com.google.guava", "guava"),
-    "org.apache.spark"     %% "spark-mllib"             % sparkVer withSources() exclude("com.google.guava", "guava"),
-    "org.apache.spark"     %% "spark-sql"               % sparkVer withSources() exclude("com.google.guava", "guava"),
-    "org.apache.spark"     %% "spark-streaming"         % sparkVer withSources() exclude("com.google.guava", "guava"),
+    "org.apache.spark" %% "spark-core" % sparkVer withSources() exclude("com.google.guava", "guava"),
+    "org.apache.spark" %% "spark-mllib" % sparkVer withSources() exclude("com.google.guava", "guava"),
+    "org.apache.spark" %% "spark-sql" % sparkVer withSources() exclude("com.google.guava", "guava"),
+    "org.apache.spark" %% "spark-streaming" % sparkVer withSources() exclude("com.google.guava", "guava"),
 
     "com.esotericsoftware" % "kryo" % "4.0.1"
   )
@@ -25,24 +25,24 @@ libraryDependencies ++= Seq(
 libraryDependencies ++= {
   val luceneVersion = "5.4.1"
   Seq(
-    "org.apache.lucene"    % "lucene-core"             % luceneVersion,
-    "org.apache.lucene"    % "lucene-analyzers-common" % luceneVersion,
+    "org.apache.lucene" % "lucene-core" % luceneVersion,
+    "org.apache.lucene" % "lucene-analyzers-common" % luceneVersion,
 
-    "com.optimaize.languagedetector" % "language-detector"  % "0.6" exclude("com.google.guava", "guava"),
+    "com.optimaize.languagedetector" % "language-detector" % "0.6" exclude("com.google.guava", "guava"),
     "com.tdunning" % "t-digest" % "3.2"
   )
 }
 
 libraryDependencies ++= Seq(
-  "ml.dmlc" % "xgboost4j" % "0.90" withSources(),
-  "ml.dmlc" % "xgboost4j-spark" % "0.90" withSources()
+  "ml.dmlc" %% "xgboost4j" % "1.1.1" withSources(),
+  "ml.dmlc" %% "xgboost4j-spark" % "1.1.1" withSources()
 )
 
 libraryDependencies += "org.mlflow" % "mlflow-client" % "1.2.0"
 
 organization := "ru.odnoklassniki"
 
-version := "0.6.1"
+version := "0.6.2"
 
 scalaVersion := "2.11.8"
 
@@ -61,22 +61,22 @@ scmInfo := Some(
 
 developers := List(
   Developer(
-    id    = "DmitryBugaychenko",
-    name  = "Dmitry Bugaychenko",
+    id = "DmitryBugaychenko",
+    name = "Dmitry Bugaychenko",
     email = "dmitry.bugaychenko@corp.mail.ru",
-    url   = url("https://www.linkedin.com/comm/in/dmitrybugaychenko")
+    url = url("https://www.linkedin.com/comm/in/dmitrybugaychenko")
   ),
   Developer(
-    id    = "EugenyMalyutin",
-    name  = "Eugeny Malyutin",
+    id = "EugenyMalyutin",
+    name = "Eugeny Malyutin",
     email = "eugeny.malyutin@corp.mail.ru",
-    url   = url("https://github.com/WarlockTheGrait")
+    url = url("https://github.com/WarlockTheGrait")
   ),
   Developer(
-    id    = "EugenyZhurin",
-    name  = "Eugeny Zhurin",
+    id = "EugenyZhurin",
+    name = "Eugeny Zhurin",
     email = "eugeny.zhurin@corp.mail.ru",
-    url   = url("https://github.com/Nordsvich")
+    url = url("https://github.com/Nordsvich")
   )
 )
 
@@ -89,7 +89,7 @@ publishTo := {
   if (isSnapshot.value)
     Some("snapshots" at nexus + "content/repositories/snapshots")
   else
-    Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
 credentials += Credentials(Path.userHome / ".sonatype" / "credentials.ini")
