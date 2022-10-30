@@ -59,7 +59,7 @@ class BinaryClassificationEvaluator(override val uid: String) extends Evaluator[
         .rdd.map{case Row(score: Double, label: Double) => (score, label)}
     }
 
-    val metrics = new BinaryClassificationMetrics(predictions, 100)
+    val metrics = new BinaryClassificationMetrics(predictions, numBins)
 
     val rows = if (metrics.roc().count() > 2) {
       dataset.sqlContext.sparkContext.parallelize(Seq(
